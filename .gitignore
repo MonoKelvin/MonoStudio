@@ -1,0 +1,9 @@
+**/debug/*
+**/release/*
+**/Debug/*
+**/Release/*
+*.Debug
+*.Release
+*.user
+/Test/*
+**/.vscode/*
