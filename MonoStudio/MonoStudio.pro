@@ -5,4 +5,4 @@ CONFIG += ordered
 SUBDIRS += \
         MonoToolkit \
         MonoUI \
-        ../Test/UITest
+        Test/UITest

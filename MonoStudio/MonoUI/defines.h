@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
  * @file    defines.h
  * @date    2020-09-05
  * @author  MonoKelvin
@@ -29,7 +29,6 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
-#include <QtCore/qglobal.h>
 #include <QWidget>
 #include <QStyleOption>
 #include <QStylePainter>
@@ -39,6 +38,11 @@
 #else
     #define MONOUI_API Q_DECL_IMPORT
 #endif
+
+typedef unsigned char uchar;
+typedef unsigned short ushort;
+typedef unsigned int uint;
+typedef unsigned long ulong;
 
 /** @brief 通过icon图标名称（不带后缀）找到QIcon */
 #define M_ICON(_Name_) QIcon::fromTheme(QStringLiteral(_Name_))

@@ -29,8 +29,9 @@
 #ifndef MONOUI_H
 #define MONOUI_H
 
-#include <QGraphicsBlurEffect>
 #include <qnamespace.h>
+
+#include "defines.h"
 
 namespace mui
 {
@@ -39,36 +40,24 @@ namespace mui
      */
     enum EUIStateHint
     {
-        // 静态
+        // 静态，控件初始设置后不会进行重绘和重新设置geometry等属性
         StaticUI,
 
-        // 半静态
+        // 半静态，控件只在geometry发生变化才重绘或更新状态
         SemiStaticUI,
 
-        // 动态
+        // 动态，控件在geometry发生变化、内容变化等状态属性变化时就进行更新
         DynamicUI,
 
-        // 手动更新
+        // 手动更新，只有手动执行控件相关更新方法时才更新
         ManualUpdate,
 
-        // 自动更新
+        // 自动更新，由系统自动决定是否需要更新
         AutoUpdate,
     };
 
-    /**
-     * @brief 绘制圆角矩形
-     * @param painter 画笔
-     * @param rect 矩形
-     * @param lt 左上角圆弧
-     * @param rt 右上角圆弧
-     * @param lb 左下角圆弧
-     * @param rb 右下角圆弧
-     */
-    void MONOUI_API DrawRoundRect(QPainter* painter, const QRect& rect, int lt = 10,
-                                  int rt = 10, int lb = 10, int rb = 10);
-
     /** @brief 阴影参数 */
-    struct MONOUI_API SShadowParam
+    struct SShadowParam
     {
         /** @brief 阴影颜色 */
         QColor Color;
@@ -90,36 +79,9 @@ namespace mui
         {}
     };
 
-    /** @brief 彩色阴影参数 */
-    struct MONOUI_API SColorfulShadowParam
-    {
-        /** @brief 透明度 */
-        qreal Opacity;
-
-        /** @brief 模糊半径 */
-        qreal Radius;
-
-        /** @brief X方向偏移 */
-        qreal XOffset;
-
-        /** @brief Y方向偏移 */
-        qreal YOffset;
-
-        QGraphicsBlurEffect::BlurHints BlurHints;
-
-        EUIStateHint UIStateHint;
-
-        SColorfulShadowParam(void) noexcept
-            : Opacity(0.6)
-            , Radius(20.0)
-            , XOffset(0.0)
-            , YOffset(0.0)
-        {}
-    };
-
     /** @brief 边角参数 */
     template<class _Ty>
-    struct MONOUI_API SBorder
+    struct SBorder
     {
         _Ty topLeft;
         _Ty topRight;
@@ -153,6 +115,30 @@ namespace mui
         }
     };
 
+    /**
+     * @brief 绘制圆角矩形
+     * @param painter 画笔
+     * @param rect 矩形
+     * @param lt 左上角圆弧
+     * @param rt 右上角圆弧
+     * @param lb 左下角圆弧
+     * @param rb 右下角圆弧
+     */
+    void MONOUI_API DrawRoundRect(QPainter* painter, const QRect& rect, int lt = 10,
+                                  int rt = 10, int lb = 10, int rb = 10);
+
+    /**
+     * @brief 绘制背景图片到控件上
+     * @param widget 控件
+     * @param pixmap 图片
+     * @note 绘制的图片不会进行缩放、适应或拉伸等
+     */
+    inline void DrawBackground(QWidget* widget, const QPixmap& pixmap) noexcept
+    {
+        QPalette pal = widget->palette();
+        pal.setBrush(QPalette::Window, QBrush(pixmap));
+        widget->setPalette(pal);
+    }
 }
 
 #endif // MONOUI_H

@@ -29,7 +29,7 @@
 #ifndef MSTYLEWINDOW_H
 #define MSTYLEWINDOW_H
 
-#include "MonoUI.h"
+#include "common/MonoUI.h"
 
 namespace mui
 {

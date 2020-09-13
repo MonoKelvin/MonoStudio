@@ -10,21 +10,27 @@ CONFIG += c++11 precompile_header
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 DESTDIR= $$PWD/../bin
+INCLUDEPATH+= $$PWD/
 
 PRECOMPILED_HEADER = $$PWD/defines.h
 
 SOURCES += \
-    MonoUI.cpp \
-    MonoWidget.cpp \
-    common/MColorfulShadowWidget.cpp \
+    common/MonoUI.cpp \
+    common/MonoWidget.cpp \
+    common/qimageblur.cpp \
+    effect/MColorfulShadowEffect.cpp \
+    style/MStyleNavbar.cpp \
     style/MStyleWindow.cpp \
     style/MTitleBar.cpp
 
 HEADERS += \
-    MonoUI.h \
-    MonoWidget.h \
     defines.h \
-    common/MColorfulShadowWidget.h \
+    common/qimageblur.h \
+    common/qmemrotate.h \
+    common/MonoUI.h \
+    common/MonoWidget.h \
+    effect/MColorfulShadowEffect.h \
+    style/MStyleNavbar.h \
     style/MStyleWindow.h \
     style/MTitleBar.h
 
