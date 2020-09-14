@@ -30,6 +30,7 @@
 #define DEFINES_H
 
 #include <QWidget>
+#include <QDebug>
 #include <QStyleOption>
 #include <QStylePainter>
 

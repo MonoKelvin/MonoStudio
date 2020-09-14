@@ -7,5 +7,5 @@
 *.user
 **/Test/*
 **/.vscode/*
-./bin/*
+**/bin/*
 Makefile

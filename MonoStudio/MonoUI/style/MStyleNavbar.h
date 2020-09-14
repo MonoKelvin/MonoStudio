@@ -124,6 +124,13 @@ namespace mui
          */
         void addItem(const QString& text, const QIcon& icon = QIcon(), int index = -1);
 
+        void setItemSize(int w, int h, int index = -1);
+
+        inline void setItemSize(const QSize& size, int index = -1)
+        {
+            setItemSize(size.width(), size.height(), index);
+        }
+
         void removeItem(int pos);
 
         QPushButton* getItem(uint index);
@@ -170,13 +177,20 @@ namespace mui
 
     protected:
         //bool eventFilter(QObject*, QEvent*) override;
-        //void resizeEvent(QResizeEvent*) override;
+        inline void resizeEvent(QResizeEvent*) override
+        {
+            _updateScrollBars();
+        }
+
+        QSize viewportSizeHint() const override;
 
     private:
         void _updateItemId(void);
         void _init(Qt::Orientation ori);
-
+        void _updateScrollBars(void);
+        void _updateWidgetPosition(void);
         void _adjustTrackBarPosition(bool isStopAnimation = false);
+        void _resizeContent(int newWidth, int newHeight);
 
     private:
         /** @brief 导航追踪条样式 */
