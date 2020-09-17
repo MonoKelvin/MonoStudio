@@ -3,6 +3,7 @@
 #include <QLayout>
 #include <QScrollBar>
 #include <QButtonGroup>
+#include <QEvent>
 #include <QPushButton>
 #include <QPropertyAnimation>
 
@@ -52,7 +53,6 @@ namespace mui
         }
 
         _updateItemId();
-        _resizeContent(mContent->width(), mContent->height() + btn->height());
     }
 
     void MStyleNavbar::setItemSize(int w, int h, int index)
@@ -64,16 +64,14 @@ namespace mui
             {
                 for (auto& btn : mNavGroup->buttons())
                 {
-                    _resizeContent(mContent->width(), mContent->height() + h - btn->height());
-                    btn->resize(w, h);
+                    btn->setFixedHeight(h);
                 }
             }
             else
             {
                 for (auto& btn : mNavGroup->buttons())
                 {
-                    _resizeContent(mContent->width() + w - btn->width(), mContent->height());
-                    btn->resize(w, h);
+                    btn->setFixedWidth(w);
                 }
             }
         }
@@ -82,29 +80,37 @@ namespace mui
             QAbstractButton* btn = mNavGroup->button(index);
             if (getOrientation() == Qt::Vertical)
             {
-                _resizeContent(mContent->width(), mContent->height() + h - btn->height());
+                btn->setFixedHeight(h);
             }
             else
             {
-                _resizeContent(mContent->width() + w - btn->width(), mContent->height());
+                btn->setFixedWidth(w);
             }
-            mNavGroup->button(index)->resize(w, h);
         }
     }
 
-    void MStyleNavbar::removeItem(int pos)
+    void MStyleNavbar::setItemEnabled(int index, bool isEnabled)
     {
-        auto& item = mNavGroup->buttons().at(pos);
+        QAbstractButton* btn = mNavGroup->button(index);
+        if (nullptr != btn)
+        {
+            btn->setEnabled(isEnabled);
+        }
+    }
+
+    void MStyleNavbar::removeItem(int index)
+    {
+        auto& item = mNavGroup->buttons().at(index);
         if (nullptr != item)
         {
-            mNavGroup->buttons().removeAt(pos);
+            mNavGroup->buttons().removeAt(index);
             item->deleteLater();
 
             _updateItemId();
         }
     }
 
-    QPushButton* MStyleNavbar::getItem(uint index)
+    QPushButton* MStyleNavbar::getItem(int index)
     {
         return qobject_cast<QPushButton*>(mNavGroup->button(index));
     }
@@ -139,7 +145,7 @@ namespace mui
             mTrackBar->move(0, y);
         }
 
-        _adjustTrackBarPosition();
+        _updateTrackBarPosition();
     }
 
     void MStyleNavbar::setSpacing(int spacing)
@@ -173,9 +179,29 @@ namespace mui
         if (index >= 0 && index < len)
         {
             mNavGroup->button(index)->toggle();
-            _adjustTrackBarPosition();
+            _updateTrackBarPosition();
             emit navigated(qobject_cast<QPushButton*>(mNavGroup->button(index)));
         }
+    }
+
+    bool MStyleNavbar::event(QEvent* e)
+    {
+        if (e->type() == QEvent::StyleChange || e->type() == QEvent::LayoutRequest)
+        {
+            _updateScrollBars();
+        }
+
+        return QAbstractScrollArea::event(e);
+    }
+
+    bool MStyleNavbar::eventFilter(QObject* o, QEvent* e)
+    {
+        if (o == mContent && e->type() == QEvent::Resize)
+        {
+            _updateScrollBars();
+        }
+
+        return QAbstractScrollArea::eventFilter(o, e);
     }
 
     QSize MStyleNavbar::viewportSizeHint() const
@@ -183,46 +209,66 @@ namespace mui
         return mContent->sizeHint();
     }
 
-    int MStyleNavbar::getCurrentItemDistance(bool isCenter)
+    void MStyleNavbar::scrollContentsBy(int, int)
     {
-        const int curIdx = mNavGroup->checkedId();
-        if (curIdx < 0)
+        _updateContentPosition();
+    }
+
+    int MStyleNavbar::getItemDistance(int index, bool isCenter)
+    {
+        if (index < 0)
         {
-            return -1;
+            index = mNavGroup->checkedId();
+            if (index < 0)
+            {
+                return -1;
+            }
         }
 
-        int dist = curIdx * mLayout->spacing();
+        int dist = index * mLayout->spacing();
 
         if (getOrientation() == Qt::Vertical)
         {
             dist += mLayout->contentsMargins().top();
 
-            for (int i = 0; i < curIdx; ++i)
+            for (int i = 0; i < index; ++i)
             {
                 dist += mNavGroup->button(i)->height();
             }
 
             if (isCenter)
             {
-                dist += mNavGroup->button(curIdx)->height() / 2;
+                dist += mNavGroup->button(index)->height() / 2;
             }
         }
         else
         {
             dist += mLayout->contentsMargins().left();
 
-            for (int i = 0; i < curIdx; ++i)
+            for (int i = 0; i < index; ++i)
             {
                 dist += mNavGroup->button(i)->width();
             }
 
             if (isCenter)
             {
-                dist += mNavGroup->button(curIdx)->width() / 2;
+                dist += mNavGroup->button(index)->width() / 2;
             }
         }
 
         return dist;
+    }
+
+    int MStyleNavbar::getItemOffset(int index, bool isCenter)
+    {
+        if (getOrientation() == Qt::Vertical)
+        {
+            return getItemDistance(index, isCenter) + mContent->y();
+        }
+        else
+        {
+            return getItemDistance(index, isCenter) + mContent->x();
+        }
     }
 
     void MStyleNavbar::_updateItemId()
@@ -232,10 +278,10 @@ namespace mui
         {
             mNavGroup->setId(mNavGroup->buttons().at(i), i);
         }
-        _adjustTrackBarPosition(true);
+        _updateTrackBarPosition(true);
     }
 
-    void MStyleNavbar::_adjustTrackBarPosition(bool isStopAnimation)
+    void MStyleNavbar::_updateTrackBarPosition(bool isStopAnimation)
     {
         if (!mTrackBarStyle.isEnabled)
         {
@@ -248,9 +294,10 @@ namespace mui
         }
         else
         {
-            const int dist = getCurrentItemDistance();
+            const int dist = getItemDistance();
             if (dist < 0)
             {
+                mTrackBar->setVisible(false);
                 return;
             }
 
@@ -259,10 +306,19 @@ namespace mui
             QRect geo = mTrackBar->geometry();
             if (getOrientation() == Qt::Vertical)
             {
+                if (mTrackBarStyle.isFitItem)
+                {
+                    geo.setHeight(getCurrentItem()->height());
+                }
+
                 geo.moveCenter(QPoint(geo.center().x(), dist));
             }
             else
             {
+                if (mTrackBarStyle.isFitItem)
+                {
+                    geo.setWidth(getCurrentItem()->width());
+                }
                 geo.moveCenter(QPoint(dist, geo.center().y()));
             }
 
@@ -282,17 +338,36 @@ namespace mui
         }
     }
 
-    void MStyleNavbar::_resizeContent(int newWidth, int newHeight)
+    int MStyleNavbar::_inverseTrack(QAbstractButton* btn)
     {
-        if (newWidth < viewport()->width())
+        if (nullptr == btn)
         {
-            newWidth = viewport()->width();
+            mTrackBar->setVisible(false);
+            return -1;
         }
-        if (newHeight < viewport()->height())
+
+        const int dist = getItemOffset();
+
+        mTrackBar->setVisible(true);
+
+        QRect geo = mTrackBar->geometry();
+        if (getOrientation() == Qt::Vertical)
         {
-            newHeight = viewport()->height();
+            if (mTrackBarStyle.isFitItem)
+            {
+                geo.setHeight(getCurrentItem()->height());
+            }
+
+            geo.moveCenter(QPoint(geo.center().x(), dist));
         }
-        mContent->resize(newWidth, newHeight);
+        else
+        {
+            if (mTrackBarStyle.isFitItem)
+            {
+                geo.setWidth(getCurrentItem()->width());
+            }
+            geo.moveCenter(QPoint(dist, geo.center().y()));
+        }
     }
 
     void MStyleNavbar::_init(Qt::Orientation ori)
@@ -312,15 +387,18 @@ namespace mui
         // 布局
         if (ori == Qt::Vertical)
         {
+            setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
             mLayout = new QBoxLayout(QBoxLayout::TopToBottom, mContent);
         }
         else
         {
+            setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
             mLayout = new QBoxLayout(QBoxLayout::LeftToRight, mContent);
         }
 
         mLayout->setSpacing(10);
         mLayout->setMargin(10);
+        mLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
 
         mContent->installEventFilter(this);
 
@@ -334,16 +412,17 @@ namespace mui
         mContent->raise();
         mTrackBar->raise();
         mTrackBar->setVisible(false);
+        setTrackBarStyle({});
     }
 
-    void MStyleNavbar::_updateScrollBars()
+    void MStyleNavbar::_updateScrollBars(void)
     {
         QSize p = viewport()->size();
-        const auto& m = maximumViewportSize();
-        QSize min = mContent->minimumSize();
+        //const auto& m = maximumViewportSize();
+        const auto& min = mContent->minimumSize();
         const auto& max = mContent->maximumSize();
 
-        if (mLayout->hasHeightForWidth())
+        /*if (mLayout->hasHeightForWidth())
         {
             const QSize p_hfw = p.expandedTo(min).boundedTo(max);
             const int h = mContent->heightForWidth(p_hfw.width());
@@ -353,20 +432,27 @@ namespace mui
         if (m.expandedTo(min) == m && m.boundedTo(max) == m)
         {
             p = m;    // no scroll bars needed
-        }
+        }*/
 
-        //mContent->resize(p.expandedTo(min).boundedTo(max));
-        const auto& v = p.expandedTo(min).boundedTo(max);//mContent->size();
+        const auto& v = p.expandedTo(min).boundedTo(max);
+        if (getOrientation() == Qt::Vertical)
+        {
+            mContent->resize(width(), mContent->height());
+        }
+        else
+        {
+            mContent->resize(mContent->width(), height());
+        }
 
         horizontalScrollBar()->setRange(0, v.width() - p.width());
         horizontalScrollBar()->setPageStep(p.width());
         verticalScrollBar()->setRange(0, v.height() - p.height());
         verticalScrollBar()->setPageStep(p.height());
 
-        _updateWidgetPosition();
+        _updateContentPosition();
     }
 
-    void MStyleNavbar::_updateWidgetPosition()
+    void MStyleNavbar::_updateContentPosition()
     {
         const auto& hbar = horizontalScrollBar();
         const auto& vbar = verticalScrollBar();
