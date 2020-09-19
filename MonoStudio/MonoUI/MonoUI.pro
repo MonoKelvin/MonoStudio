@@ -19,6 +19,7 @@ SOURCES += \
     common/MonoWidget.cpp \
     common/qimageblur.cpp \
     effect/MColorfulShadowEffect.cpp \
+    style/MStyleCalendar.cpp \
     style/MStyleNavbar.cpp \
     style/MStyleWindow.cpp \
     style/MTitleBar.cpp
@@ -30,6 +31,7 @@ HEADERS += \
     common/MonoUI.h \
     common/MonoWidget.h \
     effect/MColorfulShadowEffect.h \
+    style/MStyleCalendar.h \
     style/MStyleNavbar.h \
     style/MStyleWindow.h \
     style/MTitleBar.h

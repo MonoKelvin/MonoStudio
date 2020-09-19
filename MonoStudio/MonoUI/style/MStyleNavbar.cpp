@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QPropertyAnimation>
 #include <QParallelAnimationGroup>
+#include <QWheelEvent>
 
 namespace mui
 {
@@ -182,27 +183,57 @@ namespace mui
 
     bool MStyleNavbar::eventFilter(QObject* o, QEvent* e)
     {
-        if (o == mContent && e->type() == QEvent::Resize) {
-            _updateScrollBars();
+        if (o == mContent) {
+            switch (e->type()) {
+            case QEvent::Resize:
+                _updateScrollBars();
+                break;
+            case QEvent::Wheel: {
+                const auto& wheelEvt = static_cast<QWheelEvent*>(e);
+                const auto scrollValue = wheelEvt->angleDelta() / 6;
+                if (getOrientation() == Qt::Vertical) {
+                    auto vbar = verticalScrollBar();
+                    vbar->setValue(vbar->value() - scrollValue.y());
+                } else {
+                    auto hbar = horizontalScrollBar();
+                    hbar->setValue(hbar->value() - scrollValue.y());
+                }
+            }
+            break;
+            default:
+                break;
+            }
         }
 
         return QAbstractScrollArea::eventFilter(o, e);
     }
 
-    void MStyleNavbar::resizeEvent(QResizeEvent*)
+    void MStyleNavbar::resizeEvent(QResizeEvent* event)
     {
         _updateScrollBars();
-        updateTrackBarStyle();
-    }
 
-    QSize MStyleNavbar::viewportSizeHint() const
-    {
-        return mContent->sizeHint();
+        return QAbstractScrollArea::resizeEvent(event);
     }
 
     void MStyleNavbar::scrollContentsBy(int, int)
     {
         _updateContentPosition();
+    }
+
+    void MStyleNavbar::showEvent(QShowEvent* e)
+    {
+        int index = mNavGroup->checkedId();
+        index = index == -1 ? 0 : index;
+
+        const int len = mNavGroup->buttons().length();
+        if (index >= 0 && index < len && index != mPrevIndex) {
+            mNavGroup->button(index)->toggle();
+            updateTrackBarStyle();
+            mPrevIndex = index;
+            emit navigated(index);
+        }
+
+        return QAbstractScrollArea::showEvent(e);
     }
 
     int MStyleNavbar::getItemDistance(int index, bool isCenter)
@@ -301,10 +332,10 @@ namespace mui
     void MStyleNavbar::_init(Qt::Orientation ori)
     {
         viewport()->setBackgroundRole(QPalette::NoRole);
-        horizontalScrollBar()->setSingleStep(10);
-        verticalScrollBar()->setSingleStep(10);
-        // horizontalScrollBar()->setValue(0);
-        // verticalScrollBar()->setValue(0);
+        horizontalScrollBar()->setSingleStep(15);
+        verticalScrollBar()->setSingleStep(15);
+        horizontalScrollBar()->setValue(0);
+        verticalScrollBar()->setValue(0);
         setObjectName(QStringLiteral(MUI_NAVBAR_OBJNAME));
 
         mBoundaryOffset = 20;
@@ -340,8 +371,6 @@ namespace mui
 
         mContent->raise();
         mTrackBar->raise();
-
-        updateTrackBarStyle();
     }
 
     void MStyleNavbar::_updateItemId()
@@ -375,6 +404,7 @@ namespace mui
                 x = ((mTrackBarStyle.offset >= 0) ? 0 : (mContent->width() - mTrackBar->width() + 1))
                     + mTrackBarStyle.offset;
                 y = dist - mContent->y() - geo.height() / 2;
+
             } else {
                 if (mTrackBarStyle.isFitItem) {
                     geo.setWidth(getCurrentItem()->width());
@@ -385,8 +415,12 @@ namespace mui
             }
             geo.moveTopLeft(QPoint(x, y));
 
-            if (mTrackBarStyle.isAnimation && !stopAnimation) {
-                QPropertyAnimation* ani = new QPropertyAnimation(mTrackBar, QByteArrayLiteral("geometry"), mTrackBar);
+            if (!stopAnimation && mTrackBarStyle.isAnimation) {
+                if (geo == mTrackBar->geometry()) {
+                    return;
+                }
+
+                QPropertyAnimation* ani = new QPropertyAnimation(mTrackBar, QByteArrayLiteral("geometry"));
                 ani->setEasingCurve(QEasingCurve::Type(mTrackBarStyle.animationType));
                 ani->setDuration(mTrackBarStyle.duration);
                 ani->setStartValue(mTrackBar->geometry());
@@ -419,9 +453,9 @@ namespace mui
 
         const auto& v = p.expandedTo(min).boundedTo(max);
         if (getOrientation() == Qt::Vertical) {
-            mContent->resize(width(), mContent->height());
+            mContent->resize(viewport()->width(), mContent->height());
         } else {
-            mContent->resize(mContent->width(), height());
+            mContent->resize(mContent->width(), viewport()->height());
         }
 
         horizontalScrollBar()->setRange(0, v.width() - p.width());
@@ -430,6 +464,7 @@ namespace mui
         verticalScrollBar()->setPageStep(p.height());
 
         _updateContentPosition();
+        updateTrackBarStyle();
     }
 
     void MStyleNavbar::_updateContentPosition()
@@ -438,9 +473,10 @@ namespace mui
         const auto& vbar = verticalScrollBar();
 
         const Qt::LayoutDirection dir = layoutDirection();
-        const QRect scrolled = QStyle::visualRect(dir, viewport()->rect(), QRect(QPoint(-hbar->value(), -vbar->value()),
-                               mContent->size()));
-        const QRect aligned = QStyle::alignedRect(dir, Qt::AlignLeft | Qt::AlignTop, mContent->size(), viewport()->rect());
+        const QRect scrolled = QStyle::visualRect(dir, viewport()->rect(),
+                               QRect(QPoint(-hbar->value(), -vbar->value()), mContent->size()));
+        const QRect aligned = QStyle::alignedRect(dir, Qt::AlignLeft | Qt::AlignTop,
+                              mContent->size(), viewport()->rect());
         mContent->move(mContent->width() < viewport()->width() ? aligned.x() : scrolled.x(),
                        mContent->height() < viewport()->height() ? aligned.y() : scrolled.y());
     }
@@ -489,14 +525,6 @@ namespace mui
             scroll(scrollValue, 0);
             return offset + btn->width() / 2;
         }
-    }
-
-    void MStyleNavbar::showEvent(QShowEvent* e)
-    {
-        const int index = mNavGroup->checkedId();
-        navigate(index == -1 ? 0 : index);
-
-        return QAbstractScrollArea::showEvent(e);
     }
 
 } // namespace mui

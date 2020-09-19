@@ -94,6 +94,7 @@ namespace mui
 
         /**
          * @brief 是否使用拉伸动画，isAnimation为true时该值有效。
+         * @todo 下一个版本中完成
          */
         bool isStretchingAnimation;
 
@@ -418,8 +419,7 @@ namespace mui
     protected:
         bool event(QEvent* e) override;
         bool eventFilter(QObject* o, QEvent* e) override;
-        void resizeEvent(QResizeEvent*) override;
-        QSize viewportSizeHint() const override;
+        void resizeEvent(QResizeEvent* event) override;
         void scrollContentsBy(int, int) override;
         void showEvent(QShowEvent* e) override;
 
