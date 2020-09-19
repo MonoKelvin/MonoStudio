@@ -1,4 +1,4 @@
-#include "MStyleNavbar.h"
+﻿#include "MStyleNavbar.h"
 
 #include <QLayout>
 #include <QScrollBar>
@@ -6,6 +6,7 @@
 #include <QEvent>
 #include <QPushButton>
 #include <QPropertyAnimation>
+#include <QParallelAnimationGroup>
 
 namespace mui
 {
@@ -23,13 +24,32 @@ namespace mui
 
     MStyleNavbar::~MStyleNavbar()
     {
+    }
 
+    int MStyleNavbar::getHScrollValue() const noexcept
+    {
+        return horizontalScrollBar()->value();
+    }
+
+    void MStyleNavbar::setHScrollValue(int value)
+    {
+        horizontalScrollBar()->setValue(value);
+        _updateContentPosition();
+    }
+
+    int MStyleNavbar::getVScrollValue() const noexcept
+    {
+        return verticalScrollBar()->value();
+    }
+
+    void MStyleNavbar::setVScrollValue(int value)
+    {
+        verticalScrollBar()->setValue(value);
+        _updateContentPosition();
     }
 
     void MStyleNavbar::addItem(const QString& text, const QIcon& icon, int index)
     {
-        const bool isBtnsEmpty = mNavGroup->buttons().empty();
-
         QPushButton* btn = new QPushButton(icon, text, this);
 
         btn->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -47,43 +67,32 @@ namespace mui
         mLayout->insertWidget(index, btn);
         mNavGroup->addButton(btn);
 
-        if (isBtnsEmpty)
-        {
-            btn->setChecked(true);
-        }
-
         _updateItemId();
+    }
+
+    int MStyleNavbar::getItemCount() const noexcept
+    {
+        return mNavGroup->buttons().size();
     }
 
     void MStyleNavbar::setItemSize(int w, int h, int index)
     {
         const int len = mNavGroup->buttons().size();
-        if (index < 0 || index >= len)
-        {
-            if (getOrientation() == Qt::Vertical)
-            {
-                for (auto& btn : mNavGroup->buttons())
-                {
+        if (index < 0 || index >= len) {
+            if (getOrientation() == Qt::Vertical) {
+                for (auto& btn : mNavGroup->buttons()) {
                     btn->setFixedHeight(h);
                 }
-            }
-            else
-            {
-                for (auto& btn : mNavGroup->buttons())
-                {
+            } else {
+                for (auto& btn : mNavGroup->buttons()) {
                     btn->setFixedWidth(w);
                 }
             }
-        }
-        else
-        {
+        } else {
             QAbstractButton* btn = mNavGroup->button(index);
-            if (getOrientation() == Qt::Vertical)
-            {
+            if (getOrientation() == Qt::Vertical) {
                 btn->setFixedHeight(h);
-            }
-            else
-            {
+            } else {
                 btn->setFixedWidth(w);
             }
         }
@@ -92,8 +101,7 @@ namespace mui
     void MStyleNavbar::setItemEnabled(int index, bool isEnabled)
     {
         QAbstractButton* btn = mNavGroup->button(index);
-        if (nullptr != btn)
-        {
+        if (nullptr != btn) {
             btn->setEnabled(isEnabled);
         }
     }
@@ -101,8 +109,7 @@ namespace mui
     void MStyleNavbar::removeItem(int index)
     {
         auto& item = mNavGroup->buttons().at(index);
-        if (nullptr != item)
-        {
+        if (nullptr != item) {
             mNavGroup->buttons().removeAt(index);
             item->deleteLater();
 
@@ -122,30 +129,10 @@ namespace mui
 
     Qt::Orientation MStyleNavbar::getOrientation() const
     {
-        return (mLayout->direction() == QBoxLayout::TopToBottom
-                || mLayout->direction() == QBoxLayout::BottomToTop)
-               ? Qt::Vertical : Qt::Horizontal;
-    }
-
-    void MStyleNavbar::setTrackBarStyle(const SNavTrackBarStyle& trackBarStyle)
-    {
-        mTrackBarStyle = trackBarStyle;
-        mTrackBar->setVisible(mTrackBarStyle.isEnabled);
-
-        if (getOrientation() == Qt::Vertical)
-        {
-            const int x = ((mTrackBarStyle.offset >= 0) ? 0 : (width() - mTrackBar->width() + 1))
-                          + mTrackBarStyle.offset;
-            mTrackBar->move(x, 0);
-        }
-        else
-        {
-            const int y = ((mTrackBarStyle.offset < 0) ? 1 : (width() - mTrackBar->width()))
-                          + mTrackBarStyle.offset;
-            mTrackBar->move(0, y);
-        }
-
-        _updateTrackBarPosition();
+        return (mLayout->direction() == QBoxLayout::TopToBottom ||
+                mLayout->direction() == QBoxLayout::BottomToTop)
+               ? Qt::Vertical
+               : Qt::Horizontal;
     }
 
     void MStyleNavbar::setSpacing(int spacing)
@@ -176,18 +163,17 @@ namespace mui
     void MStyleNavbar::navigate(int index)
     {
         const int len = mNavGroup->buttons().length();
-        if (index >= 0 && index < len)
-        {
+        if (index >= 0 && index < len && index != mPrevIndex) {
             mNavGroup->button(index)->toggle();
-            _updateTrackBarPosition();
-            emit navigated(qobject_cast<QPushButton*>(mNavGroup->button(index)));
+            updateTrackBarStyle(false);
+            mPrevIndex = index;
+            emit navigated(index);
         }
     }
 
     bool MStyleNavbar::event(QEvent* e)
     {
-        if (e->type() == QEvent::StyleChange || e->type() == QEvent::LayoutRequest)
-        {
+        if (e->type() == QEvent::StyleChange || e->type() == QEvent::LayoutRequest) {
             _updateScrollBars();
         }
 
@@ -196,12 +182,17 @@ namespace mui
 
     bool MStyleNavbar::eventFilter(QObject* o, QEvent* e)
     {
-        if (o == mContent && e->type() == QEvent::Resize)
-        {
+        if (o == mContent && e->type() == QEvent::Resize) {
             _updateScrollBars();
         }
 
         return QAbstractScrollArea::eventFilter(o, e);
+    }
+
+    void MStyleNavbar::resizeEvent(QResizeEvent*)
+    {
+        _updateScrollBars();
+        updateTrackBarStyle();
     }
 
     QSize MStyleNavbar::viewportSizeHint() const
@@ -216,42 +207,33 @@ namespace mui
 
     int MStyleNavbar::getItemDistance(int index, bool isCenter)
     {
-        if (index < 0)
-        {
+        if (index < 0) {
             index = mNavGroup->checkedId();
-            if (index < 0)
-            {
+            if (index < 0) {
                 return -1;
             }
         }
 
         int dist = index * mLayout->spacing();
 
-        if (getOrientation() == Qt::Vertical)
-        {
+        if (getOrientation() == Qt::Vertical) {
             dist += mLayout->contentsMargins().top();
 
-            for (int i = 0; i < index; ++i)
-            {
+            for (int i = 0; i < index; ++i) {
                 dist += mNavGroup->button(i)->height();
             }
 
-            if (isCenter)
-            {
+            if (isCenter) {
                 dist += mNavGroup->button(index)->height() / 2;
             }
-        }
-        else
-        {
+        } else {
             dist += mLayout->contentsMargins().left();
 
-            for (int i = 0; i < index; ++i)
-            {
+            for (int i = 0; i < index; ++i) {
                 dist += mNavGroup->button(i)->width();
             }
 
-            if (isCenter)
-            {
+            if (isCenter) {
                 dist += mNavGroup->button(index)->width() / 2;
             }
         }
@@ -261,112 +243,58 @@ namespace mui
 
     int MStyleNavbar::getItemOffset(int index, bool isCenter)
     {
-        if (getOrientation() == Qt::Vertical)
-        {
+        if (getOrientation() == Qt::Vertical) {
             return getItemDistance(index, isCenter) + mContent->y();
-        }
-        else
-        {
+        } else {
             return getItemDistance(index, isCenter) + mContent->x();
         }
     }
 
-    void MStyleNavbar::_updateItemId()
+    void MStyleNavbar::setBoundaryOffset(int value)
     {
-        const int len = mNavGroup->buttons().length();
-        for (int i = 0; i < len; ++i)
-        {
-            mNavGroup->setId(mNavGroup->buttons().at(i), i);
-        }
-        _updateTrackBarPosition(true);
-    }
-
-    void MStyleNavbar::_updateTrackBarPosition(bool isStopAnimation)
-    {
-        if (!mTrackBarStyle.isEnabled)
-        {
-            return;
-        }
-
-        if (mNavGroup->buttons().empty())
-        {
-            mTrackBar->setVisible(false);
-        }
-        else
-        {
-            const int dist = getItemDistance();
-            if (dist < 0)
-            {
-                mTrackBar->setVisible(false);
-                return;
+        if (!mNavGroup->buttons().isEmpty()) {
+            const int count = mNavGroup->buttons().size();
+            int minValue = 0;
+            if (getOrientation() == Qt::Vertical) {
+                minValue = qMin(mNavGroup->button(0)->height(), mNavGroup->button(count - 1)->height());
+            } else {
+                minValue = qMin(mNavGroup->button(0)->width(), mNavGroup->button(count - 1)->width());
             }
-
-            mTrackBar->setVisible(true);
-
-            QRect geo = mTrackBar->geometry();
-            if (getOrientation() == Qt::Vertical)
-            {
-                if (mTrackBarStyle.isFitItem)
-                {
-                    geo.setHeight(getCurrentItem()->height());
-                }
-
-                geo.moveCenter(QPoint(geo.center().x(), dist));
-            }
-            else
-            {
-                if (mTrackBarStyle.isFitItem)
-                {
-                    geo.setWidth(getCurrentItem()->width());
-                }
-                geo.moveCenter(QPoint(dist, geo.center().y()));
-            }
-
-            if (mTrackBarStyle.isAnimation && !isStopAnimation)
-            {
-                QPropertyAnimation* ani = new QPropertyAnimation(mTrackBar, QByteArrayLiteral("geometry"), mTrackBar);
-                ani->setEasingCurve(QEasingCurve::Type(mTrackBarStyle.animationType));
-                ani->setDuration(mTrackBarStyle.duration);
-                ani->setStartValue(mTrackBar->geometry());
-                ani->setEndValue(geo);
-                ani->start(QAbstractAnimation::DeleteWhenStopped);
-            }
-            else
-            {
-                mTrackBar->setGeometry(geo);
-            }
+            mBoundaryOffset = qMin(minValue, value);
         }
     }
 
-    int MStyleNavbar::_inverseTrack(QAbstractButton* btn)
+    void MStyleNavbar::scroll(int h, int v)
     {
-        if (nullptr == btn)
-        {
-            mTrackBar->setVisible(false);
-            return -1;
+        QPropertyAnimation* hAni = nullptr;
+        if (h != 0) {
+            const int hCurValue = horizontalScrollBar()->value();
+            hAni = new QPropertyAnimation(this, QByteArrayLiteral("hScrollValue"));
+            hAni->setEasingCurve(QEasingCurve::Type(mTrackBarStyle.animationType));
+            hAni->setDuration(mTrackBarStyle.duration);
+            hAni->setStartValue(hCurValue);
+            hAni->setEndValue(qMax(0, qMin(hCurValue - h, horizontalScrollBar()->maximum())));
         }
 
-        const int dist = getItemOffset();
-
-        mTrackBar->setVisible(true);
-
-        QRect geo = mTrackBar->geometry();
-        if (getOrientation() == Qt::Vertical)
-        {
-            if (mTrackBarStyle.isFitItem)
-            {
-                geo.setHeight(getCurrentItem()->height());
-            }
-
-            geo.moveCenter(QPoint(geo.center().x(), dist));
+        QPropertyAnimation* vAni = nullptr;
+        if (v != 0) {
+            const int vCurValue = verticalScrollBar()->value();
+            vAni = new QPropertyAnimation(this, QByteArrayLiteral("vScrollValue"));
+            vAni->setEasingCurve(QEasingCurve::Type(mTrackBarStyle.animationType));
+            vAni->setDuration(mTrackBarStyle.duration);
+            vAni->setStartValue(vCurValue);
+            vAni->setEndValue(qMax(0, qMin(vCurValue - v, verticalScrollBar()->maximum())));
         }
-        else
-        {
-            if (mTrackBarStyle.isFitItem)
-            {
-                geo.setWidth(getCurrentItem()->width());
-            }
-            geo.moveCenter(QPoint(dist, geo.center().y()));
+
+        if (nullptr != vAni && nullptr != hAni) {
+            QParallelAnimationGroup* group = new QParallelAnimationGroup;
+            group->addAnimation(hAni);
+            group->addAnimation(vAni);
+            group->start(QAbstractAnimation::DeleteWhenStopped);
+        } else if (nullptr != vAni) {
+            vAni->start(QAbstractAnimation::DeleteWhenStopped);
+        } else if (nullptr != hAni) {
+            hAni->start(QAbstractAnimation::DeleteWhenStopped);
         }
     }
 
@@ -375,23 +303,24 @@ namespace mui
         viewport()->setBackgroundRole(QPalette::NoRole);
         horizontalScrollBar()->setSingleStep(10);
         verticalScrollBar()->setSingleStep(10);
-        horizontalScrollBar()->setValue(0);
-        verticalScrollBar()->setValue(0);
+        // horizontalScrollBar()->setValue(0);
+        // verticalScrollBar()->setValue(0);
         setObjectName(QStringLiteral(MUI_NAVBAR_OBJNAME));
 
+        mBoundaryOffset = 20;
+        mPrevIndex = -1;
         mContent = new QWidget(this);
         mNavGroup = new QButtonGroup(this);
         mTrackBar = new QWidget(mContent);
+        mTrackBar->resize(4, 4);
+        mTrackBar->setVisible(false);
         mTrackBar->setObjectName(QStringLiteral(MUI_NAV_TRACKBAR));
 
         // 布局
-        if (ori == Qt::Vertical)
-        {
+        if (ori == Qt::Vertical) {
             setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
             mLayout = new QBoxLayout(QBoxLayout::TopToBottom, mContent);
-        }
-        else
-        {
+        } else {
             setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
             mLayout = new QBoxLayout(QBoxLayout::LeftToRight, mContent);
         }
@@ -402,7 +331,7 @@ namespace mui
 
         mContent->installEventFilter(this);
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 15,0))
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
         connect(mNavGroup, &QButtonGroup::idClicked, this, &MStyleNavbar::navigate);
 #else
         connect(mNavGroup, static_cast<void (QButtonGroup::*)(int)>(&QButtonGroup::buttonClicked),
@@ -411,8 +340,62 @@ namespace mui
 
         mContent->raise();
         mTrackBar->raise();
-        mTrackBar->setVisible(false);
-        setTrackBarStyle({});
+
+        updateTrackBarStyle();
+    }
+
+    void MStyleNavbar::_updateItemId()
+    {
+        const int len = mNavGroup->buttons().length();
+        for (int i = 0; i < len; ++i) {
+            mNavGroup->setId(mNavGroup->buttons().at(i), i);
+        }
+        updateTrackBarStyle();
+    }
+
+    void MStyleNavbar::updateTrackBarStyle(bool stopAnimation)
+    {
+        mTrackBar->setVisible(mTrackBarStyle.isEnabled);
+
+        if (!mTrackBarStyle.isEnabled) {
+            return;
+        }
+
+        if (mNavGroup->checkedId() < 0) {
+            mTrackBar->setVisible(false);
+        } else {
+            const int dist = _updateItemPosition(mNavGroup->checkedId());
+            QRect geo = mTrackBar->geometry();
+            int x = 0, y = 0;
+
+            if (getOrientation() == Qt::Vertical) {
+                if (mTrackBarStyle.isFitItem) {
+                    geo.setHeight(getCurrentItem()->height());
+                }
+                x = ((mTrackBarStyle.offset >= 0) ? 0 : (mContent->width() - mTrackBar->width() + 1))
+                    + mTrackBarStyle.offset;
+                y = dist - mContent->y() - geo.height() / 2;
+            } else {
+                if (mTrackBarStyle.isFitItem) {
+                    geo.setWidth(getCurrentItem()->width());
+                }
+                x = dist - mContent->x() - geo.width() / 2;
+                y = ((mTrackBarStyle.offset < 0) ? 1 : (mContent->height() - mTrackBar->height()))
+                    + mTrackBarStyle.offset;
+            }
+            geo.moveTopLeft(QPoint(x, y));
+
+            if (mTrackBarStyle.isAnimation && !stopAnimation) {
+                QPropertyAnimation* ani = new QPropertyAnimation(mTrackBar, QByteArrayLiteral("geometry"), mTrackBar);
+                ani->setEasingCurve(QEasingCurve::Type(mTrackBarStyle.animationType));
+                ani->setDuration(mTrackBarStyle.duration);
+                ani->setStartValue(mTrackBar->geometry());
+                ani->setEndValue(geo);
+                ani->start(QAbstractAnimation::DeleteWhenStopped);
+            } else {
+                mTrackBar->setGeometry(geo);
+            }
+        }
     }
 
     void MStyleNavbar::_updateScrollBars(void)
@@ -435,12 +418,9 @@ namespace mui
         }*/
 
         const auto& v = p.expandedTo(min).boundedTo(max);
-        if (getOrientation() == Qt::Vertical)
-        {
+        if (getOrientation() == Qt::Vertical) {
             mContent->resize(width(), mContent->height());
-        }
-        else
-        {
+        } else {
             mContent->resize(mContent->width(), height());
         }
 
@@ -465,4 +445,58 @@ namespace mui
                        mContent->height() < viewport()->height() ? aligned.y() : scrolled.y());
     }
 
-}
+    int MStyleNavbar::_updateItemPosition(int index)
+    {
+        const auto& btn = mNavGroup->button(index);
+        Q_ASSERT(nullptr != btn);
+
+        const int offset = getItemOffset(index, false);
+        if (mBoundaryOffset < 0) {
+            return offset;
+        }
+
+        int boundary = mBoundaryOffset;
+        int scrollValue = 0;
+
+        if (getOrientation() == Qt::Vertical) {
+            if (index == 0) {
+                boundary = mLayout->contentsMargins().top();
+            } else if (index == getItemCount() - 1) {
+                boundary = mLayout->contentsMargins().bottom();
+            }
+
+            if (offset < boundary) {
+                scrollValue = boundary - offset;
+            } else if (offset + boundary + btn->height() > height()) {
+                scrollValue = height() - offset - btn->height() - boundary;
+            }
+
+            scroll(0, scrollValue);
+            return offset + btn->height() / 2;
+        } else {
+            if (index == 0) {
+                boundary = mLayout->contentsMargins().left();
+            } else if (index == getItemCount() - 1) {
+                boundary = mLayout->contentsMargins().right();
+            }
+
+            if (offset < boundary) {
+                scrollValue = boundary - offset;
+            } else if (offset + boundary + btn->width() > width()) {
+                scrollValue = width() - offset - btn->width() - boundary;
+            }
+
+            scroll(scrollValue, 0);
+            return offset + btn->width() / 2;
+        }
+    }
+
+    void MStyleNavbar::showEvent(QShowEvent* e)
+    {
+        const int index = mNavGroup->checkedId();
+        navigate(index == -1 ? 0 : index);
+
+        return QAbstractScrollArea::showEvent(e);
+    }
+
+} // namespace mui
