@@ -1,5 +1,5 @@
 /****************************************************************************
- * @file    MTitleBar.h
+ * @file    MStyleTitleBar.cpp
  * @date    2020-08-11
  * @author  MonoKelvin
  * @email   15007083506@qq.com
@@ -26,21 +26,28 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  *****************************************************************************/
-#ifndef MTITLEBAR_H
-#define MTITLEBAR_H
+#include "MStyleTitleBar.h"
 
 namespace mui
 {
-    class MONOUI_API MTitleBar : public QWidget
+    MStyleTitleBar::MStyleTitleBar(QWidget* parent)
+        : QWidget(parent)
     {
-        Q_OBJECT
-    public:
-        explicit MTitleBar(QWidget* parent = nullptr);
-        virtual ~MTitleBar();
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        setObjectName(QStringLiteral("mono_title_bar"));
+        setStyleSheet("background:white");
+        setFixedHeight(32);
+    }
 
-    protected:
-        virtual void paintEvent(QPaintEvent*) override;
-    };
+    MStyleTitleBar::~MStyleTitleBar()
+    {
+
+    }
+
+    void MStyleTitleBar::paintEvent(QPaintEvent*)
+    {
+        M_USE_STYLE_SHEET()
+    }
+
 }
 
-#endif // MTITLEBAR_H

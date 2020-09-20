@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
  * @file    MonoUI.h
  * @date    2020-09-05
  * @author  MonoKelvin
@@ -38,8 +38,7 @@ namespace mui
     /**
      * @brief UI状态类型
      */
-    enum EUIStateHint
-    {
+    enum EUIStateHint {
         // 静态，控件初始设置后不会进行重绘和重新设置geometry等属性
         StaticUI,
 
@@ -57,32 +56,34 @@ namespace mui
     };
 
     /** @brief 阴影参数 */
-    struct SShadowParam
-    {
+    struct SShadowParam {
         /** @brief 阴影颜色 */
-        QColor Color;
+        QColor color;
 
         /** @brief 模糊半径 */
-        qreal Radius;
+        qreal radius;
 
         /** @brief X方向偏移 */
-        qreal XOffset;
+        qreal xOffset;
 
         /** @brief Y方向偏移 */
-        qreal YOffset;
+        qreal yOffset;
+
+        /** @brief 是否启用 */
+        bool isEnabled;
 
         SShadowParam(void) noexcept
-            : Color("#191919")
-            , Radius(20.0)
-            , XOffset(0.0)
-            , YOffset(0.0)
+            : color("#191919")
+            , radius(15.0)
+            , xOffset(0.0)
+            , yOffset(0.0)
+            , isEnabled(true)
         {}
     };
 
     /** @brief 边角参数 */
     template<class _Ty>
-    struct SBorder
-    {
+    struct SBorder {
         _Ty topLeft;
         _Ty topRight;
         _Ty bottomLeft;

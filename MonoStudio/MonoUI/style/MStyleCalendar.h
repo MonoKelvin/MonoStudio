@@ -29,6 +29,7 @@
 #ifndef MSTYLECALENDAR_H
 #define MSTYLECALENDAR_H
 
+#include "MStyleWindow.h"
 #include "defines.h"
 
 #include <QDate>
@@ -41,7 +42,7 @@ namespace mui
     struct SCalendarStyle {
     };
 
-    class MONOUI_API MStyleCalendar : public QWidget
+    class MONOUI_API MStyleCalendar : public MStyleWindow
     {
         Q_OBJECT
     public:

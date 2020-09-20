@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
  * @file    MStyleWindow.h
  * @date    2020-08-11
  * @author  MonoKelvin
@@ -31,9 +31,14 @@
 
 #include "common/MonoUI.h"
 
+#define MUI_WINDOW      "mui_window"
+#define MUI_WINDOW_BG   "mui_window_bg"
+
+class QBoxLayout;
+
 namespace mui
 {
-    class MTitleBar;
+    class MStyleTitleBar;
 
     class MONOUI_API MStyleWindow : public QWidget
     {
@@ -45,17 +50,17 @@ namespace mui
 
         inline bool getResizable(void) const noexcept
         {
-            return mResizable;
+            return mIsResizable;
         }
 
         inline void setResizable(bool resizable) noexcept
         {
-            mResizable = resizable;
+            mIsResizable = resizable;
         }
 
         inline bool getMovable() const noexcept
         {
-            return mMovable;
+            return mIsMovable;
         }
 
         /**
@@ -64,29 +69,26 @@ namespace mui
          *  - true: 如果窗口没有标题栏则设置为true也无效
          *  - false: 让窗口无法移动
          */
-        inline void setMovable(bool movable) noexcept
-        {
-            if (movable && nullptr == mTitleBar)
-            {
-                return;
-            }
-
-            mMovable = movable;
-        }
+        void setMovable(bool movable);
 
         void setShadow(const SShadowParam& shadowParam);
 
+        inline const SShadowParam getShadow(void) const noexcept
+        {
+            return mShadowParam;
+        }
+
         /**
          * @brief 设置标题栏
-         * @param titleBar Mono风格标题栏控件
+         * @param titleBar MonoUI风格标题栏控件
          * @note
          *  - titleBar可以设置为nullptr，这样标题栏就会被自动删除
          *  - 设置一个空的标题栏后窗口就不可移动了
          *  - 设置一个有效的标题栏后窗口会激活移动属性，要想保持不移动，需要调用setMovable(false)
          */
-        void setTitleBar(MTitleBar* titleBar);
+        void setTitleBar(MStyleTitleBar* titleBar);
 
-        inline MTitleBar* getTitleBar(void) const noexcept
+        inline MStyleTitleBar* getTitleBar(void) const noexcept
         {
             return mTitleBar;
         }
@@ -111,23 +113,22 @@ namespace mui
         }
 
     protected:
-        void setShadowEnabled(bool enabled);
-
-        bool eventFilter(QObject* watched, QEvent* event) override;
         void mousePressEvent(QMouseEvent* event) override;
         void mouseReleaseEvent(QMouseEvent* event) override;
         void mouseMoveEvent(QMouseEvent* event) override;
+        void resizeEvent(QResizeEvent* event) override;
+        void changeEvent(QEvent* event) override;
+        bool nativeEvent(const QByteArray& eventType, void* message, long* result) override;
 
     protected:
         // 内容控件
         QWidget* mContent;
 
     private:
-        void updateResizeType(QMouseEvent* event);
+        void _updateResizeType(int ex, int ey);
 
     private:
-        enum EResizeType
-        {
+        enum EResizeType {
             RT_NoResize = 0x00,
             RT_Left = 0x01,
             RT_Right = 0x02,
@@ -139,43 +140,40 @@ namespace mui
             RT_BottomRight = RT_Bottom | RT_Right,
         };
 
-        // 阴影be背景控件
-        QWidget* mShadowBg;
-
-        // 标题栏
-        MTitleBar* mTitleBar;
-
-        // 重置尺寸的类型
-        EResizeType mResizeType;
-
-        // 修改窗口大小的边界宽度，最大只能为16
-        int mBoundaryWidth;
-
-        // 是否可以缩放尺寸
-        bool mResizable;
-
-        // 是否可以移动
-        bool mMovable;
-
-        // 是否准备移动
-        bool mMoveReady;
-
-        // 是否准备缩放尺寸
-        bool mResizeReady;
-
         // 阴影参数
         SShadowParam mShadowParam;
 
         // 圆角参数
         SBorder<int> mBorderRadius;
 
+        // 原尺寸
+        QRect mOldGeometry;
+
+        // 阴影背景控件
+        QWidget* mShadowBg;
+
+        // 主要布局
+        QBoxLayout* mMainLayout;
+
+        // 标题栏
+        MStyleTitleBar* mTitleBar;
+
         // 鼠标按下的相对于整个屏幕的位置
         QPoint mMousePressed;
 
-        // 原尺寸
-        QRect mOldGeometry;
+        // 重置尺寸的类型
+        EResizeType mResizeType;
+
+        // 是否可以缩放尺寸
+        bool mIsResizable;
+
+        // 是否可以移动
+        bool mIsMovable;
+
+        // 是否准备缩放尺寸
+        bool mIsResizeReady;
     };
 
-}
+} // namespace mui
 
 #endif // MSTYLEWINDOW_H

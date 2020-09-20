@@ -30,7 +30,8 @@
 
 namespace mui
 {
-    MStyleCalendar::MStyleCalendar(QWidget* parent) : QWidget(parent)
+    MStyleCalendar::MStyleCalendar(QWidget* parent)
+        : mui::MStyleWindow(parent)
     {
 
     }

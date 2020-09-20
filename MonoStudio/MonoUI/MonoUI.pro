@@ -11,6 +11,7 @@ CONFIG += c++11 precompile_header
 
 DESTDIR= $$PWD/../bin
 INCLUDEPATH+= $$PWD/
+LIBS += -luser32
 
 PRECOMPILED_HEADER = $$PWD/defines.h
 
@@ -21,8 +22,8 @@ SOURCES += \
     effect/MColorfulShadowEffect.cpp \
     style/MStyleCalendar.cpp \
     style/MStyleNavbar.cpp \
-    style/MStyleWindow.cpp \
-    style/MTitleBar.cpp
+    style/MStyleTitleBar.cpp \
+    style/MStyleWindow.cpp
 
 HEADERS += \
     defines.h \
@@ -33,8 +34,8 @@ HEADERS += \
     effect/MColorfulShadowEffect.h \
     style/MStyleCalendar.h \
     style/MStyleNavbar.h \
-    style/MStyleWindow.h \
-    style/MTitleBar.h
+    style/MStyleTitleBar.h \
+    style/MStyleWindow.h
 
 # Default rules for deployment.
 unix {
