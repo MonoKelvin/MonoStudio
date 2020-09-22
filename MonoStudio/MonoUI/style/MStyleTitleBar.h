@@ -29,17 +29,68 @@
 #ifndef MSTYLETITLEBAR_H
 #define MSTYLETITLEBAR_H
 
+#include "defines.h"
+
+class QBoxLayout;
+
+#define MUI_TITLEBAR_BTN_MIN    "mui_tb_btn_min"
+#define MUI_TITLEBAR_BTN_MAX    "mui_tb_btn_max"
+#define MUI_TITLEBAR_BTN_CLOSE  "mui_tb_btn_close"
+#define MUI_TITLEBAR_BTN_HELP   "mui_tb_btn_help"
+
 namespace mui
 {
+    /**
+     * @brief MonoUI 样式化标题栏，可以自定义窗口标题及其位置、右上角按钮以及标题栏其他控件
+     *
+     * 当指定标题栏 ETitleButtonsHint 策略时，从左到右（如果提供）依次为：
+     *      用户控件(...) -> 帮助(?) -> 最小化(_) -> 最大化([])-> 关闭窗口(x)
+     * 这种次序一般不可变更，如果需要可以获取标题栏的布局管理器，通过布局管理器来获取所有子控件，
+     * 或者直接获取其所有子控件，对应子控件名为 MUI_TITLEBAR_BTN_XXX 宏标识
+     *
+     * @note MonoUI 样式化标题栏必须指定父控件，且其管理的窗口就是其父控件，即最小化控制的是其父
+     * 控件的最小化，最大化控制的是其父控件的最大化，因此父控件要求没有它的父控件，否则无论指定
+     * ETitleButtonsHint 中那个值，都最多只有HelpButton和CloseButton起作用，即最多只有
+     * 帮助和关闭窗口的控件。
+     */
     class MONOUI_API MStyleTitleBar : public QWidget
     {
         Q_OBJECT
     public:
-        explicit MStyleTitleBar(QWidget* parent = nullptr);
-        virtual ~MStyleTitleBar();
+        /** @brief 标题栏按钮策略 */
+        enum ETitleButtonsHint {
+            /** @brief 使用最小化按钮 */
+            MinimizeButton = 0x001,
+
+            /** @brief 使用最大化（还原）按钮 */
+            MaximizeButton = 0x002,
+
+            /** @brief 使用关闭窗口按钮 */
+            CloseButton = 0x004,
+
+            /** @brief 使用帮助按钮，帮助按钮默认在所有按钮的最左侧 */
+            HelpButton = 0x008,
+
+            /** @brief 标准窗口按钮，包括最小化、最大化和关闭窗口按钮 */
+            StandardWindowButtons = MinimizeButton | MaximizeButton | CloseButton,
+        };
+        Q_DECLARE_FLAGS(FTitleButtonsHints, ETitleButtonsHint)
+
+        explicit MStyleTitleBar(const FTitleButtonsHints& hints = StandardWindowButtons, QWidget* parent = nullptr);
+        ~MStyleTitleBar();
 
     protected:
-        virtual void paintEvent(QPaintEvent*) override;
+        void paintEvent(QPaintEvent*) override;
+
+    private:
+        void _applyButtonsHint(const FTitleButtonsHints& hints);
+
+    private:
+        // 主（水平）布局
+        QBoxLayout* mMainLayout;
+
+        // 标题栏策略
+        FTitleButtonsHints mBtnHints;
     };
 }
 

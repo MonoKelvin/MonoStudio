@@ -28,25 +28,35 @@
  *****************************************************************************/
 #include "MStyleTitleBar.h"
 
+#include <QBoxLayout>
+
 namespace mui
 {
-    MStyleTitleBar::MStyleTitleBar(QWidget* parent)
+    MStyleTitleBar::MStyleTitleBar(const FTitleButtonsHints& hints, QWidget* parent)
         : QWidget(parent)
     {
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         setObjectName(QStringLiteral("mono_title_bar"));
         setStyleSheet("background:white");
-        setFixedHeight(32);
+        setFixedHeight(40);
+
+        _applyButtonsHint(hints);
+
+        mMainLayout = new QBoxLayout(QBoxLayout::LeftToRight, this);
     }
 
     MStyleTitleBar::~MStyleTitleBar()
     {
-
     }
 
     void MStyleTitleBar::paintEvent(QPaintEvent*)
     {
         M_USE_STYLE_SHEET()
+    }
+
+    void MStyleTitleBar::_applyButtonsHint(const FTitleButtonsHints& hints)
+    {
+
     }
 
 }

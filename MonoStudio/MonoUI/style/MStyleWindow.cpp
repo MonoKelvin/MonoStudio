@@ -265,8 +265,8 @@ namespace mui
         switch (windowState()) {
         case Qt::WindowMaximized:
         case Qt::WindowMinimized:
-            mShadowBg->graphicsEffect()->setEnabled(false);
             mShadowBg->setGeometry(rect());
+            mShadowBg->graphicsEffect()->setEnabled(false);
             break;
         case Qt::WindowNoState:
             if (mShadowParam.isEnabled && mShadowBg && mShadowBg->graphicsEffect()) {
