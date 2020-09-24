@@ -33,6 +33,8 @@
 
 #include "defines.h"
 
+class QLabel;
+
 namespace mui
 {
     /**
@@ -115,6 +117,14 @@ namespace mui
             return (topLeft > 0) && (topRight > 0) && (bottomLeft > 0) && (bottomRight > 0);
         }
     };
+
+    /**
+     * @brief 为QLabel控件设置长文本时的省略字符串
+     * @param label 给定的QLabel控件。
+     * @param maxWidth 最大宽度。当文本内容像素宽度超过该值时就省略显示，小于0表示最大宽度为此时的label宽度
+     * @param mode 省略模式。默认右侧省略
+     */
+    void MONOUI_API ElidedTextForLabel(QLabel* label, int maxWidth = -1, Qt::TextElideMode mode = Qt::ElideRight);
 
     /**
      * @brief 绘制圆角矩形

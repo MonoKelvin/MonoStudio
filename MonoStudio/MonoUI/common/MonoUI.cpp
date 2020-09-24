@@ -29,13 +29,13 @@
 #include "defines.h"
 
 #include <QPainterPath>
+#include <QLabel>
 
 namespace mui
 {
     void DrawRoundRect(QPainter* painter, const QRect& rect, int lt, int rt, int lb, int rb)
     {
-        if (rect.width() == 0 || rect.height() == 0)
-        {
+        if (rect.width() == 0 || rect.height() == 0) {
             return;
         }
 
@@ -54,4 +54,18 @@ namespace mui
         painter->fillPath(path, painter->brush());
         painter->drawPath(path);
     }
+
+    void ElidedTextForLabel(QLabel* label, int maxWidth, Qt::TextElideMode mode)
+    {
+        if (maxWidth < 0) {
+            maxWidth = label->width();
+        }
+
+        const QFontMetrics fm = label->fontMetrics();
+        const QString et = fm.elidedText(label->text(), mode, maxWidth - 3 * fm.averageCharWidth());
+
+        label->setText(et);
+        label->adjustSize();
+    }
+
 }

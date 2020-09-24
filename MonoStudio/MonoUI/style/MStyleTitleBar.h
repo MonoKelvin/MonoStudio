@@ -32,11 +32,14 @@
 #include "defines.h"
 
 class QBoxLayout;
+class QLabel;
+class QPushButton;
 
 #define MUI_TITLEBAR_BTN_MIN    "mui_tb_btn_min"
 #define MUI_TITLEBAR_BTN_MAX    "mui_tb_btn_max"
 #define MUI_TITLEBAR_BTN_CLOSE  "mui_tb_btn_close"
 #define MUI_TITLEBAR_BTN_HELP   "mui_tb_btn_help"
+#define MUI_TITLEBAR_LB_TITLE   "mui_tb_lb_title"
 
 namespace mui
 {
@@ -76,14 +79,36 @@ namespace mui
         };
         Q_DECLARE_FLAGS(FTitleButtonsHints, ETitleButtonsHint)
 
-        explicit MStyleTitleBar(const FTitleButtonsHints& hints = StandardWindowButtons, QWidget* parent = nullptr);
+        /**
+         * @brief 标题文本的对齐方式
+         */
+        enum ETitleTextAlignment {
+            AlignmentLeft,
+            AlignmentCenter,
+        };
+        Q_ENUM(ETitleTextAlignment)
+
+        explicit MStyleTitleBar(QWidget* parent = nullptr, const FTitleButtonsHints& hints = StandardWindowButtons);
         ~MStyleTitleBar();
 
+        void setTitle(const QString& title, ETitleTextAlignment alignment = AlignmentLeft);
+
+        void setButtonEnable(const FTitleButtonsHints& hints, bool enabled);
+
+    Q_SIGNALS:
+        void help(void);
+
+    public Q_SLOTS:
+        void mximizedExclusion(void);
+
     protected:
-        void paintEvent(QPaintEvent*) override;
+        void paintEvent(QPaintEvent* event) override;
+        void resizeEvent(QResizeEvent* event) override;
 
     private:
         void _applyButtonsHint(const FTitleButtonsHints& hints);
+        int _getChildrenWidthExceptTitle(void);
+        QPushButton* _createTitleButtons(const QString& objName);
 
     private:
         // 主（水平）布局
@@ -91,6 +116,12 @@ namespace mui
 
         // 标题栏策略
         FTitleButtonsHints mBtnHints;
+
+        // 标题控件
+        QLabel* mTitle;
+
+        // 标题文本对齐方式
+        ETitleTextAlignment mTextAlignment;
     };
 }
 
