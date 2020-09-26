@@ -29,32 +29,35 @@
 #include "MStyleTitleBar.h"
 
 #include <QBoxLayout>
-#include <QLabel>
 #include <QPushButton>
+#include <QMouseEvent>
 
 #include "common/MonoUI.h"
+#include "common/MElidedLabel.h"
 
 namespace mui
 {
     MStyleTitleBar::MStyleTitleBar(QWidget* parent, const FTitleButtonsHints& hints)
         : QWidget(parent)
+        , mBtnHints(ETitleButtonsHint::StandardWindowButtons)
+        , mTextAlignment(ETitleTextAlignment::AlignCenter)
     {
         Q_ASSERT(nullptr != parent);
 
+        setFixedHeight(32);
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         setObjectName(QStringLiteral("mono_title_bar"));
-        setStyleSheet("background:white");
-        setFixedHeight(40);
+        setStyleSheet("*{background:white;border:1px solid red;}");
 
         mMainLayout = new QBoxLayout(QBoxLayout::RightToLeft, this);
         mMainLayout->setSpacing(0);
         mMainLayout->setMargin(0);
 
-        mTitle = new QLabel(this);
+        mTitle = new MElidedLabel(QStringLiteral("Mono Studio - v") + MONOUI_VERSION_STR, this);
         mTitle->setObjectName(QStringLiteral(MUI_TITLEBAR_LB_TITLE));
-        mTitle->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
 
         _applyButtonsHint(hints);
+        mMainLayout->addWidget(mTitle);
     }
 
     MStyleTitleBar::~MStyleTitleBar()
@@ -66,26 +69,25 @@ namespace mui
         mTitle->setText(title);
         mTextAlignment = alignment;
 
-        resize(width() + 1, height());
-        resize(width() - 1, height());
+        _updateTitlePosition();
     }
 
     void MStyleTitleBar::setButtonEnable(const FTitleButtonsHints& hints, bool enabled)
     {
         if (hints & CloseButton) {
-            findChild<QPushButton*>(QStringLiteral(MUI_TITLEBAR_BTN_CLOSE))->setEnabled(enabled);
+            findChild<QPushButton*>(QStringLiteral(MUI_TITLEBAR_BTN_CLOSE), Qt::FindDirectChildrenOnly)->setEnabled(enabled);
         }
 
         if (hints & MaximizeButton) {
-            findChild<QPushButton*>(QStringLiteral(MUI_TITLEBAR_BTN_MAX))->setEnabled(enabled);
+            findChild<QPushButton*>(QStringLiteral(MUI_TITLEBAR_BTN_MAX), Qt::FindDirectChildrenOnly)->setEnabled(enabled);
         }
 
         if (hints & MinimizeButton) {
-            findChild<QPushButton*>(QStringLiteral(MUI_TITLEBAR_BTN_MIN))->setEnabled(enabled);
+            findChild<QPushButton*>(QStringLiteral(MUI_TITLEBAR_BTN_MIN), Qt::FindDirectChildrenOnly)->setEnabled(enabled);
         }
 
         if (hints & HelpButton) {
-            findChild<QPushButton*>(QStringLiteral(MUI_TITLEBAR_BTN_HELP))->setEnabled(enabled);
+            findChild<QPushButton*>(QStringLiteral(MUI_TITLEBAR_BTN_HELP), Qt::FindDirectChildrenOnly)->setEnabled(enabled);
         }
     }
 
@@ -93,8 +95,10 @@ namespace mui
     {
         if (parentWidget()->isMaximized()) {
             parentWidget()->setWindowState(Qt::WindowNoState);
+            emit maximized(false);
         } else {
             parentWidget()->setWindowState(Qt::WindowMaximized);
+            emit maximized(true);
         }
     }
 
@@ -107,47 +111,54 @@ namespace mui
 
     void MStyleTitleBar::resizeEvent(QResizeEvent* event)
     {
-        QMargins margins = mMainLayout->contentsMargins();
-        const int othersWidth = _getChildrenWidthExceptTitle();
-
-        if (mTextAlignment == AlignmentCenter) {
-            mTitle->setAlignment(Qt::AlignCenter);
-            margins.setLeft(othersWidth);
-        } else {
-            mTitle->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-            margins.setLeft(0);
-        }
-
-        mMainLayout->setContentsMargins(margins);
-        ElidedTextForLabel(mTitle);
-
+        _updateTitlePosition();
         return QWidget::resizeEvent(event);
+    }
+
+    QSize MStyleTitleBar::sizeHint() const
+    {
+        return QSize(qMax(_getChildrenWidthExceptTitle(), 128), 32);
     }
 
     void MStyleTitleBar::_applyButtonsHint(const FTitleButtonsHints& hints)
     {
         if (hints & CloseButton) {
             QPushButton* btn = _createTitleButtons(QStringLiteral(MUI_TITLEBAR_BTN_CLOSE));
-            connect(btn, &QPushButton::clicked, parentWidget(), &QWidget::destroyed);
+            connect(btn, &QPushButton::clicked, this, &MStyleTitleBar::closed);
         }
 
-        if (hints & MaximizeButton) {
+        if (hints & MaximizeButton && nullptr != parentWidget()) {
             QPushButton* btn = _createTitleButtons(QStringLiteral(MUI_TITLEBAR_BTN_MAX));
             connect(btn, &QPushButton::clicked, this, &MStyleTitleBar::mximizedExclusion);
         }
 
-        if (hints & MinimizeButton) {
+        if (hints & MinimizeButton && nullptr != parentWidget()) {
             QPushButton* btn = _createTitleButtons(QStringLiteral(MUI_TITLEBAR_BTN_MIN));
-            connect(btn, &QPushButton::clicked, parentWidget(), &QWidget::showMinimized);
+            connect(btn, &QPushButton::clicked, this, &MStyleTitleBar::minimized);
         }
 
         if (hints & HelpButton) {
             QPushButton* btn = _createTitleButtons(QStringLiteral(MUI_TITLEBAR_BTN_HELP));
-            connect(btn, &QPushButton::clicked, [&] {emit help();});
+            connect(btn, &QPushButton::clicked, this, &MStyleTitleBar::help);
         }
     }
 
-    int MStyleTitleBar::_getChildrenWidthExceptTitle()
+    void MStyleTitleBar::_updateTitlePosition()
+    {
+        QMargins margins = mMainLayout->contentsMargins();
+
+        if (mTextAlignment == ETitleTextAlignment::AlignCenter) {
+            mTitle->setAlignment(Qt::AlignCenter);
+            margins.setLeft(_getChildrenWidthExceptTitle());
+        } else {
+            mTitle->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+            margins.setLeft(0);
+        }
+
+        mMainLayout->setContentsMargins(margins);
+    }
+
+    int MStyleTitleBar::_getChildrenWidthExceptTitle() const
     {
         int totalWidth = 0;
 

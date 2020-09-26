@@ -75,8 +75,8 @@ namespace mui
         bool isEnabled;
 
         SShadowParam(void) noexcept
-            : color("#191919")
-            , radius(15.0)
+            : color("#292929")
+            , radius(20.0)
             , xOffset(0.0)
             , yOffset(0.0)
             , isEnabled(true)

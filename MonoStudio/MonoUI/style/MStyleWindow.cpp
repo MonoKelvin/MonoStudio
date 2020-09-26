@@ -43,30 +43,22 @@ namespace mui
 
     MStyleWindow::MStyleWindow(QWidget* parent, Qt::WindowType type)
         : QWidget(parent, type)
+        , mTitleBar(nullptr)
         , mResizeType(RT_NoResize)
         , mIsResizable(true)
         , mIsMovable(true)
         , mIsResizeReady(false)
+        , mIsMoveReady(false)
     {
-        resize(640, 480);
         setMaximumSize(QGuiApplication::primaryScreen()->size());
         setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
         setAttribute(Qt::WA_TranslucentBackground, true);
         setMouseTracking(true);
         setObjectName(QStringLiteral(MUI_WINDOW));
 
-        /**
-         * 以下代码是为了将窗口去除边框并且能够让窗口自动排列
-         * 参考：https://www.cnblogs.com/dongc/p/5598053.html
-         */
-        const HWND hwnd = (HWND)winId();
-        const DWORD style = ::GetWindowLong(hwnd, GWL_STYLE);
-        ::SetWindowLong(hwnd, GWL_STYLE, style | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_CAPTION);
-
         // 阴影背景
         mShadowBg = new QWidget(this);
         mShadowBg->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        mShadowBg->setMouseTracking(true);
         mShadowBg->setObjectName(QStringLiteral(MUI_WINDOW_BG));
 
         // DEBUG
@@ -77,34 +69,22 @@ namespace mui
         mMainLayout->setSpacing(0);
         mMainLayout->setMargin(0);
 
-        // 标题栏
-        mTitleBar = new MStyleTitleBar(mShadowBg);
-        mMainLayout->addWidget(mTitleBar);
+        // 添加默认标题栏
+        setTitleBar(new MStyleTitleBar(mShadowBg));
 
         // 内容控件
         mContent = new QWidget(mShadowBg);
-        mContent->setMouseTracking(true);
         mMainLayout->addWidget(mContent, 1);
 
         // 调整显示层次
         mShadowBg->lower();
         mContent->raise();
-        mTitleBar->raise();
 
         setShadow({});
     }
 
     MStyleWindow::~MStyleWindow()
     {
-    }
-
-    void MStyleWindow::setMovable(bool movable)
-    {
-        if (movable && nullptr == mTitleBar) {
-            return;
-        }
-
-        mIsMovable = movable;
     }
 
     void MStyleWindow::setShadow(const SShadowParam& shadowParam)
@@ -127,20 +107,27 @@ namespace mui
 
     void MStyleWindow::setTitleBar(MStyleTitleBar* titleBar)
     {
+        if (mTitleBar == titleBar) {
+            return;
+        }
+
         if (nullptr != mTitleBar) {
-            mTitleBar->deleteLater();
+            delete mTitleBar;
             mTitleBar = nullptr;
         }
 
-        if (nullptr == titleBar) {
-            mShadowBg->layout()->removeWidget(mTitleBar);
-            mIsMovable = false;
-        } else {
+        if (nullptr != titleBar) {
             mTitleBar = titleBar;
-            mIsMovable = true;
-        }
 
-        mContent->updateGeometry();
+            if (mTitleBar->parentWidget() != mShadowBg) {
+                mTitleBar->setParent(mShadowBg);
+            }
+
+            mMainLayout->insertWidget(0, mTitleBar);
+
+            mTitleBar->installEventFilter(this);
+            mTitleBar->raise();
+        }
     }
 
     void MStyleWindow::setBorderRadius(int radius)
@@ -200,6 +187,7 @@ namespace mui
     void MStyleWindow::mouseReleaseEvent(QMouseEvent* event)
     {
         mIsResizeReady = false;
+        mIsMoveReady = false;
 
         return QWidget::mouseReleaseEvent(event);
     }
@@ -284,50 +272,66 @@ namespace mui
         return QWidget::changeEvent(event);
     }
 
-    bool MStyleWindow::nativeEvent(const QByteArray& eventType, void* message, long* result)
+    bool MStyleWindow::eventFilter(QObject* watched, QEvent* event)
     {
-        /**
-         * 以下代码是为了将窗口去除边框并且能够让窗口自动排列
-         * 参考：https://www.cnblogs.com/dongc/p/5598053.html
-         */
+        if (watched == mTitleBar) {
+            const auto& msEvt = static_cast<QMouseEvent*>(event);
+            if (!(msEvt->buttons() & Qt::LeftButton)) {
+                return false;
+            }
 
-        MSG* msg = (MSG*)message;
-        switch (msg->message) {
-        case WM_NCHITTEST: {
-            if (mIsMovable) {
-                const int xPos = GET_X_LPARAM(msg->lParam) - geometry().x() - mShadowBg->x();
-                const int yPos = GET_Y_LPARAM(msg->lParam) - geometry().y() - mShadowBg->y();
+            switch (event->type()) {
+            case QMouseEvent::MouseMove:
+                if (mIsMoveReady && mResizeType == RT_NoResize) {
+                    if (isMaximized()) {
+                        if ((msEvt->globalPos() - mMousePressed).manhattanLength() > 5) {
+                            showNormal();
 
-                if (mTitleBar->rect().contains(xPos, yPos) && !mTitleBar->childAt(xPos, yPos)) {
-                    *result = HTCAPTION;
+                            const auto& mg = mMainLayout->contentsMargins();
+                            const int& dx = msEvt->globalX() * (1.0 - double(geometry().width()) / mOldGeometry.width());
+
+                            move(dx - mg.left(), msEvt->globalY() - msEvt->y() - mg.top());
+                            mOldGeometry = geometry();
+                        }
+                    } else {
+                        move(mOldGeometry.x() + msEvt->globalPos().x() - mMousePressed.x(),
+                             mOldGeometry.y() + msEvt->globalPos().y() - mMousePressed.y());
+                    }
+
                     return true;
                 }
+                break;
+            case QMouseEvent::MouseButtonPress:
+                if (!mIsResizeReady) {
+                    mIsMoveReady = true;
+                }
+                break;
+            case QMouseEvent::MouseButtonDblClick:
+                if (mIsResizable && mResizeType == RT_NoResize) {
+                    if (isMaximized()) {
+                        showNormal();
+                    } else {
+                        showMaximized();
+                    }
+
+                    return true;
+                }
+                break;
+            case QMouseEvent::MouseButtonRelease:
+                // 不让标题栏超出屏幕上方
+                qDebug() << mIsMoveReady << y() << mMainLayout->contentsMargins().top();
+                if (mIsMoveReady && y() < -mMainLayout->contentsMargins().top()) {
+                    move(x(), 0);
+                }
+                mIsResizeReady = false;
+                mIsMoveReady = false;
+                break;
+            default:
+                break;
             }
         }
-        break;
-        case WM_NCCALCSIZE:
-            return true;
-        case WM_GETMINMAXINFO: {
-            if (::IsZoomed(msg->hwnd)) {
-                // 最大化时会超出屏幕，所以填充边框间距
-                RECT frame = { 0, 0, 0, 0 };
-                ::AdjustWindowRectEx(&frame, WS_OVERLAPPEDWINDOW, FALSE, 0);
-                frame.left = qAbs(frame.left);
-                frame.top = qAbs(frame.bottom);
-                mShadowBg->setContentsMargins(frame.left, frame.top, frame.right, frame.bottom);
-            } else {
-                mShadowBg->setContentsMargins(0, 0, 0, 0);
-            }
 
-            *result = ::DefWindowProc(msg->hwnd, msg->message, msg->wParam, msg->lParam);
-            return true;
-        }
-        break;
-        default:
-            break;
-        }
-
-        return QWidget::nativeEvent(eventType, message, result);
+        return QWidget::eventFilter(watched, event);
     }
 
     void MStyleWindow::_updateResizeType(int ex, int ey)
@@ -394,4 +398,6 @@ namespace mui
             setCursor(Qt::ArrowCursor);
         }
     }
+
 } // namespace mui
+

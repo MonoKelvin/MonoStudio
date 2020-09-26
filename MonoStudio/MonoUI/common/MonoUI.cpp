@@ -65,7 +65,6 @@ namespace mui
         const QString et = fm.elidedText(label->text(), mode, maxWidth - 3 * fm.averageCharWidth());
 
         label->setText(et);
-        label->adjustSize();
     }
 
 }

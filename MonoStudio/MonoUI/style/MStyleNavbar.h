@@ -39,9 +39,9 @@ class QAbstractButton;
 class QPushButton;
 class QBoxLayout;
 
-#define MUI_NAVBAR_OBJNAME  "mui_navbar"
-#define MUI_NAVITEM_OBJNAME "mui_navbtn"
-#define MUI_NAV_TRACKBAR    "mui_nav_trackbar"
+#define MUI_NAVBAR          "mui_navbar"
+#define MUI_NAVBAR_ITEM     "mui_navbar_item"
+#define MUI_NAVBAR_TRACKBAR  "mui_navbar_trackbar"
 
 namespace mui
 {
@@ -60,7 +60,7 @@ namespace mui
         /**
          * @brief 偏移位置
          *
-         * @note 如果开启（isEnabled = true）追踪条，则：
+         * 如果开启（isEnabled = true）追踪条，则：
          * - 水平导航栏中其位置在导航按钮下方，即 TrackBar 底部和导航栏底部平齐，此时
          *   offset == 0，如果 offset == -1，则TrackBar顶部和导航栏顶部平齐；否则随着
          *   offset增加其位置从底部开始上移，随着offset减少其位置从底部开始下移
@@ -124,9 +124,8 @@ namespace mui
      * 会竖直移动到该item位置；类似的，在水平导航栏中常见的是在item位置底部，当选中某个item时，其
      * 位置就会水平移动到该item位置。
      *
-     * 当前导航项再次点击进行导航时不会触发导航事件
-     *
-     * 当导航栏首次显示（showEvent）时，会自动触发一次导航，默认第一个导航项被选中
+     * @note 当前导航项再次点击进行导航时不会触发导航事件
+     * @note 当导航栏首次显示（showEvent）时，会自动触发一次导航，默认第一个导航项被选中
      */
     class MONOUI_API MStyleNavbar : public QAbstractScrollArea
     {

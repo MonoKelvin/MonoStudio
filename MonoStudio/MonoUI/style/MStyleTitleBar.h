@@ -32,7 +32,6 @@
 #include "defines.h"
 
 class QBoxLayout;
-class QLabel;
 class QPushButton;
 
 #define MUI_TITLEBAR_BTN_MIN    "mui_tb_btn_min"
@@ -43,15 +42,18 @@ class QPushButton;
 
 namespace mui
 {
+    class MElidedLabel;
+
     /**
      * @brief MonoUI 样式化标题栏，可以自定义窗口标题及其位置、右上角按钮以及标题栏其他控件
      *
-     * 当指定标题栏 ETitleButtonsHint 策略时，从左到右（如果提供）依次为：
-     *      用户控件(...) -> 帮助(?) -> 最小化(_) -> 最大化([])-> 关闭窗口(x)
+     * 标题栏从左到右（如果提供）的控件布局顺序依次为：
+     * 图标 -> 标题 -> 用户控件 -> 帮助(?) -> 最小化(_) -> 最大化([]) -> 关闭窗口(x)
      * 这种次序一般不可变更，如果需要可以获取标题栏的布局管理器，通过布局管理器来获取所有子控件，
-     * 或者直接获取其所有子控件，对应子控件名为 MUI_TITLEBAR_BTN_XXX 宏标识
+     * 或者直接获取标题栏子控件，但不建议这么做。对于自带的控件（右上角按钮和标题文本等）可以通过
+     * objectName 找到，其对应的对象名为 MUI_TITLEBAR_XXX 宏标识。
      *
-     * @note MonoUI 样式化标题栏必须指定父控件，且其管理的窗口就是其父控件，即最小化控制的是其父
+     * @note MonoUI 样式化标题栏最好指定父控件，且其管理的窗口就是其父控件，即最小化控制的是其父
      * 控件的最小化，最大化控制的是其父控件的最大化，因此父控件要求没有它的父控件，否则无论指定
      * ETitleButtonsHint 中那个值，都最多只有HelpButton和CloseButton起作用，即最多只有
      * 帮助和关闭窗口的控件。
@@ -62,6 +64,9 @@ namespace mui
     public:
         /** @brief 标题栏按钮策略 */
         enum ETitleButtonsHint {
+            /** @brief 不创建默认的按钮 */
+            NoButtons = 0x000,
+
             /** @brief 使用最小化按钮 */
             MinimizeButton = 0x001,
 
@@ -83,20 +88,30 @@ namespace mui
          * @brief 标题文本的对齐方式
          */
         enum ETitleTextAlignment {
-            AlignmentLeft,
-            AlignmentCenter,
+            AlignLeft,
+            AlignCenter,
         };
         Q_ENUM(ETitleTextAlignment)
 
         explicit MStyleTitleBar(QWidget* parent = nullptr, const FTitleButtonsHints& hints = StandardWindowButtons);
         ~MStyleTitleBar();
 
-        void setTitle(const QString& title, ETitleTextAlignment alignment = AlignmentLeft);
+        void setTitle(const QString& title, ETitleTextAlignment alignment = AlignLeft);
 
         void setButtonEnable(const FTitleButtonsHints& hints, bool enabled);
 
+        void setIcon(const QIcon& icon);
+
+        inline FTitleButtonsHints getButtonsHints(void) const noexcept
+        {
+            return mBtnHints;
+        }
+
     Q_SIGNALS:
-        void help(void);
+        void minimized(bool checked = false);
+        void maximized(bool restored);
+        void closed(bool checked = false);
+        void help(bool checked = false);
 
     public Q_SLOTS:
         void mximizedExclusion(void);
@@ -104,10 +119,12 @@ namespace mui
     protected:
         void paintEvent(QPaintEvent* event) override;
         void resizeEvent(QResizeEvent* event) override;
+        QSize sizeHint(void) const override;
 
     private:
         void _applyButtonsHint(const FTitleButtonsHints& hints);
-        int _getChildrenWidthExceptTitle(void);
+        void _updateTitlePosition(void);
+        int _getChildrenWidthExceptTitle(void) const;
         QPushButton* _createTitleButtons(const QString& objName);
 
     private:
@@ -118,7 +135,7 @@ namespace mui
         FTitleButtonsHints mBtnHints;
 
         // 标题控件
-        QLabel* mTitle;
+        MElidedLabel* mTitle;
 
         // 标题文本对齐方式
         ETitleTextAlignment mTextAlignment;

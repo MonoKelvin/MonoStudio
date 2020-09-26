@@ -16,6 +16,7 @@ LIBS += -luser32
 PRECOMPILED_HEADER = $$PWD/defines.h
 
 SOURCES += \
+    common/MElidedLabel.cpp \
     common/MonoUI.cpp \
     common/MonoWidget.cpp \
     common/qimageblur.cpp \
@@ -26,6 +27,7 @@ SOURCES += \
     style/MStyleWindow.cpp
 
 HEADERS += \
+    common/MElidedLabel.h \
     defines.h \
     common/qimageblur.h \
     common/qmemrotate.h \

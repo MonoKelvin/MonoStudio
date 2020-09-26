@@ -40,6 +40,10 @@ namespace mui
 {
     class MStyleTitleBar;
 
+    /**
+     * @brief MonoUI 风格窗口，是原本QWidget中去除边框的自定义窗口控件，支持自定义阴影、标题栏、
+     * 可缩放、最大最小化、圆角等。
+     */
     class MONOUI_API MStyleWindow : public QWidget
     {
         Q_OBJECT
@@ -48,19 +52,22 @@ namespace mui
 
         virtual ~MStyleWindow();
 
-        inline bool getResizable(void) const noexcept
-        {
-            return mIsResizable;
-        }
-
+        /**
+         * @brief 设置是否可以缩放缩放窗口
+         * @param resizable 是否可以缩放窗口
+         */
         inline void setResizable(bool resizable) noexcept
         {
             mIsResizable = resizable;
         }
 
-        inline bool getMovable() const noexcept
+        /**
+         * @brief 获得窗口是否可以缩放
+         * @return 窗口是否可以缩放
+         */
+        inline bool isResizable(void) const noexcept
         {
-            return mIsMovable;
+            return mIsResizable;
         }
 
         /**
@@ -69,10 +76,30 @@ namespace mui
          *  - true: 如果窗口没有标题栏则设置为true也无效
          *  - false: 让窗口无法移动
          */
-        void setMovable(bool movable);
+        inline void setMovable(bool movable) noexcept
+        {
+            mIsMovable = movable;
+        }
 
+        /**
+         * @brief 获取窗口是否可以移动
+         * @return 窗口是否可以移动
+         */
+        inline bool isMovable(void) const noexcept
+        {
+            return mIsMovable;
+        }
+
+        /**
+         * @brief 设置窗口阴影
+         * @param shadowParam 阴影参数
+         */
         void setShadow(const SShadowParam& shadowParam);
 
+        /**
+         * @brief 获得窗口阴影参数
+         * @return 窗口阴影参数
+         */
         inline const SShadowParam getShadow(void) const noexcept
         {
             return mShadowParam;
@@ -80,14 +107,20 @@ namespace mui
 
         /**
          * @brief 设置标题栏
-         * @param titleBar MonoUI风格标题栏控件
+         * @param titleBar MonoUI 风格标题栏控件
          * @note
-         *  - titleBar可以设置为nullptr，这样标题栏就会被自动删除
-         *  - 设置一个空的标题栏后窗口就不可移动了
-         *  - 设置一个有效的标题栏后窗口会激活移动属性，要想保持不移动，需要调用setMovable(false)
+         *  - 当设置一个新的标题栏后，如果窗口已经有一个标题栏，则会被自动销毁；
+         *  - 可以设置为 nullptr，这样标题栏就会被自动删除，同时窗口也无法移动，
+         *    即使 isMovable() 返回的是 true；
+         *  - 设置一个新的标题栏后不会激活移动属性，如果原先使用了 setMovable(false)，
+         *    则设置标题栏后窗口依旧不会移动，除非手动调用 setMovable(true)。
          */
         void setTitleBar(MStyleTitleBar* titleBar);
 
+        /**
+         * @brief 获得标题栏
+         * @return MonoUI 风格标题栏控件，可能返回 nullptr
+         */
         inline MStyleTitleBar* getTitleBar(void) const noexcept
         {
             return mTitleBar;
@@ -118,7 +151,7 @@ namespace mui
         void mouseMoveEvent(QMouseEvent* event) override;
         void resizeEvent(QResizeEvent* event) override;
         void changeEvent(QEvent* event) override;
-        bool nativeEvent(const QByteArray& eventType, void* message, long* result) override;
+        bool eventFilter(QObject* watched, QEvent* event) override;
 
     protected:
         // 内容控件
@@ -172,6 +205,9 @@ namespace mui
 
         // 是否准备缩放尺寸
         bool mIsResizeReady;
+
+        // 是否准备移动
+        bool mIsMoveReady;
     };
 
 } // namespace mui

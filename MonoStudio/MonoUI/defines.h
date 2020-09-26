@@ -40,6 +40,23 @@
     #define MONOUI_API Q_DECL_IMPORT
 #endif
 
+// TODO: move to MonoStudio project
+#define MONOUI_VERSION_STR   "1.0.0"
+#define MONOUI_MAJOR_VERSION 1
+#define MONOUI_MINOR_VERSION 0
+#define MONOUI_REVISION      0
+
+/**
+ * @brief 版本检测宏，版本号命名规则标准和Qt中的一致
+ * 可以像这样使用 #if (MONOUI_VERSION >= MONOUI_VERSION_CHECK(2, 1, 0))
+ */
+#define MONOUI_VERSION_CHECK(_Major_, _Minor_, _Rev_) ((_Major_<<16)|(_Minor_<<8)|(_Rev_))
+
+/**
+ * @brief MonoUI版本，版本号命名规则标准和Qt中的一致
+ */
+#define MONOUI_VERSION MONOUI_VERSION_CHECK(MONOUI_MAJOR_VERSION, MONOUI_MINOR_VERSION, MONOUI_REVISION)
+
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int uint;

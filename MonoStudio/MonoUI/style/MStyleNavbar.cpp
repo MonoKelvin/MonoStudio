@@ -55,7 +55,7 @@ namespace mui
 
         btn->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         btn->setCheckable(true);
-        btn->setObjectName(QStringLiteral(MUI_NAVITEM_OBJNAME));
+        btn->setObjectName(QStringLiteral(MUI_NAVBAR_ITEM));
 
 #ifndef QT_NO_CURSOR
         btn->setCursor(Qt::PointingHandCursor);
@@ -336,7 +336,7 @@ namespace mui
         verticalScrollBar()->setSingleStep(15);
         horizontalScrollBar()->setValue(0);
         verticalScrollBar()->setValue(0);
-        setObjectName(QStringLiteral(MUI_NAVBAR_OBJNAME));
+        setObjectName(QStringLiteral(MUI_NAVBAR));
 
         mBoundaryOffset = 20;
         mPrevIndex = -1;
@@ -345,7 +345,7 @@ namespace mui
         mTrackBar = new QWidget(mContent);
         mTrackBar->resize(4, 4);
         mTrackBar->setVisible(false);
-        mTrackBar->setObjectName(QStringLiteral(MUI_NAV_TRACKBAR));
+        mTrackBar->setObjectName(QStringLiteral(MUI_NAVBAR_TRACKBAR));
 
         // 布局
         if (ori == Qt::Vertical) {
