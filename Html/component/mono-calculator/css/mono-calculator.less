@@ -1,0 +1,100 @@
+@import '../../../css/variables.less';
+
+* {
+    padding: 0;
+    margin: 0;
+    outline: none;
+    font-size: 14px;
+    color: @textColor;
+    font-family: 'Dejavu Sans Mono', Arial, sans-serif;
+}
+
+.wscalc-calculator {
+    width: 220px;
+    display: inline-block;
+    position: absolute;
+    padding: 20px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: @panelBackground;
+    box-shadow: @popItemShadow;
+}
+
+.wscalc-header {
+    background-color: @controlBgNormalColor;
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 0;
+    height: 38px;
+}
+
+.wscalc-menu-btn {
+    position: absolute;
+    left: 6px;
+    top: 6px;
+}
+
+.wscalc-display-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: 100%;
+    overflow: hidden;
+
+    input {
+        max-width: 100% !important;
+        border: none !important;
+    }
+}
+
+.wscalc-expression {
+    font-size: 18px;
+    min-height: 22px;
+    color: @subTextColor;
+    margin: 30px 0 10px 0;
+}
+
+.wscalc-input {
+    font-size: 32px;
+    line-height: 32px;
+    height: 32px;
+}
+
+.wscalc-func-container {
+    margin-top: 16px;
+}
+
+.wscalc-func-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+
+    [class^='func'] {
+        border-radius: 2px;
+        font-size: 18px;
+        cursor: pointer;
+        text-align: center;
+        line-height: 40px;
+        width: 40px;
+        height: 40px;
+        user-select: none;
+        transition: all 0.2s ease-in-out;
+
+        svg {
+            fill: @textColor;
+            stroke-width: 1.5;
+            stroke: @textColor;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+
+    [class^='func']:hover {
+        background: @controlBgHoverColor;
+    }
+
+    [class^='func']:active {
+        background: @controlBgActiveColor;
+    }
+}

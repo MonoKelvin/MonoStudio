@@ -24,7 +24,10 @@ SOURCES += \
     style/MStyleCalendar.cpp \
     style/MStyleNavbar.cpp \
     style/MStyleTitleBar.cpp \
-    style/MStyleWindow.cpp
+    style/MStyleWindow.cpp \
+    style/assist/MCalendarDateSectionValidator.cpp \
+    style/assist/MCalendarDateValidator.cpp \
+    style/assist/MStyleCalendarMVC.cpp
 
 HEADERS += \
     common/MElidedLabel.h \
@@ -37,7 +40,10 @@ HEADERS += \
     style/MStyleCalendar.h \
     style/MStyleNavbar.h \
     style/MStyleTitleBar.h \
-    style/MStyleWindow.h
+    style/MStyleWindow.h \
+    style/assist/MCalendarDateSectionValidator.h \
+    style/assist/MCalendarDateValidator.h \
+    style/assist/MStyleCalendarMVC.h
 
 # Default rules for deployment.
 unix {

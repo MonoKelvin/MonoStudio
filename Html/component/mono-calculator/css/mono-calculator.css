@@ -1,0 +1,85 @@
+* {
+  padding: 0;
+  margin: 0;
+  outline: none;
+  font-size: 14px;
+  color: #ffffff;
+  font-family: 'Dejavu Sans Mono', Arial, sans-serif;
+}
+.wscalc-calculator {
+  width: 220px;
+  display: inline-block;
+  position: absolute;
+  padding: 20px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #3b3b3b;
+  box-shadow: 0px 12.8px 28.8px #00000041, 0px 0px 9.2px #00000037;
+}
+.wscalc-header {
+  background-color: #454545;
+  position: absolute;
+  width: 100%;
+  left: 0;
+  top: 0;
+  height: 38px;
+}
+.wscalc-menu-btn {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+}
+.wscalc-display-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  width: 100%;
+  overflow: hidden;
+}
+.wscalc-display-controls input {
+  max-width: 100% !important;
+  border: none !important;
+}
+.wscalc-expression {
+  font-size: 18px;
+  min-height: 22px;
+  color: #bbbbbb;
+  margin: 30px 0 10px 0;
+}
+.wscalc-input {
+  font-size: 32px;
+  line-height: 32px;
+  height: 32px;
+}
+.wscalc-func-container {
+  margin-top: 16px;
+}
+.wscalc-func-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+.wscalc-func-row [class^='func'] {
+  border-radius: 2px;
+  font-size: 18px;
+  cursor: pointer;
+  text-align: center;
+  line-height: 40px;
+  width: 40px;
+  height: 40px;
+  user-select: none;
+  transition: all 0.2s ease-in-out;
+}
+.wscalc-func-row [class^='func'] svg {
+  fill: #ffffff;
+  stroke-width: 1.5;
+  stroke: #ffffff;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.wscalc-func-row [class^='func']:hover {
+  background: #4d4d4d;
+}
+.wscalc-func-row [class^='func']:active {
+  background: #424242;
+}

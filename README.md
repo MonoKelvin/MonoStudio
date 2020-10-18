@@ -1,2 +1,4 @@
 # MonoStudio
-A Toolkit and Application Framework for Qt
+一些开发使用的扩展工具包和UI控件，包括
+* Qt应用的框架封装和自定义控件
+* 自定义的WEB组件
