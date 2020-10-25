@@ -15,6 +15,7 @@ $.fn.MonoTimePicker = function (cfg) {
     this.secondValue = 0;
 
     var t = $(this);
+    t.addClass('mui-tp-time-picker');
 
     var selectionGenerator = () => {
         let h = '';

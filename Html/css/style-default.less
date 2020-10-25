@@ -6,21 +6,26 @@
     outline: none;
     font-size: 14px;
     color: @textColor;
+    box-sizing: border-box;
     font-family: 'Microsoft Yahei', Arial, sans-serif;
 }
+
 body {
     padding: 20px;
     background-color: #333333;
 }
+
 // ScrollBar
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
+
 ::-webkit-scrollbar-thumb {
     background: @controlBgNormalColor;
-    border-radius: 2px;
+    border-radius: @smallBorderRadius;
 }
+
 ::-webkit-scrollbar-thumb:hover {
     background: @controlBgHoverColor;
 }
@@ -28,33 +33,75 @@ body {
 /*******************/
 /**     Utility   **/
 /*******************/
+
 .disabled {
     cursor: not-allowed;
     filter: brightness(60%);
 }
+
 .no-pointer-event {
     pointer-events: none;
 }
+
 .clear-padding {
     padding: 0 !important;
 }
+
 .clear-margin {
     margin: 0 !important;
 }
+
 .display-none {
     display: none !important;
 }
+
 .alert-color {
     color: @alertColor;
 }
 
-// Common Style
+.no-border {
+    border: none !important;
+}
+
+.display-none {
+    display: none !important;
+}
+
+.rotate-90 {
+    transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+}
+
+.rotate-r90 {
+    transform: rotate(-90deg);
+    -ms-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+    -o-transform: rotate(-90deg);
+}
+
+.rotate-180 {
+    transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -moz-transform: rotate(180deg);
+    -webkit-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+}
+
+/*******************/
+/**     Common    **/
+/*******************/
+
 button,
 input,
 select,
-.option-list > * {
-    border-radius: 2px;
+.option-list>* {
+    border-radius: @smallBorderRadius;
 }
+
 button:disabled,
 input:disabled {
     cursor: not-allowed;
@@ -62,6 +109,7 @@ input:disabled {
 }
 
 // Normal Button
+.mui-button,
 button {
     cursor: pointer;
     fill: @textColor;
@@ -78,9 +126,13 @@ button {
     box-sizing: border-box;
     transition: all 0.1s ease-in-out;
 }
+
+.mui-button:hover,
 button:hover {
     background: @controlBgHoverColor;
 }
+
+.mui-button:active,
 button:active {
     background: @controlBgActiveColor;
 }
@@ -89,9 +141,11 @@ button:active {
 .btn-primary {
     background: @primaryColor;
 }
+
 .btn-primary:hover {
     background: @primaryHoverColor;
 }
+
 .btn-primary:active {
     background: @primaryActiveColor;
 }
@@ -102,14 +156,30 @@ button:active {
     border: 1px solid @borderNormalColor;
     padding: 0 11px;
 }
+
 .btn-border:hover {
     background: transparent;
     border: 1px solid @borderHoverColor;
 }
+
 .btn-border:active {
     background: transparent;
     border: 1px solid @borderActiveColor;
 }
+
+// Panel Button
+.btn-panel {
+    background-color: @controlBgHoverColor;
+}
+
+.btn-panel:hover {
+    background: @controlBgHoverColor + @offsetColor;
+}
+
+.btn-panel:active {
+    background: @controlBgHoverColor - @offsetColor;
+}
+
 
 // Icon Button (only icon, no text)
 .btn-icon {
@@ -129,6 +199,7 @@ button:active {
     padding-right: 28px;
     text-overflow: ellipsis;
 }
+
 // Close Button
 .btn-close {
     position: absolute;
@@ -140,11 +211,13 @@ button:active {
     top: 6px;
     background: transparent !important;
 }
+
 .btn-close:hover {
-    background: @controlBgHoverColor !important;
+    background: @controlBgHoverColor  !important;
 }
+
 .btn-close:active {
-    background: @controlBgActiveColor !important;
+    background: @controlBgActiveColor  !important;
 }
 
 .btn-small {
@@ -153,18 +226,26 @@ button:active {
     height: 26px;
 }
 
+.btn-middle {
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+}
+
 // Link
 a {
     line-height: 20px;
     text-decoration: none;
     border-bottom: 1px solid @primaryLightColor;
     color: @primaryLightColor;
-    transition: all 0.2s ease-in-out, border 0.03s ease-in-out;
+    transition: @normalTransition, border 0.03s ease-in-out;
 }
+
 a:hover {
     border-bottom: 1px solid @primaryLightHoverColor;
     color: @primaryLightHoverColor;
 }
+
 a:active {
     border-bottom: 1px solid @primaryLightActiveColor;
     color: @primaryLightActiveColor;
@@ -187,7 +268,7 @@ input {
     text-transform: none;
     -moz-appearance: none;
     -webkit-appearance: none;
-    transition: all 0.2s ease-in-out;
+    transition: @normalTransition;
 }
 
 // Switcher
@@ -198,6 +279,7 @@ input {
     position: relative;
     border-radius: 20px;
 }
+
 .switcher::after {
     content: '';
     position: absolute;
@@ -209,17 +291,21 @@ input {
     pointer-events: none;
     transition: all 0.1s ease;
 }
+
 .switcher:checked {
     background: @primaryColor;
     border: 1px solid @primaryColor;
 }
+
 .switcher:checked:hover {
     background: @primaryColor;
     border: 1px solid @primaryColor;
 }
+
 .switcher:checked::after {
     transform: translateX(22px) translateY(3px);
 }
+
 .switcher:hover {
     border: 1px solid @borderHoverColor;
 }
@@ -233,15 +319,18 @@ input[type='text'] {
     border: 1px solid @borderNormalColor;
     box-sizing: border-box;
     line-height: 20px;
-    transition: all 0.2s ease-in-out;
+    transition: @normalTransition;
 }
+
 input[type='text']:hover {
     border: 1px solid @borderHoverColor;
 }
+
 input[type='text']:focus {
     border: 2px solid @borderHoverColor;
     padding: 0px 10px;
 }
+
 input[type='text']:disabled {
     filter: none;
     color: @borderNormalColor;
@@ -255,14 +344,16 @@ input[type='range'] {
     border: none;
     background: @controlBgNormalColor;
 }
+
 input[type='range']::-webkit-slider-thumb {
     -webkit-appearance: none;
     height: 12px;
     width: 12px;
     border-radius: 50%;
     background: @controlBgLightColor;
-    transition: all 0.2s ease-in-out;
+    transition: @normalTransition;
 }
+
 input[type='range']::-webkit-slider-thumb:hover {
     background: @textColor;
 }
@@ -270,11 +361,12 @@ input[type='range']::-webkit-slider-thumb:hover {
 .panel {
     margin: 10px;
     padding: 20px;
-    border-radius: 4px;
+    border-radius: @controlBorderRadius;
     background: @panelBackground;
     box-shadow: @panelShadow;
-    transition: all 0.2s ease-in-out;
+    transition: @normalTransition;
 }
+
 // Row Layout
 .row-layout {
     display: flex;
@@ -295,11 +387,12 @@ input[type='range']::-webkit-slider-thumb:hover {
     padding: 4px 0;
     max-width: none;
     min-width: 64px;
-    border-radius: 4px;
+    border-radius: @controlBorderRadius;
     background: @panelBackground;
     box-shadow: @popItemShadow;
     z-index: 9999;
 }
+
 .menuitem {
     cursor: pointer;
     display: grid;
@@ -314,7 +407,7 @@ input[type='range']::-webkit-slider-thumb:hover {
     justify-items: center;
     list-style-type: none;
     grid-template-rows: auto;
-    transition: all 0.2s ease-in-out;
+    transition: @normalTransition;
 
     i {
         font-size: 16px;
@@ -327,9 +420,11 @@ input[type='range']::-webkit-slider-thumb:hover {
         grid-column-start: 2;
     }
 }
+
 .menuitem:hover {
     background: @controlBgHoverColor;
 }
+
 .menuitem:active {
     background: @controlBgActiveColor;
 }
@@ -337,19 +432,20 @@ input[type='range']::-webkit-slider-thumb:hover {
 .menuitem-no-selected:hover {
     background: transparent !important;
 }
+
 .menuitem-no-selected:active {
     background: transparent !important;
 }
 
 .menuitem-selected {
-    background: @primaryColor !important;
+    background: @primaryColor  !important;
 }
 
 // Menu Separator
 .menuitem-separator {
     margin: 4px 12px;
     height: 2px;
-    border-radius: 2px;
+    border-radius: @smallBorderRadius;
     background-color: @controlBgHoverColor;
 }
 
@@ -357,7 +453,7 @@ input[type='range']::-webkit-slider-thumb:hover {
 .select {
     position: relative;
     display: inline-block;
-    transition: all 0.2s ease-in-out;
+    transition: @normalTransition;
 
     .arrow-down {
         cursor: pointer;
@@ -368,6 +464,7 @@ input[type='range']::-webkit-slider-thumb:hover {
         transform: translateY(-50%);
     }
 }
+
 .option-list {
     position: absolute;
     left: 0;
@@ -377,12 +474,13 @@ input[type='range']::-webkit-slider-thumb:hover {
     min-width: 64px;
     max-height: 354px;
     overflow: auto;
-    border-radius: 4px;
+    border-radius: @controlBorderRadius;
     z-index: 888;
     background: @panelBackground;
     box-shadow: @popItemShadow;
 }
-.option-list > * {
+
+.option-list>* {
     cursor: pointer;
     display: flex;
     height: 32px;
@@ -396,10 +494,12 @@ input[type='range']::-webkit-slider-thumb:hover {
     box-sizing: border-box;
     align-items: center;
 }
-.option-list > *:hover {
+
+.option-list>*:hover {
     background: @controlBgNormalColor;
 }
-.option-list > *:active {
+
+.option-list>*:active {
     background: @controlBgActiveColor;
 }
 
@@ -415,6 +515,7 @@ input[type='range']::-webkit-slider-thumb:hover {
 }
 
 .list-widget {
+
     li,
     .list-item {
         cursor: pointer;
@@ -423,7 +524,7 @@ input[type='range']::-webkit-slider-thumb:hover {
         position: relative;
         width: 100%;
         height: 100%;
-        border-radius: 4px;
+        border-radius: @controlBorderRadius;
         box-sizing: border-box;
         background: @panelBackground;
         box-shadow: @panelShadow;
@@ -441,8 +542,8 @@ input[type='range']::-webkit-slider-thumb:hover {
     }
 
     .list-item-selected {
-        box-shadow: 0px 0px 0px 1.5px @primaryLightColor !important;
-        background-color: @controlBgHoverColor !important;
+        box-shadow: 0px 0px 0px 1.5px @primaryLightColor  !important;
+        background-color: @controlBgHoverColor  !important;
     }
 }
 
@@ -452,9 +553,9 @@ input[type='range']::-webkit-slider-thumb:hover {
     li,
     .list-item {
         cursor: pointer;
-        border-radius: 2px;
+        border-radius: @smallBorderRadius;
         padding: 10px 20px;
-        transition: all 0.2s ease-in-out;
+        transition: @normalTransition;
     }
 
     li:hover,
@@ -470,7 +571,7 @@ input[type='range']::-webkit-slider-thumb:hover {
     .list-item-selected {
         position: relative;
         box-shadow: none !important;
-        background-color: @controlBgNormalColor !important;
+        background-color: @controlBgNormalColor  !important;
     }
 
     .list-item-selected::after {
@@ -482,7 +583,7 @@ input[type='range']::-webkit-slider-thumb:hover {
         top: 0;
         left: 0;
         right: unset;
-        border-radius: 2px;
+        border-radius: @smallBorderRadius;
         background: @primaryLightColor;
     }
 }
@@ -499,7 +600,7 @@ input[type='range']::-webkit-slider-thumb:hover {
     width: 100vw;
     height: 100vh;
     z-index: 999999999;
-    background: @dimColor !important;
+    background: @dimColor  !important;
 }
 
 // Loading
@@ -522,7 +623,7 @@ input[type='range']::-webkit-slider-thumb:hover {
 .dialog-container {
     position: absolute;
     padding: 20px;
-    border-radius: 4px;
+    border-radius: @controlBorderRadius;
     left: 50%;
     top: 50%;
     min-width: 120px;
@@ -531,6 +632,7 @@ input[type='range']::-webkit-slider-thumb:hover {
     background: @panelBackground;
     box-shadow: @popItemShadow;
 }
+
 .dialog-header {
     margin-bottom: 16px;
 
@@ -541,11 +643,13 @@ input[type='range']::-webkit-slider-thumb:hover {
         font-size: 18px;
     }
 }
+
 .dialog-content {
     margin: 10px 0;
 }
+
 .circle-run {
-    stroke: @primaryColor !important;
+    stroke: @primaryColor  !important;
     animation: spin-infinite 2s linear infinite;
 }
 
@@ -554,10 +658,12 @@ input[type='range']::-webkit-slider-thumb:hover {
         stroke-dasharray: 0.01px 43.97px;
         transform: rotate(0deg);
     }
+
     50% {
         transform: rotate(450deg);
         stroke-dasharray: 21.99px 21.99px;
     }
+
     100% {
         stroke-dasharray: 0.01px 43.97px;
         transform: rotate(1080deg);

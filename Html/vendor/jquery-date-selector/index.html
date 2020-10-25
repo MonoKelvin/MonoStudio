@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,26 +8,30 @@
     <title>时间控件</title>
     <link rel="stylesheet" href="./css/mobileSelect.css">
     <script src="https://www.jq22.com/jquery/jquery-1.10.2.js"></script>
-    <script src="js/mobileSelect.js"></script>
+    <script src="./js/mobileSelect.js"></script>
     <script src="./js/selectDate.js"></script>
     <style type="text/css">
-        html,body{
+        html,
+        body {
             margin: 0;
             padding: 0;
             background-color: #ffffff;
             font-size: 16px;
-            font-family: Helvetica,"Helvetica Neue",Arial,sans-serif;
+            font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
             height: 100%;
         }
-        *{
+
+        * {
             margin: 0;
             padding: 0;
         }
-        .list{
+
+        .list {
             margin: 50px 25px 0 25px;
             text-align: center;
         }
-        .list>li{
+
+        .list>li {
             list-style: none;
             border: #CCCCCC solid 1px;
             height: 32px;
@@ -34,80 +39,78 @@
             border-radius: 5px;
             margin-bottom: 15px;
         }
-    </style> 
-    <style> 
-    .colors{
-        color: #E60012 !important;
-    }
-      .mobileSelect .content{
+    </style>
+    <style>
+        .colors {
+            color: #E60012 !important;
+        }
+
+        .mobileSelect .content {
             width: 96% !important;
             border-radius: 0.3rem !important;
             bottom: 1rem !important;
             margin-left: 2% !important;
-      }
-      .cancel{
-          color: #E60012 !important;
-      }
-      .title{
-          color: #333 !important;
-      }
-      .ensure{
-          color: #007AFF !important;
-      }
-      .selectLine{
-        display: flex;
-        align-items: center;
-      }
-      .selectLine span{
-        width: 33.3%;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        padding-bottom: 3px;
-      }
-    
+        }
+
+        .cancel {
+            color: #E60012 !important;
+        }
+
+        .title {
+            color: #333 !important;
+        }
+
+        .ensure {
+            color: #007AFF !important;
+        }
+
+        .selectLine {
+            display: flex;
+            align-items: center;
+        }
+
+        .selectLine span {
+            width: 33.3%;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 3px;
+        }
     </style>
 </head>
+
 <body>
-	<h3 style="line-height: 50px">点击下方输入框</h3>
+    <h3 style="line-height: 50px">点击下方输入框</h3>
     <div>
-        <input type="text" id="select_0" placeholder="请选择开始时间"/> 
-
-
-        <input type="text" id="select_1" placeholder="请选择结束时间"/> 
+        <input type="text" id="select_0" placeholder="请选择开始时间" />
+        <!-- <input type="text" id="select_1" placeholder="请选择结束时间" /> -->
+        <input type="button" id="select_1" value="fucking" placeholder="请选择结束时间" />
     </div>
 </body>
+
 </html>
 <script>
-   //选择 YYYY-MM-dd 格式的调用：
-   $.selectYY_MM_DD("#select_0");
+    //选择 YYYY-MM-dd 格式的调用：
+    $.selectYY_MM_DD("#select_0");
 
-   $('.title').html('选择起始时间')
+    $('.title').html('选择起始时间')
 //    $(function () {
-//             var currYear = (new Date()).getFullYear();   
+//             var currYear = (new Date()).getFullYear();
 //             var opt={};
 //             opt.date = {preset : 'date'};
 //             opt.default = {
 //                 theme: 'android-ics light', //皮肤样式
-//                 display: 'modal', //显示方式 
+//                 display: 'modal', //显示方式
 //                 mode: 'scroller', //日期选择模式
 //                 lang:'zh',
 //                 startYear:currYear-10, //开始年份
 //                 endYear:currYear + 10 //结束年份
 //             };
-             
+
 //             $("#start_kdsj").val('').scroller($.extend(opt['date'], opt['default']));
 //             $("#end_kdsj").val('').scroller($.extend(opt['date'], opt['default']));
 //         });
-</script>
-<script>
     $.selectYY_MM_DD("#select_1");
 
-           var myDate = new Date;
-            var year = myDate.getFullYear(); //获取当前年
-            var mon = myDate.getMonth() + 1; //获取当前月
-            var date = myDate.getDate(); //获取当前日
-            console.log(year,mon,date)
 </script>
-

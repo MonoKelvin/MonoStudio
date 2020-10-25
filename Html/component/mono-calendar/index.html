@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>日期选择器</title>
+		<link rel="stylesheet" type="text/css" href="css/date.css" />
+		<script src="js/date.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/nongli.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		<div id='date'>
+			<input type="text" value='' placeholder="点击选择时间" id='inputdate' />
+		</div>
+		<script type="text/javascript">
+			var d = new DateJs({
+				inputEl: '#inputdate',
+				el: '#date'
+			})
+			console.log(d)
+		</script>
+	</body>
+</html>

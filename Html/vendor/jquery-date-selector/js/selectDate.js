@@ -10,25 +10,25 @@ $.extend({
         var d, e, b  ;
         b = new Date;
         var starYear = b.getFullYear() - 55 ;//最小选项
-        var maxYear = b.getFullYear()+5;//最大的选项 
+        var maxYear = b.getFullYear()+5;//最大的选项
         d = starYear; e = maxYear;
         b = [10,0,0];
-        var dateVal = $(g).val(); //获取输入框的值 
-        if( dateVal != undefined && dateVal != ""){ 
+        var dateVal = $(g).val(); //获取输入框的值
+        if( dateVal != undefined && dateVal != ""){
         		dateVal = dateVal.split("-");
             	//设置默认选择的项
-            	dateVal && 3 == dateVal.length ? b = [dateVal[0] -  starYear , dateVal[1] -1 , dateVal[2] -1 ] : b = b; 
+            	dateVal && 3 == dateVal.length ? b = [dateVal[0] -  starYear , dateVal[1] -1 , dateVal[2] -1 ] : b = b;
         } else{
             var nowDate = new Date;
             b=[nowDate.getFullYear()-starYear,nowDate.getMonth(),nowDate.getDate()-1]
         }
         new MobileSelect({
-            trigger: g, 
+            trigger: g,
             title: '选择时间',
             wheels: function(a, b) {
                 for (var d = [{ data: []  }]; a <= b; a++) {
                     for (var e = { id: a, value: a , childs: [] }, c = 1; 12 >= c; c++) {
-                        for (var h = [], g = (1 == c || 3 == c || 5 == c || 7 == c || 8 == c || 10 == c || 12 == c) ? 31 : 2 == c ? 0 == a % 4 && 0 != a % 100 ? 29 : 0 == a % 400 ? 29 : 28 : 30, f = 1; f <= g; f++) 
+                        for (var h = [], g = (1 == c || 3 == c || 5 == c || 7 == c || 8 == c || 10 == c || 12 == c) ? 31 : 2 == c ? 0 == a % 4 && 0 != a % 100 ? 29 : 0 == a % 400 ? 29 : 28 : 30, f = 1; f <= g; f++)
                         	h.push({ id: f < 10 ? '0' + f : f,  value: f < 10 ? '0' + f : f  });
                             e.childs.push({  id: c < 10 ? '0' + c : c,  value: c < 10 ? '0' + c : c , childs: h < 10 ? '0' + h :h })
                     }
@@ -44,13 +44,13 @@ $.extend({
                         month: b[1].id,
                         day: b[2].id
                     })
-            	} 
+            	}
             }
         })
     }
 
 	//年月
-    ,selectDate_YM: function(el, cbFn) { 
+    ,selectDate_YM: function(el, cbFn) {
         /*创建日期数据*/
         var createDateData = function(info) {
             var dateData = [{
@@ -79,7 +79,7 @@ $.extend({
                     childs: childData
                 });
             }
- 
+
 
             return dateData;
         };
@@ -88,16 +88,16 @@ $.extend({
         now = new Date();
         info.nowYear = now.getFullYear();
         info.nowMonth = (now.getMonth() + 1);
-        info.startYear = info.nowYear - 60; //最小的选项 
+        info.startYear = info.nowYear - 60; //最小的选项
         info.maxYear = info.nowYear + 3; //最大的选项
         var dateVal = $(el).val(); //获取输入框的值
         var tempos = [10, 0];
-        if (dateVal != undefined && dateVal != "") { 
+        if (dateVal != undefined && dateVal != "") {
                 dateVal = dateVal.split("-");
                 //设置默认选择的项
-                dateVal && 2 == dateVal.length ? tempos = [dateVal[0] - info.startYear, dateVal[1] - 1] : tempos = tempos; 
+                dateVal && 2 == dateVal.length ? tempos = [dateVal[0] - info.startYear, dateVal[1] - 1] : tempos = tempos;
         }
-        
+
       //年月 带有至今选项
         var selectDate_YM = new MobileSelect({
             trigger: el,
@@ -168,7 +168,7 @@ $.extend({
         now = new Date();
         info.nowYear = now.getFullYear();
         info.nowMonth = (now.getMonth() + 1);
-        info.startYear = info.nowYear - 60; //最小的选项 
+        info.startYear = info.nowYear - 60; //最小的选项
         info.maxYear = info.nowYear; //最大的选项
         var dateVal = $(el).val(); //获取输入框的值
         var tempos = [10, 0];
@@ -220,7 +220,7 @@ $.extend({
                     id: i,
                     value: i
                 });
-            } 
+            }
 
             return dateData;
         };
@@ -229,16 +229,16 @@ $.extend({
         now = new Date();
         info.nowYear = now.getFullYear();
         info.nowMonth = (now.getMonth() + 1);
-        info.startYear = info.nowYear - 60; //最小的选项 
+        info.startYear = info.nowYear - 60; //最小的选项
         info.maxYear = info.nowYear ; //最大的选项
         var dateVal = $(el).val(); //获取输入框的值
         var tempos = [info.maxYear - info.startYear , 0];//设置初始值
         if (dateVal != undefined && dateVal != "") {
-             
+
                 dateVal = dateVal.split("-");
                 //设置默认选择的项
                 dateVal && 1 == dateVal.length ? tempos = [dateVal[0] - info.startYear] : tempos = tempos;
-             
+
         }
 
         var selectDate_Y = new MobileSelect({
@@ -289,7 +289,7 @@ $.extend({
             }
             //小时
             for (var i = info.startHour; i <= info.maxHour; i++) {
-                var pra = i < 10 ? '0' + i: i 
+                var pra = i < 10 ? '0' + i: i
                 dateData[0].data.push({ id: pra,  value: pra, childs: childData  });
             }
 
@@ -298,7 +298,7 @@ $.extend({
         var info = {};
         info.startHour = 0;
         info.maxHour = 23;
-        info.startMinute = 0; //最小的选项 
+        info.startMinute = 0; //最小的选项
         info.maxMinute = 59; //最大的选项
         var designTimeVal = $(el).val(); //获取输入框的值
         var tempos = [0, 0];
@@ -340,7 +340,7 @@ $.extend({
                 data: []
             }];
             var childData = [] , childDatass = [];
-            
+
             //秒钟
             for (var j = 0; j <= 59; j++) {
                 if (j < 10) {
@@ -351,7 +351,7 @@ $.extend({
                 } else {
                 	childDatass.push({
                         id: j,
-                        value: j 
+                        value: j
                     });
                 }
             }
@@ -373,7 +373,7 @@ $.extend({
             }
             //小时
             for (var i = info.startHour; i <= info.maxHour; i++) {
-                var pra = i < 10 ? '0' + i: i 
+                var pra = i < 10 ? '0' + i: i
                 dateData[0].data.push({ id: pra,  value: pra, childs: childData  });
             }
 
@@ -382,7 +382,7 @@ $.extend({
         var info = {};
         info.startHour = 0;
         info.maxHour = 23;
-        info.startMinute = 0; //最小的选项 
+        info.startMinute = 0; //最小的选项
         info.maxMinute = 59; //最大的选项
         var designTimeVal = $(el).val(); //获取输入框的值
         var tempos = [0, 0 , 0];
@@ -395,7 +395,7 @@ $.extend({
             tempos=[nowDate.getFullYear(),nowDate.getMonth() + 1,nowDate.getDate()]
         }
 
-        
+
 
         var select_HH_MM = new MobileSelect({
             trigger: el,

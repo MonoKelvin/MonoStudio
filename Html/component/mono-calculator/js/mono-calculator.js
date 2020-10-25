@@ -1,8 +1,8 @@
 $.fn.MonoCalculator = function (options) {
     var THIS = $(this);
 
-    var expression = THIS.find('.wscalc-expression');
-    var input = THIS.find('.wscalc-input');
+    var expression = THIS.find('.mui-calc-expression');
+    var input = THIS.find('.mui-calc-input');
     var funcDelete = THIS.find('.func-delete');
     var funcClear = THIS.find('.func-clear');
     var funcEqual = THIS.find('.func-equal');
