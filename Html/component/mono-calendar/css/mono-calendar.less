@@ -15,7 +15,7 @@
 
 .calendar-header {
     width: 100%;
-    margin: 10px 0;
+    margin: 4px 0 10px 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -59,7 +59,7 @@
     transition: @normalTransition;
     user-select: none;
 
-    .month-day {
+    .day-item {
         width: 34px;
         height: 34px;
         margin: 2px;
@@ -71,11 +71,11 @@
         transition: @normalTransition;
     }
 
-    .month-day:hover {
+    .day-item:hover {
         background-color: @controlBgHoverColor;
     }
 
-    .month-day:active {
+    .day-item:active {
         background-color: @controlBgActiveColor;
     }
 
@@ -86,9 +86,12 @@
 
     .today,
     .today:hover {
-        color: @textColor;
+        color: @alertColor;
         font-weight: bold;
-        background-color: @alertColor;
+    }
+
+    .day-active {
+        color: @textColor !important;
     }
 
     .not-this-month {
@@ -98,7 +101,6 @@
     .not-this-month:hover {
         opacity: 0.6;
     }
-
 }
 
 .mui-calendar-footer {

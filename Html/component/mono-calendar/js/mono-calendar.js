@@ -534,7 +534,7 @@
             for (var i = 0; i < len; i++) {
                 var item = document.createElement('div');
                 item.innerHTML = showMonth[i].day;
-                item.classList.add('month-day');
+                item.classList.add('day-item');
                 if (showMonth[i].month != this.currectMonth || showMonth[i].year != this.currectYear) {
                     item.classList.add('not-this-month');
                 }

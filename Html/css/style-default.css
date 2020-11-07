@@ -90,6 +90,9 @@ button {
   cursor: pointer;
   fill: #ffffff;
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   border: 2px solid transparent;
   padding: 0 10px;
   max-width: 374px;

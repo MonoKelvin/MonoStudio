@@ -12,7 +12,7 @@
 }
 .calendar-header {
   width: 100%;
-  margin: 10px 0;
+  margin: 4px 0 10px 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -50,7 +50,7 @@
   transition: all 0.2s ease-in-out;
   user-select: none;
 }
-.mui-calendar-day-container .month-day {
+.mui-calendar-day-container .day-item {
   width: 34px;
   height: 34px;
   margin: 2px;
@@ -61,10 +61,10 @@
   border-radius: 50%;
   transition: all 0.2s ease-in-out;
 }
-.mui-calendar-day-container .month-day:hover {
+.mui-calendar-day-container .day-item:hover {
   background-color: #4d4d4d;
 }
-.mui-calendar-day-container .month-day:active {
+.mui-calendar-day-container .day-item:active {
   background-color: #424242;
 }
 .mui-calendar-day-container .day-active,
@@ -73,9 +73,11 @@
 }
 .mui-calendar-day-container .today,
 .mui-calendar-day-container .today:hover {
-  color: #ffffff;
+  color: #f07165;
   font-weight: bold;
-  background-color: #f07165;
+}
+.mui-calendar-day-container .day-active {
+  color: #ffffff !important;
 }
 .mui-calendar-day-container .not-this-month {
   opacity: 0.3;
