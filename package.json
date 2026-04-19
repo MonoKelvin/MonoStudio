@@ -1,0 +1,55 @@
+{
+    "name": "monostudio",
+    "version": "1.0.0",
+    "description": "A desktop toolbox application",
+    "main": "electron/main.js",
+    "scripts": {
+        "renderer:dev": "vite",
+        "desktop:dev": "concurrently -k \"npm:renderer:dev\" \"wait-on http-get://localhost:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+        "build": "vite build",
+        "desktop:build": "npm run build && electron-builder",
+        "desktop:pack": "npm run build && electron-builder --dir",
+        "start": "npm run desktop:dev",
+        "electron": "npm run desktop:dev",
+        "dev": "npm run desktop:dev"
+    },
+    "keywords": [
+        "electron",
+        "vue",
+        "toolbox"
+    ],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "vue": "^3.5.13"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-vue": "^5.2.1",
+        "concurrently": "^9.1.2",
+        "cross-env": "^7.0.3",
+        "electron": "^32.1.2",
+        "electron-builder": "^24.13.3",
+        "vite": "^5.4.11",
+        "wait-on": "^8.0.3"
+    },
+    "build": {
+        "appId": "com.monostudio.app",
+        "productName": "MonoStudio",
+        "directories": {
+            "output": "dist_electron",
+            "buildResources": "build"
+        },
+        "files": [
+            "dist/**/*",
+            "electron/**/*"
+        ],
+        "win": {
+            "target": "portable",
+            "signAndEditExecutable": false
+        },
+        "portable": {
+            "artifactName": "MonoStudio-${version}.exe"
+        }
+    },
+    "type": "commonjs"
+}
