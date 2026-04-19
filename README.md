@@ -71,7 +71,9 @@ src/
 
 ## 许可证
 
-MIT License
+[MIT License](LICENSE)
+
+详见 [LICENSE](LICENSE) 文件。
 
 ## 联系方式
 
