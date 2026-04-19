@@ -2,8 +2,6 @@
 
 MonoStudio是一个连开发者都不知道全部功能的神奇工具箱，基于Electron和Vue构建，为用户提供多种实用工具，帮助提高工作效率和生活质量。
 
-## 关于项目
-
 **重要说明**：本项目全部代码由AI赛博打工人生成，开发者负责取餐和整合。鼠鼠我呀，真的一行代码都不想写了～ (￣ω￣)
 
 ### 使用的AI工具
@@ -118,4 +116,4 @@ MIT License
 
 | 支付宝 | 微信支付 |
 |-------|--------|
-| ![支付宝二维码](src/assets/images/alipay_payment_code.jpg) | ![微信支付二维码](src/assets/images/wechat_payment_code.jpg) |
+| <img src="src/assets/images/alipay_payment_code.jpg" width="200" height="200" alt="支付宝二维码"> | <img src="src/assets/images/wechat_payment_code.jpg" width="200" height="200" alt="微信支付二维码"> |
