@@ -37,10 +37,9 @@ export function useTools() {
   const selectedTool = ref('desktop-icon');
   const previousTool = ref('desktop-icon');
   const personalLifeUnlocked = ref(false);
+  const pendingPersonalLifeTool = ref(null);
   const securitySettings = ref({
-    requirePasswordOnInactive: false,
-    requirePasswordEveryTime: false,
-    requirePasswordByTime: false,
+    protectionMode: 'session', // session, every, time, inactive
     passwordTimeout: 30, // 默认30分钟
     keepSession: true
   });
@@ -148,23 +147,28 @@ export function useTools() {
    */
   function needsPasswordVerification() {
     if (!personalLifeUnlocked.value) return true;
-    
+
     const { protectionMode, passwordTimeout } = securitySettings.value;
-    
+
     if (protectionMode === 'every') return true;
-    
+
     if (protectionMode === 'time') {
       const now = Date.now();
       const timeoutMs = passwordTimeout * 60 * 1000;
       return (now - lastUnlockTime.value) > timeoutMs;
     }
-    
+
     if (protectionMode === 'inactive') {
       // 这里可以添加检测软件是否处于激活状态的逻辑
       // 暂时简化处理，返回false
       return false;
     }
-    
+
+    if (protectionMode === 'session') {
+      // 会话模式，只要已经解锁就不需要再次验证
+      return false;
+    }
+
     return false;
   }
 
@@ -176,12 +180,14 @@ export function useTools() {
     const tool = tools.find(t => t.id === toolId);
     if (tool && tool.category === PERSONAL_LIFE_CATEGORY) {
       if (!personalLifeUnlocked.value || needsPasswordVerification()) {
+        pendingPersonalLifeTool.value = toolId;
         selectedTool.value = personalLifeGate.id;
       } else {
         if (toolId !== settingsEntry.id && toolId !== personalLifeGate.id) {
           previousTool.value = toolId;
         }
         selectedTool.value = toolId;
+        pendingPersonalLifeTool.value = null;
       }
     } else {
       if (toolId === settingsEntry.id && selectedTool.value !== settingsEntry.id) {
@@ -190,6 +196,7 @@ export function useTools() {
         previousTool.value = toolId;
       }
       selectedTool.value = toolId;
+      pendingPersonalLifeTool.value = null;
     }
   }
 
@@ -197,7 +204,9 @@ export function useTools() {
     personalLifeUnlocked.value = true;
     lastUnlockTime.value = Date.now();
     localStorage.setItem(LAST_UNLOCK_TIME_KEY, lastUnlockTime.value.toString());
-    selectedTool.value = previousTool.value;
+    const targetTool = pendingPersonalLifeTool.value || previousTool.value;
+    selectedTool.value = targetTool;
+    pendingPersonalLifeTool.value = null;
   }
 
   /**
@@ -206,7 +215,7 @@ export function useTools() {
   function initializeSelectedTool() {
     loadSecuritySettings();
     loadLastUnlockTime();
-    
+
     const saved = localStorage.getItem(SELECTED_TOOL_KEY);
     if (saved) {
       // 检查保存的工具是否存在
@@ -233,6 +242,7 @@ export function useTools() {
     searchQuery,
     selectedTool,
     previousTool,
+    pendingPersonalLifeTool,
     tools,
     settingsEntry,
     personalLifeGate,

@@ -24,8 +24,8 @@
                     </div>
                     <div v-if="collapsed" class="category-divider"></div>
                     <BaseButton v-for="tool in categoryTools" :key="tool.id" class="tree-item"
-                        :class="{ active: tool.id === selectedTool, 'active-secondary': tool.id === previousTool && selectedTool === settingsEntry.id }"
-                        v-tooltip:left="collapsed ? tool.name : ''" @click="$emit('select-tool', tool.id)">
+                        :class="{ active: isToolActive(tool) }" v-tooltip:left="collapsed ? tool.name : ''"
+                        @click="$emit('select-tool', tool.id)">
                         <img class="item-icon-svg" :src="iconSrc(tool.id)" alt="" />
                         <span v-if="!collapsed" class="item-main">
                             {{ tool.name }}
@@ -105,6 +105,7 @@ export default {
         toolsByCategory: { type: Object, required: true },
         selectedTool: { type: String, required: true },
         previousTool: { type: String, required: true },
+        pendingPersonalLifeTool: { type: String, default: null },
         settingsEntry: { type: Object, required: true },
         personalLifeGate: { type: Object, required: true },
         personalLifeUnlocked: { type: Boolean, default: false },
@@ -117,6 +118,15 @@ export default {
         clearSearch() {
             hideTooltip();
             this.$emit('update-search', '');
+        },
+        isToolActive(tool) {
+            if (tool.id === this.selectedTool) return true;
+            if (tool.category === '个人生活' && !this.personalLifeUnlocked) {
+                if (this.selectedTool === this.personalLifeGate.id) {
+                    return tool.id === this.pendingPersonalLifeTool;
+                }
+            }
+            return false;
         }
     },
     data() {

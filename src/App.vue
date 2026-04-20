@@ -6,11 +6,13 @@
             @change-theme="setThemeAndSave" />
         <div class="workspace shell-grid" :class="{ 'is-resizing': isResizingSidebar }" :style="shellGridStyle">
             <SidebarNav :search-query="searchQuery" :tools-by-category="toolsByCategory" :selected-tool="selectedTool"
-                :previous-tool="previousTool" :settings-entry="settingsEntry" :personal-life-gate="personalLifeGate"
+                :previous-tool="previousTool" :pending-personal-life-tool="pendingPersonalLifeTool"
+                :settings-entry="settingsEntry" :personal-life-gate="personalLifeGate"
                 :personal-life-unlocked="personalLifeUnlocked" :collapsed="isSidebarCollapsed"
                 @update-search="searchQuery = $event" @select-tool="selectTool" style="width: 100%; min-width: 0;" />
             <div class="sidebar-resizer" @mousedown="startSidebarResize($event)" @dblclick="resetSidebarWidth" />
-            <ToolWorkspace :current-tool="currentTool" :theme-mode="currentTheme" :theme-options="themes"
+            <ToolWorkspace :current-tool="currentTool" :pending-personal-life-tool="pendingPersonalLifeTool" :tools="tools"
+                :theme-mode="currentTheme" :theme-options="themes"
                 :current-accent-color="currentAccentColor" :open-dev-tools="settings.openDevTools"
                 @change-theme="setThemeAndSave" @change-accent-color="setAccentColorAndSave"
                 @change-dev-tools="setDevToolsAndSave" @unlock-personal-life="unlockPersonalLife" />
@@ -56,6 +58,8 @@ const {
     searchQuery,
     selectedTool,
     previousTool,
+    pendingPersonalLifeTool,
+    tools,
     currentTheme,
     currentAccentColor,
     themes,
