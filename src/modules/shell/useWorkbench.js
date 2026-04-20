@@ -16,21 +16,24 @@ export function useWorkbench() {
   } = useTheme();
 
   const {
-    searchQuery,
-    selectedTool,
-    previousTool,
-    pendingPersonalLifeTool,
-    tools,
-    settingsEntry,
-    personalLifeGate,
-    personalLifeUnlocked,
-    filteredTools,
-    toolsByCategory,
-    currentTool,
-    setSelectedTool,
-    initializeSelectedTool,
-    unlockPersonalLife
-  } = useTools();
+  searchQuery,
+  selectedTool,
+  previousTool,
+  pendingPersonalLifeTool,
+  tools,
+  settingsEntry,
+  personalLifeGate,
+  personalLifeUnlocked,
+  isWindowActive,
+  filteredTools,
+  toolsByCategory,
+  currentTool,
+  setSelectedTool,
+  initializeSelectedTool,
+  loadSecuritySettings,
+  unlockPersonalLife,
+  setWindowActive
+} = useTools();
 
   onMounted(() => {
     initializeSelectedTool();
@@ -48,12 +51,15 @@ export function useWorkbench() {
     settingsEntry,
     personalLifeGate,
     personalLifeUnlocked,
+    isWindowActive,
     filteredTools,
     toolsByCategory,
     currentTool,
     setTheme,
     setAccentColor,
     setSelectedTool,
-    unlockPersonalLife
+    loadSecuritySettings,
+    unlockPersonalLife,
+    setWindowActive
   };
 }

@@ -44,6 +44,7 @@ export function useTools() {
     keepSession: true
   });
   const lastUnlockTime = ref(0);
+  const isWindowActive = ref(true);
 
   const settingsEntry = {
     ...TOOL_CONFIG.SETTINGS_ENTRY,
@@ -159,9 +160,8 @@ export function useTools() {
     }
 
     if (protectionMode === 'inactive') {
-      // 这里可以添加检测软件是否处于激活状态的逻辑
-      // 暂时简化处理，返回false
-      return false;
+      // 未激活验证模式，窗口失焦时需要重新验证
+      return !isWindowActive.value;
     }
 
     if (protectionMode === 'session') {
@@ -180,6 +180,7 @@ export function useTools() {
     const tool = tools.find(t => t.id === toolId);
     if (tool && tool.category === PERSONAL_LIFE_CATEGORY) {
       if (!personalLifeUnlocked.value || needsPasswordVerification()) {
+        // 确保同时更新两个状态，避免闪烁
         pendingPersonalLifeTool.value = toolId;
         selectedTool.value = personalLifeGate.id;
       } else {
@@ -210,11 +211,37 @@ export function useTools() {
   }
 
   /**
+   * 设置窗口激活状态
+   * @param {boolean} active - 是否激活
+   */
+  function setWindowActive(active) {
+    isWindowActive.value = active;
+    // 如果窗口失焦且处于未激活验证模式，自动锁定
+    if (!active && securitySettings.value.protectionMode === 'inactive' && personalLifeUnlocked.value) {
+      personalLifeUnlocked.value = false;
+      // 切换到密码门界面
+      if (tools.find(t => t.id === selectedTool.value && t.category === PERSONAL_LIFE_CATEGORY)) {
+        pendingPersonalLifeTool.value = selectedTool.value;
+        selectedTool.value = personalLifeGate.id;
+      }
+    }
+  }
+
+  /**
+   * 初始化窗口事件监听
+   */
+  function initWindowEventListeners() {
+    window.addEventListener('blur', () => setWindowActive(false));
+    window.addEventListener('focus', () => setWindowActive(true));
+  }
+
+  /**
    * 初始化选中的工具
    */
   function initializeSelectedTool() {
     loadSecuritySettings();
     loadLastUnlockTime();
+    initWindowEventListeners();
 
     const saved = localStorage.getItem(SELECTED_TOOL_KEY);
     if (saved) {
@@ -247,11 +274,14 @@ export function useTools() {
     settingsEntry,
     personalLifeGate,
     personalLifeUnlocked,
+    isWindowActive,
     filteredTools,
     toolsByCategory,
     currentTool,
     setSelectedTool,
     initializeSelectedTool,
-    unlockPersonalLife
+    loadSecuritySettings,
+    unlockPersonalLife,
+    setWindowActive
   };
 }

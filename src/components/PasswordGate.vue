@@ -73,6 +73,8 @@ export default {
 
                 if (inputHash === storedHash) {
                     this.$emit('unlocked');
+                    // 解锁成功后清空密码
+                    this.password = '';
                 } else {
                     this.error = '密码错误，请重试';
                 }
@@ -91,6 +93,9 @@ export default {
                 localStorage.setItem(PASSWORD_STORAGE_KEY, passwordHash);
                 this.hasPassword = true;
                 this.$emit('unlocked');
+                // 重置密码输入框
+                this.newPassword = '';
+                this.confirmPassword = '';
             }
         }
     }

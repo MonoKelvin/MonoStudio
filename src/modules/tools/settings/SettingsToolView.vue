@@ -14,7 +14,7 @@
                     @change-accent-color="$emit('change-accent-color', $event)" />
             </template>
             <template v-else-if="activeGroup === 'app'">
-                <AppSettings :open-dev-tools="openDevTools" @change-dev-tools="$emit('change-dev-tools', $event)" />
+                <AppSettings :open-dev-tools="openDevTools" @change-dev-tools="$emit('change-dev-tools', $event)" @security-settings-changed="$emit('security-settings-changed')" />
             </template>
             <template v-else>
                 <AboutSettings @open-sponsor-panel="showSponsorPanel = true"

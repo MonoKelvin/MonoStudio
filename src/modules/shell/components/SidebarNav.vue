@@ -120,13 +120,17 @@ export default {
             this.$emit('update-search', '');
         },
         isToolActive(tool) {
-            if (tool.id === this.selectedTool) return true;
-            if (tool.category === '个人生活' && !this.personalLifeUnlocked) {
-                if (this.selectedTool === this.personalLifeGate.id) {
+            // 个人生活工具需要特殊处理高亮
+            if (tool.category === '个人生活') {
+                // 如果当前显示的是密码门，并且有待解锁的目标工具
+                if (this.selectedTool === this.personalLifeGate.id && this.pendingPersonalLifeTool) {
                     return tool.id === this.pendingPersonalLifeTool;
                 }
+                // 否则，直接比较当前选中的工具ID
+                return tool.id === this.selectedTool;
             }
-            return false;
+            // 其他类别工具
+            return tool.id === this.selectedTool;
         }
     },
     data() {

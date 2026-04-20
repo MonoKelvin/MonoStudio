@@ -16,6 +16,7 @@
           @change-theme="$emit('change-theme', $event)"
           @change-accent-color="$emit('change-accent-color', $event)"
           @change-dev-tools="$emit('change-dev-tools', $event)"
+          @security-settings-changed="$emit('security-settings-changed')"
           @unlocked="currentTool.isLockGate && $emit('unlock-personal-life')"
         />
       </keep-alive>

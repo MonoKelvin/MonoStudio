@@ -15,7 +15,8 @@
                 :theme-mode="currentTheme" :theme-options="themes"
                 :current-accent-color="currentAccentColor" :open-dev-tools="settings.openDevTools"
                 @change-theme="setThemeAndSave" @change-accent-color="setAccentColorAndSave"
-                @change-dev-tools="setDevToolsAndSave" @unlock-personal-life="unlockPersonalLife" />
+                @change-dev-tools="setDevToolsAndSave" @security-settings-changed="loadSecuritySettings"
+                @unlock-personal-life="unlockPersonalLife" />
         </div>
         <div v-if="contextMenu.visible" class="custom-context-menu"
             :style="{ left: `${contextMenu.x}px`, top: `${contextMenu.y}px` }" @mousedown.stop>
@@ -72,6 +73,7 @@ const {
     setTheme,
     setAccentColor,
     setSelectedTool,
+    loadSecuritySettings,
     unlockPersonalLife
 } = useWorkbench();
 

@@ -80,7 +80,7 @@ export default {
             default: false
         }
     },
-    emits: ['change-dev-tools'],
+    emits: ['change-dev-tools', 'security-settings-changed'],
     data() {
         return {
             localDevToolsOpen: false,
@@ -164,6 +164,7 @@ export default {
         },
         saveSecuritySettings() {
             localStorage.setItem(SECURITY_SETTINGS_KEY, JSON.stringify(this.securitySettings));
+            this.$emit('security-settings-changed');
         },
         onDevToolsChange(newVal) {
             this.localDevToolsOpen = newVal;
