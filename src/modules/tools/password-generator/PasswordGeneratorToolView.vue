@@ -1,250 +1,580 @@
 <template>
-  <BasePanel class="panel password-generator-panel">
-    <div class="password-generator-container">
-      <div class="generator-header">
-        <h3>{{ toolName }}</h3>
-        <BaseButton @click="generatePassword">生成密码</BaseButton>
-      </div>
-      
-      <div class="password-result">
-        <div class="result-header">
-          <label>生成的密码</label>
-          <BaseButton size="sm" @click="copyPassword" :disabled="!generatedPassword">
-            复制
-          </BaseButton>
+    <BasePanel class="panel password-generator-panel">
+        <div class="password-generator-container">
+            <div class="password-result">
+                <div class="result-header">
+                    <label>生成的密码</label>
+                    <BaseButton class="generate-button" @click="generatePassword">生成密码</BaseButton>
+                </div>
+                <div class="password-display">
+                    <code class="password-text">{{ generatedPassword }}</code>
+                    <BaseButton class="copy-button"
+                        :class="{ 'is-success': copySuccess, 'is-recovering': copyRecovering }" size="sm"
+                        @click="copyPassword" :disabled="!generatedPassword">
+                        <img :src="copySuccess ? successIcon : copyIcon" alt="" aria-hidden="true" />
+                    </BaseButton>
+                </div>
+                <div class="password-strength">
+                    <span>密码强度: </span>
+                    <span class="strength-text" :class="'strength-' + passwordStrength">
+                        {{ passwordStrengthText }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="generator-options">
+                <div class="settings-group">
+                    <div class="settings-group-header" @click="toggleBasicSettings" :aria-expanded="basicSettingsOpen">
+                        <label>基础设置</label>
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <div v-if="basicSettingsOpen" class="settings-group-content">
+                        <div class="settings-group-horizontal">
+                            <label>密码长度</label>
+                            <BaseSpinbox v-model="passwordLength" :min="4" :max="64" />
+                        </div>
+
+                        <div class="option-group">
+                            <label>字符类型</label>
+                            <div class="checkbox-group checkbox-group-flow">
+                                <BaseCheckbox v-model="options.uppercase">大写字母 (A-Z)</BaseCheckbox>
+                                <BaseCheckbox v-model="options.lowercase">小写字母 (a-z)</BaseCheckbox>
+                                <BaseCheckbox v-model="options.numbers">数字 (0-9)</BaseCheckbox>
+                                <BaseCheckbox v-model="options.symbols">特殊字符 (!@#$%^&*)</BaseCheckbox>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group advanced-settings">
+                    <div class="settings-group-header" @click="toggleAdvancedSettings"
+                        :aria-expanded="advancedSettingsOpen">
+                        <label>高级设置</label>
+                        <span class="toggle-icon">▶</span>
+                    </div>
+
+                    <div v-if="advancedSettingsOpen" class="settings-group-content">
+                        <div class="option-group">
+                            <label>密码模式</label>
+                            <div class="radio-group">
+                                <BaseCheckbox type="radio" name="passwordMode" v-model="options.mode" :value="'random'">
+                                    随机
+                                </BaseCheckbox>
+                                <BaseTooltip placement="top" :delay="0">
+                                    <template #default>
+                                        <BaseCheckbox type="radio" name="passwordMode" v-model="options.mode"
+                                            :value="'memorable'">
+                                            易记
+                                        </BaseCheckbox>
+                                    </template>
+                                    <template #content>
+                                        易记模式使用随机英文单词组合，便于记忆和输入。例如：apple-battery-horse
+                                    </template>
+                                </BaseTooltip>
+                            </div>
+                        </div>
+
+                        <div class="option-group">
+                            <label>密码规则</label>
+                            <div class="checkbox-group checkbox-group-left">
+                                <BaseCheckbox v-model="options.excludeSimilar">排除相似字符 (如 1, l, I, 0, O)</BaseCheckbox>
+                                <BaseCheckbox v-model="options.avoidConsecutive">避免连续字符 (如 AAA, 111)</BaseCheckbox>
+                            </div>
+                        </div>
+
+                        <div class="option-group">
+                            <label>特殊字符集</label>
+                            <BaseInput v-model="options.customSymbols" placeholder="输入自定义特殊字符" />
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <BaseInput 
-          v-model="generatedPassword" 
-          readonly 
-          :class="{ 'password-strong': passwordStrength === 'strong', 'password-medium': passwordStrength === 'medium', 'password-weak': passwordStrength === 'weak' }"
-        />
-        <div class="password-strength">
-          <span>密码强度: </span>
-          <span :class="'strength-' + passwordStrength">
-            {{ passwordStrengthText }}
-          </span>
-        </div>
-      </div>
-      
-      <div class="generator-options">
-        <div class="option-group">
-          <label>密码长度</label>
-          <BaseSpinbox v-model="passwordLength" :min="6" :max="50" />
-        </div>
-        
-        <div class="option-group">
-          <label>字符类型</label>
-          <div class="checkbox-group">
-            <BaseCheckbox v-model="options.uppercase">大写字母 (A-Z)</BaseCheckbox>
-            <BaseCheckbox v-model="options.lowercase">小写字母 (a-z)</BaseCheckbox>
-            <BaseCheckbox v-model="options.numbers">数字 (0-9)</BaseCheckbox>
-            <BaseCheckbox v-model="options.symbols">特殊字符 (!@#$%^&*)</BaseCheckbox>
-          </div>
-        </div>
-      </div>
-    </div>
-  </BasePanel>
+    </BasePanel>
+    <BasePromptDialog v-model:visible="dialogVisible" :type="dialogType" :title="dialogTitle" :message="dialogMessage"
+        :confirm-text="dialogConfirmText" :cancel-text="dialogCancelText" :show-cancel="dialogShowCancel"
+        :close-on-overlay="dialogCloseOnOverlay" :enable-sound="dialogEnableSound" @confirm="handleDialogConfirm"
+        @cancel="handleDialogCancel" />
 </template>
 
 <script>
+import { ref, computed, onMounted } from 'vue';
 import BaseInput from '../../../components/base/BaseInput.vue';
 import BaseButton from '../../../components/base/BaseButton.vue';
 import BaseCheckbox from '../../../components/base/BaseCheckbox.vue';
 import BaseSpinbox from '../../../components/base/BaseSpinbox.vue';
+import BasePromptDialog from '../../../components/base/BasePromptDialog.vue';
+import BaseTooltip from '../../../components/base/BaseTooltip.vue';
+import { useDialog } from '../../../composables/useDialog.js';
+import copyIcon from '../../../assets/icons/copy.svg';
+import successIcon from '../../../assets/icons/check-success.svg';
 
 export default {
-  name: 'PasswordGeneratorToolView',
-  components: {
-    BaseInput,
-    BaseButton,
-    BaseCheckbox,
-    BaseSpinbox
-  },
-  props: {
-    toolName: {
-      type: String,
-      default: '密码生成器'
+    name: 'PasswordGeneratorToolView',
+    components: {
+        BaseInput,
+        BaseButton,
+        BaseCheckbox,
+        BaseSpinbox,
+        BasePromptDialog,
+        BaseTooltip
     },
-    toolDescription: {
-      type: String,
-      default: '生成安全的随机密码'
-    }
-  },
-  data() {
-    return {
-      generatedPassword: '',
-      passwordLength: 12,
-      options: {
-        uppercase: true,
-        lowercase: true,
-        numbers: true,
-        symbols: true
-      }
-    };
-  },
-  computed: {
-    passwordStrength() {
-      if (!this.generatedPassword) return 'weak';
-      const length = this.generatedPassword.length;
-      let strength = 0;
-      
-      if (length >= 8) strength += 1;
-      if (length >= 12) strength += 1;
-      if (this.options.uppercase && /[A-Z]/.test(this.generatedPassword)) strength += 1;
-      if (this.options.lowercase && /[a-z]/.test(this.generatedPassword)) strength += 1;
-      if (this.options.numbers && /[0-9]/.test(this.generatedPassword)) strength += 1;
-      if (this.options.symbols && /[!@#$%^&*(),.?":{}|<>]/.test(this.generatedPassword)) strength += 1;
-      
-      if (strength >= 5) return 'strong';
-      if (strength >= 3) return 'medium';
-      return 'weak';
-    },
-    passwordStrengthText() {
-      switch (this.passwordStrength) {
-        case 'strong': return '强';
-        case 'medium': return '中';
-        case 'weak': return '弱';
-        default: return '弱';
-      }
-    }
-  },
-  methods: {
-    generatePassword() {
-      const charset = {
-        uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-        lowercase: 'abcdefghijklmnopqrstuvwxyz',
-        numbers: '0123456789',
-        symbols: '!@#$%^&*(),.?":{}|<>'
-      };
-      
-      let availableChars = '';
-      for (const [key, value] of Object.entries(this.options)) {
-        if (value) {
-          availableChars += charset[key];
-        }
-      }
-      
-      if (!availableChars) {
-        alert('请至少选择一种字符类型');
-        return;
-      }
-      
-      let password = '';
-      for (let i = 0; i < this.passwordLength; i++) {
-        const randomIndex = Math.floor(Math.random() * availableChars.length);
-        password += availableChars[randomIndex];
-      }
-      
-      this.generatedPassword = password;
-    },
-    copyPassword() {
-      if (this.generatedPassword) {
-        navigator.clipboard.writeText(this.generatedPassword).then(() => {
-          alert('已复制到剪贴板');
-        }).catch(err => {
-          console.error('复制失败:', err);
+    setup() {
+        const dialog = useDialog();
+
+        const generatedPassword = ref('');
+        const passwordLength = ref(12);
+        const basicSettingsOpen = ref(true);
+        const advancedSettingsOpen = ref(true);
+        const copyIconRef = ref(copyIcon);
+        const successIconRef = ref(successIcon);
+        const copySuccess = ref(false);
+        const copyRecovering = ref(false);
+        const copySuccessTimer = ref(null);
+        const options = ref({
+            uppercase: true,
+            lowercase: true,
+            numbers: true,
+            symbols: true,
+            mode: 'random',
+            excludeSimilar: false,
+            avoidConsecutive: false,
+            customSymbols: ''
         });
-      }
+
+        const passwordStrength = computed(() => {
+            if (!generatedPassword.value) return 'weak';
+            const length = generatedPassword.value.length;
+            let strength = 0;
+
+            if (length >= 8) strength += 1;
+            if (length >= 12) strength += 1;
+            if (options.value.uppercase && /[A-Z]/.test(generatedPassword.value)) strength += 1;
+            if (options.value.lowercase && /[a-z]/.test(generatedPassword.value)) strength += 1;
+            if (options.value.numbers && /[0-9]/.test(generatedPassword.value)) strength += 1;
+            if (options.value.symbols && /[!@#$%^&*(),.?":{}|<>]/.test(generatedPassword.value)) strength += 1;
+
+            if (strength >= 5) return 'strong';
+            if (strength >= 3) return 'medium';
+            return 'weak';
+        });
+
+        const passwordStrengthText = computed(() => {
+            switch (passwordStrength.value) {
+                case 'strong': return '强';
+                case 'medium': return '中';
+                case 'weak': return '弱';
+                default: return '弱';
+            }
+        });
+
+        const generatePassword = () => {
+            if (options.value.mode === 'memorable') {
+                generateMemorablePassword();
+                return;
+            }
+
+            let symbolSet = '!@#$%^&*(),.?":{}|<>';
+            if (options.value.customSymbols && options.value.customSymbols.trim()) {
+                symbolSet = options.value.customSymbols;
+            }
+
+            const charset = {
+                uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                lowercase: 'abcdefghijklmnopqrstuvwxyz',
+                numbers: '0123456789',
+                symbols: symbolSet
+            };
+
+            let availableChars = '';
+            if (options.value.uppercase) availableChars += charset.uppercase;
+            if (options.value.lowercase) availableChars += charset.lowercase;
+            if (options.value.numbers) availableChars += charset.numbers;
+            if (options.value.symbols) availableChars += charset.symbols;
+
+            if (options.value.excludeSimilar) {
+                availableChars = availableChars.replace(/[1lI0O]/g, '');
+            }
+
+            if (!availableChars) {
+                dialog.alert('请至少选择一种字符类型', '提示', 'warning');
+                return;
+            }
+
+            let password = '';
+            let lastChar = '';
+            for (let i = 0; i < passwordLength.value; i++) {
+                let randomIndex = Math.floor(Math.random() * availableChars.length);
+                let currentChar = availableChars[randomIndex];
+
+                if (options.value.avoidConsecutive && currentChar === lastChar) {
+                    randomIndex = (randomIndex + 1) % availableChars.length;
+                    currentChar = availableChars[randomIndex];
+                }
+
+                password += currentChar;
+                lastChar = currentChar;
+            }
+
+            generatedPassword.value = password;
+        };
+
+        const generateMemorablePassword = () => {
+            const words = [
+                'apple', 'banana', 'cherry', 'date', 'elderberry', 'fig', 'grape', 'honeydew',
+                'kiwi', 'lemon', 'mango', 'nectarine', 'orange', 'peach', 'quince', 'raspberry',
+                'strawberry', 'tangerine', 'watermelon', 'apricot', 'blueberry', 'cantaloupe',
+                'dragonfruit', 'eggplant', 'guava', 'papaya', 'pineapple', 'starfruit'
+            ];
+
+            const numbers = '0123456789';
+            let symbolSet = '!@#$%^&*';
+            if (options.value.customSymbols && options.value.customSymbols.trim()) {
+                symbolSet = options.value.customSymbols;
+            }
+
+            let password = '';
+            const wordCount = Math.ceil(passwordLength.value / 4);
+
+            for (let i = 0; i < wordCount; i++) {
+                const randomWord = words[Math.floor(Math.random() * words.length)];
+                password += randomWord.charAt(0).toUpperCase() + randomWord.slice(1);
+            }
+
+            if (options.value.numbers) {
+                const randomNumber = numbers[Math.floor(Math.random() * numbers.length)];
+                password = password.slice(0, -1) + randomNumber + password.slice(-1);
+            }
+
+            if (options.value.symbols) {
+                const randomSymbol = symbolSet[Math.floor(Math.random() * symbolSet.length)];
+                password = password.slice(0, 1) + randomSymbol + password.slice(1);
+            }
+
+            generatedPassword.value = password.slice(0, passwordLength.value);
+        };
+
+        const copyPassword = async () => {
+            if (generatedPassword.value) {
+                try {
+                    await navigator.clipboard.writeText(generatedPassword.value);
+                    copySuccess.value = false;
+                    copyRecovering.value = false;
+                    requestAnimationFrame(() => {
+                        copySuccess.value = true;
+                    });
+                    if (copySuccessTimer.value) clearTimeout(copySuccessTimer.value);
+                    copySuccessTimer.value = setTimeout(() => {
+                        copySuccess.value = false;
+                        copyRecovering.value = true;
+                        copySuccessTimer.value = setTimeout(() => {
+                            copyRecovering.value = false;
+                            copySuccessTimer.value = null;
+                        }, 240);
+                    }, 1500);
+                } catch (err) {
+                    console.error('复制失败:', err);
+                }
+            }
+        };
+
+        const toggleBasicSettings = () => {
+            basicSettingsOpen.value = !basicSettingsOpen.value;
+        };
+
+        const toggleAdvancedSettings = () => {
+            advancedSettingsOpen.value = !advancedSettingsOpen.value;
+        };
+
+        onMounted(() => {
+            generatePassword();
+        });
+
+        return {
+            ...dialog,
+            generatedPassword,
+            passwordLength,
+            basicSettingsOpen,
+            advancedSettingsOpen,
+            copyIcon: copyIconRef,
+            successIcon: successIconRef,
+            copySuccess,
+            copyRecovering,
+            copySuccessTimer,
+            options,
+            passwordStrength,
+            passwordStrengthText,
+            generatePassword,
+            generateMemorablePassword,
+            copyPassword,
+            toggleBasicSettings,
+            toggleAdvancedSettings
+        };
     }
-  },
-  mounted() {
-    this.generatePassword();
-  }
 };
 </script>
 
 <style scoped>
 .password-generator-panel {
-  height: 100%;
+    height: 100%;
 }
 
 .password-generator-container {
-  padding: 20px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.generator-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.generator-header h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+    padding: 20px 28px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
 .password-result {
-  margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background-color: var(--background-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
 }
 
 .result-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .result-header label {
-  font-weight: 500;
-  color: var(--text-primary);
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.generate-button {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.generate-button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.generate-button:active {
+    transform: translateY(0);
+}
+
+.password-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--background-tertiary);
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.password-text {
+    flex: 1;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    word-break: break-all;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+}
+
+.copy-button {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.copy-button:hover:not(:disabled) {
+    background: var(--background-hover);
+}
+
+.copy-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.copy-button img {
+    width: 18px;
+    height: 18px;
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.copy-button:hover:not(:disabled) img {
+    opacity: 1;
+}
+
+.copy-button.is-success img {
+    filter: none;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.copy-button.is-recovering img {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+    transform: scale(0.8);
 }
 
 .password-strength {
-  margin-top: 8px;
-  font-size: 14px;
-  color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
 }
 
-.strength-strong {
-  color: #10b981;
-  font-weight: 500;
+.strength-text {
+    font-weight: 600;
 }
 
-.strength-medium {
-  color: #f59e0b;
-  font-weight: 500;
+.strength-text.strength-strong {
+    color: var(--success);
 }
 
-.strength-weak {
-  color: #ef4444;
-  font-weight: 500;
+.strength-text.strength-medium {
+    color: var(--warning);
+}
+
+.strength-text.strength-weak {
+    color: var(--danger);
 }
 
 .generator-options {
-  flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settings-group {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--background-secondary);
+}
+
+.settings-group.advanced-settings {
+    border-color: var(--border-color);
+}
+
+.settings-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--background-tertiary);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+}
+
+.settings-group-header:hover {
+    background: var(--background-hover);
+}
+
+.settings-group-header label {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.toggle-icon {
+    font-size: 12px;
+    color: var(--text-secondary);
+    transition: transform 0.3s ease;
+}
+
+.settings-group-header[aria-expanded="true"] .toggle-icon {
+    transform: rotate(90deg);
+}
+
+.settings-group-content {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settings-group-horizontal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.settings-group-horizontal label {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+    flex-shrink: 0;
 }
 
 .option-group {
-  margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .option-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: var(--text-primary);
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
 }
 
 .checkbox-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.password-strong {
-  border-color: #10b981 !important;
+.checkbox-group-flow {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
 }
 
-.password-medium {
-  border-color: #f59e0b !important;
+.checkbox-group-left {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: flex-start;
 }
 
-.password-weak {
-  border-color: #ef4444 !important;
+.radio-group {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-start;
 }
 </style>
