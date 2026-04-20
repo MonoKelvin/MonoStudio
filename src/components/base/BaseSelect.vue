@@ -58,36 +58,69 @@ export default {
         toggleOpen() {
             this.isOpen = !this.isOpen;
             if (this.isOpen) {
-                this.$nextTick(() => {
-                    this.positionDropdown();
-                });
+                // 立即设置一个默认样式，避免第一次打开时的偏移
+                this.dropdownStyle = {
+                    position: 'absolute',
+                    top: '100%',
+                    left: '0',
+                    minWidth: '100%'
+                };
+                
+                // 使用双重 requestAnimationFrame 确保布局稳定
+                setTimeout(() => {
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            this.positionDropdown();
+                        });
+                    });
+                }, 0);
             }
         },
-        positionDropdown() {
+            positionDropdown() {
             if (!this.$refs.rootRef || !this.$refs.dropdownRef) return;
 
             const rootRect = this.$refs.rootRef.getBoundingClientRect();
-            const dropdownRect = this.$refs.dropdownRef.getBoundingClientRect();
+            const dropdownEl = this.$refs.dropdownRef;
+            const dropdownRect = dropdownEl.getBoundingClientRect();
+
+            // 如果下拉框尚未渲染出正确尺寸（宽/高为0），则稍后重试
+            if (dropdownRect.width === 0 || dropdownRect.height === 0) {
+                setTimeout(() => {
+                this.positionDropdown();
+                }, 10);
+                return;
+            }
+
             const viewportHeight = window.innerHeight;
             const viewportWidth = window.innerWidth;
 
             const style = {};
 
-            // 计算垂直位置
+            // 垂直方向：默认向下偏移4px
             let top = rootRect.height + 4;
-            if (rootRect.bottom + dropdownRect.height > viewportHeight) {
-                top = - (dropdownRect.height + 4);
+            const spaceBelow = viewportHeight - rootRect.bottom;
+            const spaceAbove = rootRect.top;
+
+            // 如果下方空间不足但上方空间足够，则改为向上弹出
+            if (spaceBelow < dropdownRect.height && spaceAbove > dropdownRect.height) {
+                top = -(dropdownRect.height + 4);
+            } else if (spaceBelow < dropdownRect.height) {
+                // 上下空间都不足，调整到正好不超出视口底部
+                top = viewportHeight - rootRect.bottom - dropdownRect.height;
             }
 
-            // 计算水平位置
+            // 水平方向：默认左对齐
             let left = 0;
-            if (rootRect.left + dropdownRect.width > viewportWidth) {
-                left = viewportWidth - rootRect.left - dropdownRect.width;
+            const rootRightSpace = viewportWidth - rootRect.left;
+            if (rootRightSpace < dropdownRect.width) {
+                // 右侧空间不足，向左偏移，使其右边缘对齐触发器右边缘
+                left = -(dropdownRect.width - rootRect.width);
             }
 
             style.top = `${top}px`;
             style.left = `${left}px`;
             style.position = 'absolute';
+            style.minWidth = `${rootRect.width}px`;
 
             this.dropdownStyle = style;
         },
