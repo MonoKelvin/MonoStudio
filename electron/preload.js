@@ -39,6 +39,10 @@ const fileSearchBridge = {
   }
 };
 
+const systemInfoBridge = {
+  getSystemInfo: () => ipcRenderer.invoke('system-info:get')
+};
+
 contextBridge.exposeInMainWorld('monoWindow', {
   minimize: () => ipcRenderer.send('window:minimize'),
   toggleMaximize: () => ipcRenderer.send('window:toggle-maximize'),
@@ -51,6 +55,7 @@ contextBridge.exposeInMainWorld('monoDesktop', desktopBridge);
 contextBridge.exposeInMainWorld('electronAPI', {
   settings: settingsBridge,
   devtools: devtoolsBridge,
+  systemInfo: systemInfoBridge,
   shell: {
     openExternal: (url) => shell.openExternal(url)
   }

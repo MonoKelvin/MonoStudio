@@ -6,7 +6,7 @@
                     <img :src="searchIcon" alt="" />
                 </span>
                 <BaseInput :value="searchQuery" type="text" class="search-input search-input-with-prefix"
-                    placeholder="搜索工具" @input="$emit('update-search', $event)" />
+                    placeholder="搜索工具" @input="$emit('update-search', $event.target.value)" />
                 <BaseButton v-if="searchQuery" class="search-clear-btn" size="sm" v-tooltip:top="'清空搜索'"
                     @click="clearSearch">
                     ✕

@@ -87,20 +87,20 @@ export function useTools() {
   }));
 
   const filteredTools = computed(() => {
-    const query = searchQuery.value.trim().toLowerCase();
+    const query = (typeof searchQuery.value === 'string' ? searchQuery.value : '').trim().toLowerCase();
     if (!query) return tools;
     return tools.filter((tool) => {
-      return tool.name.toLowerCase().includes(query) || tool.description.toLowerCase().includes(query);
+      return tool.name.toLowerCase().includes(query);
     });
   });
 
   const toolsByCategory = computed(() => {
-    const query = searchQuery.value.trim().toLowerCase();
+    const query = (typeof searchQuery.value === 'string' ? searchQuery.value : '').trim().toLowerCase();
     let filtered = tools;
 
     if (query) {
       filtered = tools.filter((tool) => {
-        return tool.name.toLowerCase().includes(query) || tool.description.toLowerCase().includes(query);
+        return tool.name.toLowerCase().includes(query);
       });
     }
 
