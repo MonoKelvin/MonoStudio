@@ -346,8 +346,8 @@
 }
 
 .search-input-with-prefix {
-  padding-left: 30px;
-  padding-right: 34px;
+  padding-left: 30px !important;
+  padding-right: 34px !important;
 }
 
 .search-clear-btn {
