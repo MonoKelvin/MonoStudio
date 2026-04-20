@@ -1,11 +1,11 @@
 <template>
   <div class="ui-textarea" :class="{ disabled }">
     <textarea
-      v-model="value"
+      :value="localValue"
+      @input="handleInput"
       :placeholder="placeholder"
       :rows="rows"
       :disabled="disabled"
-      @input="$emit('input', value)"
       @focus="$emit('focus')"
       @blur="$emit('blur')"
     />
@@ -16,7 +16,7 @@
 export default {
   name: 'BaseTextarea',
   props: {
-    value: {
+    modelValue: {
       type: String,
       default: ''
     },
@@ -37,7 +37,27 @@ export default {
       default: false
     }
   },
-  emits: ['input', 'focus', 'blur']
+  emits: ['update:modelValue', 'input', 'focus', 'blur'],
+  data() {
+    return {
+      localValue: this.modelValue
+    };
+  },
+  watch: {
+    modelValue: {
+      handler(newValue) {
+        this.localValue = newValue;
+      },
+      immediate: true
+    }
+  },
+  methods: {
+    handleInput(event) {
+      this.localValue = event.target.value;
+      this.$emit('update:modelValue', this.localValue);
+      this.$emit('input', this.localValue);
+    }
+  }
 };
 </script>
 
