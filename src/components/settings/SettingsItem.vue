@@ -27,3 +27,46 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.settings-item {
+  padding: 16px;
+}
+
+.settings-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.settings-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-item.has-description .settings-item-content {
+  justify-content: center;
+}
+
+.settings-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.settings-item-description {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.settings-item-control {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+</style>

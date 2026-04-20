@@ -25,6 +25,8 @@ import { TOOL_CONFIG } from '../../config/toolConfig';
 
 const SELECTED_TOOL_KEY = TOOL_CONFIG.SELECTED_TOOL_KEY;
 const PERSONAL_LIFE_CATEGORY = '个人生活';
+const SECURITY_SETTINGS_KEY = 'personal-life-security-settings';
+const LAST_UNLOCK_TIME_KEY = 'personal-life-last-unlock';
 
 /**
  * 工具管理组合式 API
@@ -33,7 +35,16 @@ const PERSONAL_LIFE_CATEGORY = '个人生活';
 export function useTools() {
   const searchQuery = ref('');
   const selectedTool = ref('desktop-icon');
+  const previousTool = ref('desktop-icon');
   const personalLifeUnlocked = ref(false);
+  const securitySettings = ref({
+    requirePasswordOnInactive: false,
+    requirePasswordEveryTime: false,
+    requirePasswordByTime: false,
+    passwordTimeout: 30, // 默认30分钟
+    keepSession: true
+  });
+  const lastUnlockTime = ref(0);
 
   const settingsEntry = {
     ...TOOL_CONFIG.SETTINGS_ENTRY,
@@ -112,30 +123,90 @@ export function useTools() {
   });
 
   /**
+   * 加载安全设置
+   */
+  function loadSecuritySettings() {
+    const stored = localStorage.getItem(SECURITY_SETTINGS_KEY);
+    if (stored) {
+      securitySettings.value = { ...securitySettings.value, ...JSON.parse(stored) };
+    }
+  }
+
+  /**
+   * 加载上次解锁时间
+   */
+  function loadLastUnlockTime() {
+    const stored = localStorage.getItem(LAST_UNLOCK_TIME_KEY);
+    if (stored) {
+      lastUnlockTime.value = parseInt(stored);
+    }
+  }
+
+  /**
+   * 检查是否需要验证密码
+   * @returns {boolean} 是否需要验证
+   */
+  function needsPasswordVerification() {
+    if (!personalLifeUnlocked.value) return true;
+    
+    const { protectionMode, passwordTimeout } = securitySettings.value;
+    
+    if (protectionMode === 'every') return true;
+    
+    if (protectionMode === 'time') {
+      const now = Date.now();
+      const timeoutMs = passwordTimeout * 60 * 1000;
+      return (now - lastUnlockTime.value) > timeoutMs;
+    }
+    
+    if (protectionMode === 'inactive') {
+      // 这里可以添加检测软件是否处于激活状态的逻辑
+      // 暂时简化处理，返回false
+      return false;
+    }
+    
+    return false;
+  }
+
+  /**
    * 设置选中的工具
    * @param {string} toolId - 工具 ID
    */
   function setSelectedTool(toolId) {
     const tool = tools.find(t => t.id === toolId);
-    if (tool && tool.category === PERSONAL_LIFE_CATEGORY && !personalLifeUnlocked.value) {
-      selectedTool.value = personalLifeGate.id;
+    if (tool && tool.category === PERSONAL_LIFE_CATEGORY) {
+      if (!personalLifeUnlocked.value || needsPasswordVerification()) {
+        selectedTool.value = personalLifeGate.id;
+      } else {
+        if (toolId !== settingsEntry.id && toolId !== personalLifeGate.id) {
+          previousTool.value = toolId;
+        }
+        selectedTool.value = toolId;
+      }
     } else {
+      if (toolId === settingsEntry.id && selectedTool.value !== settingsEntry.id) {
+        previousTool.value = selectedTool.value;
+      } else if (toolId !== settingsEntry.id && toolId !== personalLifeGate.id) {
+        previousTool.value = toolId;
+      }
       selectedTool.value = toolId;
     }
   }
 
   function unlockPersonalLife() {
     personalLifeUnlocked.value = true;
-  }
-
-  function lockPersonalLife() {
-    personalLifeUnlocked.value = false;
+    lastUnlockTime.value = Date.now();
+    localStorage.setItem(LAST_UNLOCK_TIME_KEY, lastUnlockTime.value.toString());
+    selectedTool.value = previousTool.value;
   }
 
   /**
    * 初始化选中的工具
    */
   function initializeSelectedTool() {
+    loadSecuritySettings();
+    loadLastUnlockTime();
+    
     const saved = localStorage.getItem(SELECTED_TOOL_KEY);
     if (saved) {
       // 检查保存的工具是否存在
@@ -161,6 +232,7 @@ export function useTools() {
   return {
     searchQuery,
     selectedTool,
+    previousTool,
     tools,
     settingsEntry,
     personalLifeGate,
@@ -170,7 +242,6 @@ export function useTools() {
     currentTool,
     setSelectedTool,
     initializeSelectedTool,
-    unlockPersonalLife,
-    lockPersonalLife
+    unlockPersonalLife
   };
 }

@@ -4,7 +4,7 @@
             <div class="password-result">
                 <div class="result-header">
                     <label>生成的密码</label>
-                    <BaseButton class="generate-button" @click="generatePassword">生成密码</BaseButton>
+                    <BaseButton variant="primary" @click="generatePassword">生成密码</BaseButton>
                 </div>
                 <div class="password-display">
                     <code class="password-text">{{ generatedPassword }}</code>
@@ -112,6 +112,7 @@ import successIcon from '../../../assets/icons/check-success.svg';
 
 export default {
     name: 'PasswordGeneratorToolView',
+    emits: ['change-theme', 'change-accent-color', 'change-dev-tools', 'unlocked', 'locked'],
     components: {
         BaseInput,
         BaseButton,
@@ -153,7 +154,19 @@ export default {
             if (options.value.uppercase && /[A-Z]/.test(generatedPassword.value)) strength += 1;
             if (options.value.lowercase && /[a-z]/.test(generatedPassword.value)) strength += 1;
             if (options.value.numbers && /[0-9]/.test(generatedPassword.value)) strength += 1;
-            if (options.value.symbols && /[!@#$%^&*(),.?":{}|<>]/.test(generatedPassword.value)) strength += 1;
+
+            if (options.value.symbols) {
+                let symbolSet = '!@#$%^&*(),.?":{}|<>';
+                // 确保自定义特殊字符集被正确使用
+                const customSymbols = options.value.customSymbols;
+                if (customSymbols && customSymbols.trim()) {
+                    symbolSet = customSymbols;
+                }
+                // 检查密码中是否包含自定义特殊字符
+                const password = generatedPassword.value;
+                const hasSymbol = symbolSet.split('').some(symbol => password.includes(symbol));
+                if (hasSymbol) strength += 1;
+            }
 
             if (strength >= 5) return 'strong';
             if (strength >= 3) return 'medium';
@@ -176,8 +189,10 @@ export default {
             }
 
             let symbolSet = '!@#$%^&*(),.?":{}|<>';
-            if (options.value.customSymbols && options.value.customSymbols.trim()) {
-                symbolSet = options.value.customSymbols;
+            // 确保自定义特殊字符集被正确使用
+            const customSymbols = options.value.customSymbols;
+            if (customSymbols && customSymbols.trim()) {
+                symbolSet = customSymbols;
             }
 
             const charset = {
@@ -187,18 +202,18 @@ export default {
                 symbols: symbolSet
             };
 
-            let availableChars = '';
-            if (options.value.uppercase) availableChars += charset.uppercase;
-            if (options.value.lowercase) availableChars += charset.lowercase;
-            if (options.value.numbers) availableChars += charset.numbers;
-            if (options.value.symbols) availableChars += charset.symbols;
+            let availableChars = [];
+            if (options.value.uppercase) availableChars = availableChars.concat([...charset.uppercase]);
+            if (options.value.lowercase) availableChars = availableChars.concat([...charset.lowercase]);
+            if (options.value.numbers) availableChars = availableChars.concat([...charset.numbers]);
+            if (options.value.symbols) availableChars = availableChars.concat([...symbolSet]);
 
             if (options.value.excludeSimilar) {
-                availableChars = availableChars.replace(/[1lI0O]/g, '');
+                availableChars = availableChars.filter(char => !/[1lI0O]/.test(char));
             }
 
-            if (!availableChars) {
-                dialog.alert('请至少选择一种字符类型', '提示', 'warning');
+            if (!availableChars.length) {
+                dialog.alert('请至少选择一种字符类型', '提示', 'warning').catch(() => { });
                 return;
             }
 
@@ -230,8 +245,17 @@ export default {
 
             const numbers = '0123456789';
             let symbolSet = '!@#$%^&*';
-            if (options.value.customSymbols && options.value.customSymbols.trim()) {
-                symbolSet = options.value.customSymbols;
+            // 确保自定义特殊字符集被正确使用
+            const customSymbols = options.value.customSymbols;
+            if (customSymbols && customSymbols.trim()) {
+                symbolSet = customSymbols;
+            }
+
+            // 检查是否至少选择了一种字符类型
+            const hasAnyType = options.value.uppercase || options.value.lowercase || options.value.numbers || options.value.symbols;
+            if (!hasAnyType) {
+                dialog.alert('请至少选择一种字符类型', '提示', 'warning').catch(() => { });
+                return;
             }
 
             let password = '';
@@ -243,12 +267,14 @@ export default {
             }
 
             if (options.value.numbers) {
-                const randomNumber = numbers[Math.floor(Math.random() * numbers.length)];
+                const numbersArray = [...numbers];
+                const randomNumber = numbersArray[Math.floor(Math.random() * numbersArray.length)];
                 password = password.slice(0, -1) + randomNumber + password.slice(-1);
             }
 
             if (options.value.symbols) {
-                const randomSymbol = symbolSet[Math.floor(Math.random() * symbolSet.length)];
+                const symbolsArray = [...symbolSet];
+                const randomSymbol = symbolsArray[Math.floor(Math.random() * symbolsArray.length)];
                 password = password.slice(0, 1) + randomSymbol + password.slice(1);
             }
 
@@ -349,25 +375,7 @@ export default {
     font-size: 14px;
 }
 
-.generate-button {
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 500;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
 
-.generate-button:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-
-.generate-button:active {
-    transform: translateY(0);
-}
 
 .password-display {
     display: flex;
@@ -545,6 +553,12 @@ export default {
     font-weight: 500;
     color: var(--text-primary);
     font-size: 14px;
+}
+
+.option-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
 }
 
 .checkbox-group {

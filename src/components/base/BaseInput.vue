@@ -1,8 +1,8 @@
 <template>
   <input 
     class="ui-input" 
-    :value="value" 
-    @input="$emit('input', $event.target.value)"
+    :value="modelValue" 
+    @input="$emit('update:modelValue', $event.target.value)"
     v-bind="$attrs" 
   />
 </template>
@@ -11,12 +11,12 @@
 export default {
   name: 'BaseInput',
   props: {
-    value: {
+    modelValue: {
       type: String,
       default: ''
     }
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
   inheritAttrs: false
 };
 </script>

@@ -17,7 +17,6 @@
           @change-accent-color="$emit('change-accent-color', $event)"
           @change-dev-tools="$emit('change-dev-tools', $event)"
           @unlocked="currentTool.isLockGate && $emit('unlock-personal-life')"
-          @locked="currentTool.isLockGate && $emit('lock-personal-life')"
         />
       </keep-alive>
     </section>

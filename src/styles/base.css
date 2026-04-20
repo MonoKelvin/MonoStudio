@@ -55,17 +55,11 @@ button {
 
 button:hover {
   background: var(--hover-bg);
-  transform: translateY(-1px);
-}
-
-button:active {
-  transform: translateY(0);
 }
 
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
 button.primary {
@@ -301,11 +295,11 @@ textarea:focus {
   .sidebar {
     width: 200px;
   }
-  
+
   .content-area {
     padding: var(--spacing-md);
   }
-  
+
   .card {
     padding: var(--spacing-md);
   }
@@ -320,11 +314,11 @@ textarea:focus {
     height: 100%;
     z-index: 1000;
   }
-  
+
   .sidebar.open {
     left: 0;
   }
-  
+
   .main-content {
     margin-left: 0;
   }

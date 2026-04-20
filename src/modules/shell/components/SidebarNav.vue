@@ -1,50 +1,50 @@
 <template>
-  <aside class="sidebar app-panel" :class="{ collapsed }">
-    <div v-if="!collapsed" class="search-box app-panel-section">
-      <div class="search-shell">
-        <span class="search-prefix-icon" aria-hidden="true">
-          <img :src="searchIcon" alt="" />
-        </span>
-        <BaseInput :value="searchQuery" type="text" class="search-input search-input-with-prefix" placeholder="搜索工具" @input="$emit('update-search', $event)" />
-        <BaseButton
-          v-if="searchQuery"
-          class="search-clear-btn"
-          size="sm"
-          v-tooltip:top="'清空搜索'"
-          @click="clearSearch"
-        >
-          ✕
-        </BaseButton>
-      </div>
-    </div>
-
-    <nav class="tool-tree app-panel-section">
-      <template v-if="Object.keys(toolsByCategory).length > 0">
-        <div v-for="(categoryTools, category) in toolsByCategory" :key="category" class="tool-category">
-            <div v-if="!collapsed" class="category-title">
-              {{ category }}
-              <img v-if="category === '个人生活'" class="category-lock-icon" :src="personalLifeUnlocked ? unlockIcon : lockIcon" alt="" />
+    <aside class="sidebar app-panel" :class="{ collapsed }">
+        <div v-if="!collapsed" class="search-box app-panel-section">
+            <div class="search-shell">
+                <span class="search-prefix-icon" aria-hidden="true">
+                    <img :src="searchIcon" alt="" />
+                </span>
+                <BaseInput :value="searchQuery" type="text" class="search-input search-input-with-prefix"
+                    placeholder="搜索工具" @input="$emit('update-search', $event)" />
+                <BaseButton v-if="searchQuery" class="search-clear-btn" size="sm" v-tooltip:top="'清空搜索'"
+                    @click="clearSearch">
+                    ✕
+                </BaseButton>
             </div>
-            <div v-if="collapsed" class="category-divider"></div>
-            <BaseButton v-for="tool in categoryTools" :key="tool.id" class="tree-item" :class="{ active: tool.id === selectedTool }" v-tooltip:left="collapsed ? tool.name : ''" @click="$emit('select-tool', tool.id)">
-              <img class="item-icon-svg" :src="iconSrc(tool.id)" alt="" />
-              <span v-if="!collapsed" class="item-main">
-                {{ tool.name }}
-              </span>
+        </div>
+
+        <nav class="tool-tree app-panel-section">
+            <template v-if="Object.keys(toolsByCategory).length > 0">
+                <div v-for="(categoryTools, category) in toolsByCategory" :key="category" class="tool-category">
+                    <div v-if="!collapsed" class="category-title">
+                        {{ category }}
+                        <img v-if="category === '个人生活'" class="category-lock-icon"
+                            :src="personalLifeUnlocked ? unlockIcon : lockIcon" alt="" />
+                    </div>
+                    <div v-if="collapsed" class="category-divider"></div>
+                    <BaseButton v-for="tool in categoryTools" :key="tool.id" class="tree-item"
+                        :class="{ active: tool.id === selectedTool, 'active-secondary': tool.id === previousTool && selectedTool === settingsEntry.id }"
+                        v-tooltip:left="collapsed ? tool.name : ''" @click="$emit('select-tool', tool.id)">
+                        <img class="item-icon-svg" :src="iconSrc(tool.id)" alt="" />
+                        <span v-if="!collapsed" class="item-main">
+                            {{ tool.name }}
+                        </span>
+                    </BaseButton>
+                </div>
+            </template>
+            <div v-else-if="!collapsed" class="empty-state">未找到匹配工具</div>
+        </nav>
+        <div class="sidebar-footer app-panel-section">
+            <BaseButton class="tree-item settings-entry" :class="{ active: selectedTool === settingsEntry.id }"
+                v-tooltip:left="collapsed ? settingsEntry.name : ''" @click="$emit('select-tool', settingsEntry.id)">
+                <img class="item-icon-svg" :src="iconSrc(settingsEntry.id)" alt="" />
+                <span v-if="!collapsed" class="item-main">
+                    {{ settingsEntry.name }}
+                </span>
             </BaseButton>
-          </div>
-      </template>
-      <div v-else-if="!collapsed" class="empty-state">未找到匹配工具</div>
-    </nav>
-    <div class="sidebar-footer app-panel-section">
-      <BaseButton class="tree-item settings-entry" :class="{ active: selectedTool === settingsEntry.id }" v-tooltip:left="collapsed ? settingsEntry.name : ''" @click="$emit('select-tool', settingsEntry.id)">
-        <img class="item-icon-svg" :src="iconSrc(settingsEntry.id)" alt="" />
-        <span v-if="!collapsed" class="item-main">
-          {{ settingsEntry.name }}
-        </span>
-      </BaseButton>
-    </div>
-  </aside>
+        </div>
+    </aside>
 </template>
 
 <script>
@@ -75,87 +75,89 @@ import searchIcon from '../../../assets/icons/search-16.svg';
 import { hideTooltip } from '../../../directives/tooltip.js';
 
 const icons = {
-  'desktop-icon': iconDesktop,
-  'file-search': iconSearch,
-  'system-info': iconSystemInfo,
-  'network-tools': iconNetworkTools,
-  'process-manager': iconProcessManager,
-  'guid-generator': iconGuid,
-  'json-formatter': iconJsonFormatter,
-  'base64-encoder': iconBase64Encoder,
-  'regex-tester': iconRegexTester,
-  'image-converter': iconImage,
-  'video-converter': iconVideoConverter,
-  'audio-tools': iconAudioTools,
-  'screen-capture': iconScreenCapture,
-  'password-generator': iconPasswordGenerator,
-  'unit-converter': iconUnitConverter,
-  'time-tools': iconTimeTools,
-  'file-hasher': iconFileHasher,
-  'inspiration': iconInspiration,
-  'work-notes': iconWorkNotes,
-  'musings': iconMusings,
-  settings: iconSettings
+    'desktop-icon': iconDesktop,
+    'file-search': iconSearch,
+    'system-info': iconSystemInfo,
+    'network-tools': iconNetworkTools,
+    'process-manager': iconProcessManager,
+    'guid-generator': iconGuid,
+    'json-formatter': iconJsonFormatter,
+    'base64-encoder': iconBase64Encoder,
+    'regex-tester': iconRegexTester,
+    'image-converter': iconImage,
+    'video-converter': iconVideoConverter,
+    'audio-tools': iconAudioTools,
+    'screen-capture': iconScreenCapture,
+    'password-generator': iconPasswordGenerator,
+    'unit-converter': iconUnitConverter,
+    'time-tools': iconTimeTools,
+    'file-hasher': iconFileHasher,
+    'inspiration': iconInspiration,
+    'work-notes': iconWorkNotes,
+    'musings': iconMusings,
+    settings: iconSettings
 };
 
 export default {
-  name: 'SidebarNav',
-  props: {
-    searchQuery: { type: String, required: true },
-    toolsByCategory: { type: Object, required: true },
-    selectedTool: { type: String, required: true },
-    settingsEntry: { type: Object, required: true },
-    personalLifeGate: { type: Object, required: true },
-    personalLifeUnlocked: { type: Boolean, default: false },
-    collapsed: { type: Boolean, default: false }
-  },
-  methods: {
-    iconSrc(id) {
-      return icons[id] || icons['file-search'];
+    name: 'SidebarNav',
+    props: {
+        searchQuery: { type: String, required: true },
+        toolsByCategory: { type: Object, required: true },
+        selectedTool: { type: String, required: true },
+        previousTool: { type: String, required: true },
+        settingsEntry: { type: Object, required: true },
+        personalLifeGate: { type: Object, required: true },
+        personalLifeUnlocked: { type: Boolean, default: false },
+        collapsed: { type: Boolean, default: false }
     },
-    clearSearch() {
-      hideTooltip();
-      this.$emit('update-search', '');
+    methods: {
+        iconSrc(id) {
+            return icons[id] || icons['file-search'];
+        },
+        clearSearch() {
+            hideTooltip();
+            this.$emit('update-search', '');
+        }
+    },
+    data() {
+        return {
+            searchIcon,
+            lockIcon,
+            unlockIcon
+        };
     }
-  },
-  data() {
-    return {
-      searchIcon,
-      lockIcon,
-      unlockIcon
-    };
-  }
 };
 </script>
 
 <style scoped>
 .category-lock-icon {
-  width: 14px;
-  height: 14px;
-  margin-left: 8px;
-  vertical-align: middle;
-  margin-top: -1px;
-  opacity: 0.7;
-  filter: var(--icon-action-filter);
+    width: 14px;
+    height: 14px;
+    margin-left: 8px;
+    vertical-align: middle;
+    margin-top: -1px;
+    opacity: 0.7;
+    filter: var(--icon-action-filter);
 }
 
 .sidebar {
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
+
 .category-divider {
-  width: 20px;
-  height: 1px;
-  background-color: var(--text-tertiary);
-  margin: 6px auto;
-  opacity: 0.3;
+    width: 20px;
+    height: 1px;
+    background-color: var(--text-tertiary);
+    margin: 6px auto;
+    opacity: 0.3;
 }
 
 .sidebar.collapsed .tool-category {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 </style>

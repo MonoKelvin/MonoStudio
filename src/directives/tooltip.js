@@ -73,11 +73,11 @@ window.hideTooltip = hideTooltip;
 
 export const vTooltip = {
   mounted(el, binding) {
-    const text = binding.value;
-    if (!text) return;
+    el._tooltipText = binding.value;
+    if (!el._tooltipText) return;
 
     el.addEventListener('mouseenter', (e) => {
-      pendingTooltip = { text, placement: binding.arg || 'top', x: e.clientX, y: e.clientY };
+      pendingTooltip = { text: el._tooltipText, placement: binding.arg || 'top', x: e.clientX, y: e.clientY };
       scheduleShow();
     });
 
@@ -87,10 +87,14 @@ export const vTooltip = {
     });
 
     el.addEventListener('focus', (e) => {
-      showTooltip(text, binding.arg || 'top', e.clientX, e.clientY);
+      showTooltip(el._tooltipText, binding.arg || 'top', e.clientX, e.clientY);
     });
 
     el.addEventListener('blur', () => {
+      hideTooltip();
+    });
+
+    el.addEventListener('click', () => {
       hideTooltip();
     });
 
@@ -102,7 +106,8 @@ export const vTooltip = {
     });
   },
   updated(el, binding) {
-    if (!binding.value) {
+    el._tooltipText = binding.value;
+    if (!el._tooltipText) {
       pendingTooltip = null;
       hideTooltip();
     }

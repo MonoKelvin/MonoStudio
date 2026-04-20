@@ -33,10 +33,10 @@
 </template>
 
 <script>
-import wechatQRCode from '../../../../assets/images/wechat_payment_code.jpg';
-import alipayQRCode from '../../../../assets/images/alipay_payment_code.jpg';
-import wechatPayIcon from '../../../../assets/icons/wechat_pay.svg';
-import alipayIcon from '../../../../assets/icons/alipay.svg';
+import wechatQRCode from '../../../../../assets/images/wechat_payment_code.jpg';
+import alipayQRCode from '../../../../../assets/images/alipay_payment_code.jpg';
+import wechatPayIcon from '../../../../../assets/icons/wechat_pay.svg';
+import alipayIcon from '../../../../../assets/icons/alipay.svg';
 
 export default {
   name: 'SponsorPanel',

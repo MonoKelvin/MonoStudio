@@ -38,7 +38,7 @@
 </template>
 
 <script>
-import SettingsItem from '../../../../components/settings/SettingsItem.vue';
+import SettingsItem from '../../../../../components/settings/SettingsItem.vue';
 
 export default {
     name: 'AboutSettings',

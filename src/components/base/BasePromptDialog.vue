@@ -5,15 +5,17 @@
                 <Transition name="prompt-scale">
                     <div v-if="visible" class="prompt-container" :class="promptClasses" @click.stop>
                         <div class="prompt-header">
-                            <div class="prompt-icon" :class="`prompt-icon-${type}`">
-                                <component :is="iconComponent" />
-                            </div>
                             <h3 class="prompt-title">{{ title }}</h3>
                         </div>
                         <div class="prompt-body">
-                            <slot>
-                                <p>{{ message }}</p>
-                            </slot>
+                            <div class="prompt-icon" :class="`prompt-icon-${type}`">
+                                <img :src="iconSrc" alt="" width="24" height="24" />
+                            </div>
+                            <div class="prompt-body-content">
+                                <slot>
+                                    <p>{{ message }}</p>
+                                </slot>
+                            </div>
                         </div>
                         <div class="prompt-footer">
                             <BaseButton v-if="showCancel" class="prompt-btn-cancel" @click="handleCancel">
@@ -32,60 +34,27 @@
 
 <script>
 import BaseButton from './BaseButton.vue';
-
-const ICONS = {
-    info: {
-        template: `
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-        <path d="M12 16V11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="12" cy="8" r="1" fill="currentColor"/>
-      </svg>
-    `
-    },
-    warning: {
-        template: `
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 9V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <path d="M12 17V17.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    `
-    },
-    debug: {
-        template: `
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M2 17L12 12L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M2 7V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M22 7V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M12 12V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    `
-    },
-    error: {
-        template: `
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    `
-    },
-    critical: {
-        template: `
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M12 8V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <path d="M12 16V16.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    `
-    }
-};
+import dialogInfoIcon from '../../assets/icons/dialog-info.svg';
+import dialogWarningIcon from '../../assets/icons/dialog-warning.svg';
+import dialogDebugIcon from '../../assets/icons/dialog-debug.svg';
+import dialogErrorIcon from '../../assets/icons/dialog-error.svg';
+import dialogCriticalIcon from '../../assets/icons/dialog-critical.svg';
 
 export default {
     name: 'BasePromptDialog',
     components: {
         BaseButton
+    },
+    data() {
+        return {
+            iconMap: {
+                info: dialogInfoIcon,
+                warning: dialogWarningIcon,
+                debug: dialogDebugIcon,
+                error: dialogErrorIcon,
+                critical: dialogCriticalIcon
+            }
+        };
     },
     props: {
         visible: {
@@ -128,8 +97,8 @@ export default {
     },
     emits: ['update:visible', 'confirm', 'cancel'],
     computed: {
-        iconComponent() {
-            return ICONS[this.type] || ICONS.info;
+        iconSrc() {
+            return this.iconMap[this.type] || this.iconMap.info;
         },
         promptClasses() {
             return [`prompt-${this.type}`];
@@ -199,20 +168,18 @@ export default {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10000;
+    z-index: 100000;
     padding: 24px;
 }
 
 .prompt-container {
     background: var(--background-primary);
     border-radius: 12px;
-    box-shadow:
-        0 20px 25px -5px rgba(0, 0, 0, 0.1),
-        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 30px 60px 0 rgba(0, 0, 0, 0.08);
     max-width: 400px;
     width: 100%;
     overflow: hidden;
@@ -223,8 +190,9 @@ export default {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 20px 20px 16px;
+    padding: 12px 20px;
     border-bottom: 1px solid var(--border-color);
+    background: var(--background-secondary);
 }
 
 .prompt-icon {
@@ -235,7 +203,6 @@ export default {
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    color: var(--text-primary);
 }
 
 .prompt-icon-info {
@@ -264,8 +231,8 @@ export default {
 }
 
 .prompt-icon svg {
-    width: 100%;
-    height: 100%;
+    width: 20px;
+    height: 20px;
     color: currentColor;
 }
 
@@ -278,13 +245,31 @@ export default {
 }
 
 .prompt-body {
-    padding: 16px 20px;
-    color: var(--text-secondary);
+    padding: 24px 16px 14px 16px;
+    color: var(--text-primary);
     font-size: 14px;
     line-height: 1.5;
     min-height: 60px;
     display: flex;
+    gap: 12px;
+    background: var(--background-primary);
+}
+
+.prompt-body-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.prompt-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
     align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: var(--text-primary);
+    transform: translateY(-5.5px);
 }
 
 .prompt-body p {
@@ -296,84 +281,59 @@ export default {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-    padding: 16px 20px;
+    padding: 10px 16px;
     border-top: 1px solid var(--border-color);
-    background: var(--background-secondary);
+    background: var(--background-primary);
 }
 
 .prompt-btn-cancel {
-    background: var(--background-tertiary);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 500;
+    box-sizing: border-box;
+    font: inherit;
+    line-height: 1;
+    height: 34px;
+    border: 1px solid color-mix(in srgb, var(--bg-elevated) 82%, var(--text-secondary) 18%);
     border-radius: 6px;
-    transition: all 0.2s ease;
+    padding: 0 11px;
+    color: var(--text-primary);
+    background: color-mix(in srgb, var(--bg-elevated) 78%, var(--hover-bg) 22%);
+    cursor: pointer;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .prompt-btn-cancel:hover {
-    background: var(--background-hover);
-    border-color: var(--accent-color);
+    background: color-mix(in srgb, var(--hover-bg) 82%, var(--bg-elevated) 18%);
+    border-color: color-mix(in srgb, var(--hover-bg) 65%, var(--text-secondary) 35%);
+}
+
+.prompt-btn-cancel:active {
+    background: color-mix(in srgb, var(--accent-primary) 85%, var(--bg-elevated) 15%);
+    border-color: color-mix(in srgb, var(--accent-primary) 60%, var(--text-secondary) 40%);
+    box-shadow: none;
 }
 
 .prompt-btn-confirm {
+    box-sizing: border-box;
+    font: inherit;
+    line-height: 1;
+    height: 34px;
+    color: #fff;
     background: var(--accent-color);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 500;
+    border-color: var(--accent-color);
     border-radius: 6px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0 11px;
+    cursor: pointer;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .prompt-btn-confirm:hover {
-    background: var(--accent-active);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    background: color-mix(in srgb, var(--accent-color) 90%, #0b0d10 10%);
+    border-color: color-mix(in srgb, var(--accent-color) 90%, #0b0d10 10%);
 }
 
-.prompt-btn-info {
-    background: var(--info-color);
-}
-
-.prompt-btn-info:hover {
-    background: var(--info-active);
-}
-
-.prompt-btn-warning {
-    background: var(--warning-color);
-}
-
-.prompt-btn-warning:hover {
-    background: var(--warning-active);
-}
-
-.prompt-btn-debug {
-    background: var(--debug-color);
-}
-
-.prompt-btn-debug:hover {
-    background: var(--debug-color);
-    opacity: 0.9;
-}
-
-.prompt-btn-error {
-    background: var(--error-color);
-}
-
-.prompt-btn-error:hover {
-    background: var(--error-active);
-}
-
-.prompt-btn-critical {
-    background: var(--critical-color);
-}
-
-.prompt-btn-critical:hover {
-    background: var(--critical-color);
-    opacity: 0.9;
+.prompt-btn-confirm:active {
+    background: color-mix(in srgb, var(--accent-color) 78%, #0b0d10 22%);
+    border-color: color-mix(in srgb, var(--accent-color) 58%, #0b0d10 42%);
+    box-shadow: none;
 }
 
 .prompt-fade-enter-active,
@@ -396,11 +356,7 @@ export default {
     transform: scale(0.95);
 }
 
-@media (prefers-color-scheme: dark) {
-    .prompt-container {
-        box-shadow:
-            0 20px 25px -5px rgba(0, 0, 0, 0.3),
-            0 10px 10px -5px rgba(0, 0, 0, 0.2);
-    }
+[data-theme="dark"] .prompt-container {
+    box-shadow: 0 30px 60px 0 rgba(0, 0, 0, 0.5);
 }
 </style>

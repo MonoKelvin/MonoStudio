@@ -266,6 +266,23 @@
   filter: brightness(0) invert(1);
 }
 
+.tree-item.active-secondary {
+  border: none !important;
+  background: var(--hover-bg) !important;
+  color: var(--text-primary) !important;
+  font-weight: var(--font-weight-medium) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.tree-item.active-secondary .item-icon-svg {
+  filter: brightness(0);
+}
+
+[data-theme="dark"] .tree-item.active-secondary .item-icon-svg {
+  filter: brightness(0) invert(0.9);
+}
+
 .item-icon-svg {
   width: 20px;
   height: 20px;

@@ -18,6 +18,7 @@ export function useWorkbench() {
   const {
     searchQuery,
     selectedTool,
+    previousTool,
     tools,
     settingsEntry,
     personalLifeGate,
@@ -27,8 +28,7 @@ export function useWorkbench() {
     currentTool,
     setSelectedTool,
     initializeSelectedTool,
-    unlockPersonalLife,
-    lockPersonalLife
+    unlockPersonalLife
   } = useTools();
 
   onMounted(() => {
@@ -38,6 +38,7 @@ export function useWorkbench() {
   return {
     searchQuery,
     selectedTool,
+    previousTool,
     currentTheme,
     currentAccentColor,
     themes,
@@ -51,7 +52,6 @@ export function useWorkbench() {
     setTheme,
     setAccentColor,
     setSelectedTool,
-    unlockPersonalLife,
-    lockPersonalLife
+    unlockPersonalLife
   };
 }
