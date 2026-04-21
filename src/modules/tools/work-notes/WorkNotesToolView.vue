@@ -1,85 +1,55 @@
 <template>
     <BasePanel class="work-notes-panel">
         <div class="work-notes-container">
+            <!-- 头部区域 -->
             <div class="work-notes-header">
                 <div class="header-left">
                     <h2>{{ toolName }}</h2>
                     <span class="notes-count">{{ filteredNotes.length }} 条笔记</span>
                 </div>
                 <div class="header-actions">
-                    <div class="view-toggle">
-                        <button class="view-btn" :class="{ active: currentView === 'calendar' }"
-                            @click="currentView = 'calendar'" title="日历视图">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                    <!-- 操作按钮 -->
+                    <div class="header-buttons">
+                        <BaseButton @click="exportNotes" size="sm" :disabled="notes.length === 0">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
                             </svg>
-                        </button>
-                        <button class="view-btn" :class="{ active: currentView === 'list' }"
-                            @click="currentView = 'list'" title="列表视图">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            导出
+                        </BaseButton>
+                        <BaseButton @click="toggleEditor(null)" variant="primary">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
-                                <line x1="8" y1="6" x2="21" y2="6"></line>
-                                <line x1="8" y1="12" x2="21" y2="12"></line>
-                                <line x1="8" y1="18" x2="21" y2="18"></line>
-                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
                             </svg>
-                        </button>
+                            {{ isEditorOpen ? '取消' : '新建笔记' }}
+                        </BaseButton>
                     </div>
-                    <BaseButton @click="toggleEditor(null)" variant="primary">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        {{ isEditorOpen ? '取消' : '新建笔记' }}
-                    </BaseButton>
                 </div>
             </div>
 
-            <div class="search-filter-bar">
-                <div class="search-box">
-                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <input v-model="searchQuery" type="text" class="search-input" placeholder="搜索笔记..." />
-                    <button v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                </div>
-                <div class="filter-tags" v-if="allTags.length > 0">
-                    <button v-for="tag in allTags" :key="tag" class="filter-tag"
-                        :class="{ active: selectedTags.includes(tag) }" @click="toggleTag(tag)">
-                        {{ tag }}
-                    </button>
-                </div>
-            </div>
-
-            <!-- Inline editor -->
+            <!-- 内联编辑器 -->
             <NoteEditor v-if="isEditorOpen" :is-open="isEditorOpen" :editing-note="editingNote"
                 :selected-date="selectedDate" :all-tags="allTags" @cancel="toggleEditor" @save="saveNote" />
 
+            <!-- 内容区域 -->
             <div class="content-area">
                 <CalendarView v-if="currentView === 'calendar'" :selected-date="selectedDate"
-                    :current-date="currentDate" :notes="notes" @prev-month="prevMonth" @next-month="nextMonth"
-                    @select-date="selectDate" @open-detail="openDetail" @edit-note="toggleEditor"
-                    @delete-note="confirmDelete" @add-note="openEditorForDate" />
+                    :current-date="currentDate" :notes="notes" :search-query="searchQuery"
+                    :selected-tags="selectedTags" :all-tags="allTags"
+                    @prev-month="handleDateChange" @select-date="selectDate"
+                    @open-detail="openDetail" @edit-note="toggleEditor"
+                    @delete-note="confirmDelete" @add-note="openEditorForDate"
+                    @update:searchQuery="searchQuery = $event"
+                    @update:selectedTags="selectedTags = $event" />
 
                 <ListView v-else :notes="notes" :search-query="searchQuery" :selected-tags="selectedTags"
                     @open-detail="openDetail" @edit-note="toggleEditor" @delete-note="confirmDelete" />
             </div>
 
+            <!-- 快速统计 -->
             <div class="quick-stats" v-if="notes.length > 0">
                 <div class="stat-item">
                     <span class="stat-value">{{ notes.length }}</span>
@@ -93,9 +63,13 @@
                     <span class="stat-value">{{ todayNotesCount }}</span>
                     <span class="stat-label">今日</span>
                 </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ allTags.length }}</span>
+                    <span class="stat-label">标签</span>
+                </div>
             </div>
 
-            <!-- Detail view modal -->
+            <!-- 详情查看模态框 -->
             <div class="modal-overlay" v-if="showDetail" @click="closeDetail">
                 <div class="detail-modal" @click.stop>
                     <div class="detail-header">
@@ -138,7 +112,7 @@
                 </div>
             </div>
 
-            <!-- Delete confirmation modal -->
+            <!-- 删除确认模态框 -->
             <div class="modal-overlay" v-if="showDeleteConfirm" @click="cancelDelete">
                 <div class="confirm-modal" @click.stop>
                     <div class="confirm-icon">
@@ -157,238 +131,251 @@
                     </div>
                 </div>
             </div>
+
+
         </div>
     </BasePanel>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import BaseButton from '../../../components/base/BaseButton.vue';
 import CalendarView from './components/CalendarView.vue';
 import ListView from './components/ListView.vue';
 import NoteEditor from './components/NoteEditor.vue';
 
-export default {
-    name: 'WorkNotesToolView',
-    components: {
-        BaseButton,
-        CalendarView,
-        ListView,
-        NoteEditor
-    },
-    props: {
-        toolName: {
-            type: String,
-            default: '工作手记'
-        }
-    },
-    data() {
-        return {
-            notes: [],
-            searchQuery: '',
-            selectedTags: [],
-            currentView: 'calendar',
-            currentDate: new Date(),
-            selectedDate: null,
-            isEditorOpen: false,
-            showDetail: false,
-            showDeleteConfirm: false,
-            editingNote: null,
-            detailNote: null,
-            deleteTargetNote: null,
-            allTags: []
-        };
-    },
-    watch: {
-        notes: {
-            handler() {
-                if (!this.notes || this.notes.length === 0) {
-                    this.allTags = [];
-                    return;
-                }
-                const tags = new Set();
-                this.notes.forEach(note => {
-                    if (note.tag) {
-                        tags.add(note.tag);
-                    }
-                });
-                this.allTags = Array.from(tags).sort();
-            },
-            immediate: true
-        }
-    },
-    computed: {
-        filteredNotes() {
-            if (!this.notes || this.notes.length === 0) {
-                return [];
-            }
-
-            let result = [...this.notes];
-
-            if (this.searchQuery) {
-                const query = this.searchQuery.toLowerCase();
-                result = result.filter(note => {
-                    return (note.title && note.title.toLowerCase().includes(query)) ||
-                        note.content.toLowerCase().includes(query) ||
-                        (note.tag && note.tag.toLowerCase().includes(query));
-                });
-            }
-
-            if (this.selectedTags && this.selectedTags.length > 0) {
-                result = result.filter(note => {
-                    return note.tag && this.selectedTags.includes(note.tag);
-                });
-            }
-
-            return result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        },
-        importantNotesCount() {
-            return this.notes.filter(note => note.important).length;
-        },
-        todayNotesCount() {
-            const today = new Date().toISOString().split('T')[0];
-            return this.notes.filter(note => note.createdAt.split('T')[0] === today).length;
-        },
-        formatDetailDate() {
-            if (!this.detailNote) return '';
-            return new Date(this.detailNote.createdAt).toLocaleDateString('zh-CN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                weekday: 'long'
-            });
-        },
-        formatDetailCreatedAt() {
-            if (!this.detailNote) return '';
-            return new Date(this.detailNote.createdAt).toLocaleString('zh-CN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        },
-        formatDetailUpdatedAt() {
-            if (!this.detailNote) return '';
-            return new Date(this.detailNote.updatedAt).toLocaleString('zh-CN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-    },
-    mounted() {
-        this.loadNotes();
-        this.selectedDate = new Date().toISOString().split('T')[0];
-    },
-    methods: {
-        loadNotes() {
-            const saved = localStorage.getItem('workNotes');
-            if (saved) {
-                this.notes = JSON.parse(saved);
-            }
-        },
-        saveNotes() {
-            localStorage.setItem('workNotes', JSON.stringify(this.notes));
-        },
-        prevMonth() {
-            // 创建新的Date对象，避免直接修改原对象
-            const newDate = new Date(this.currentDate.getTime());
-            newDate.setMonth(newDate.getMonth() - 1);
-            this.currentDate = newDate;
-        },
-        nextMonth() {
-            // 创建新的Date对象，避免直接修改原对象
-            const newDate = new Date(this.currentDate.getTime());
-            newDate.setMonth(newDate.getMonth() + 1);
-            this.currentDate = newDate;
-        },
-        selectDate(dateString) {
-            if (this.selectedDate !== dateString) {
-                this.selectedDate = dateString;
-            }
-        },
-        toggleTag(tag) {
-            const index = this.selectedTags.indexOf(tag);
-            if (index === -1) {
-                this.selectedTags.push(tag);
-            } else {
-                this.selectedTags.splice(index, 1);
-            }
-        },
-        toggleEditor(note = null) {
-            if (this.isEditorOpen && !note) {
-                this.isEditorOpen = false;
-                this.editingNote = null;
-                return;
-            }
-
-            this.editingNote = note;
-            this.showDetail = false;
-            this.isEditorOpen = true;
-        },
-        openEditorForDate(date) {
-            this.selectedDate = date;
-            this.toggleEditor(null);
-        },
-        saveNote(noteData) {
-            if (!noteData.content.trim()) return;
-
-            const now = new Date().toISOString();
-
-            if (this.editingNote) {
-                const index = this.notes.findIndex(n => n.id === this.editingNote.id);
-                if (index !== -1) {
-                    this.notes[index].title = noteData.title;
-                    this.notes[index].content = noteData.content;
-                    this.notes[index].tag = noteData.tag;
-                    this.notes[index].createdAt = noteData.date ? `${noteData.date}T${new Date().toLocaleTimeString('en-US', { hour12: false })}` : now;
-                    this.notes[index].important = noteData.important;
-                    this.notes[index].updatedAt = now;
-                }
-            } else {
-                this.notes.push({
-                    id: Date.now().toString(),
-                    title: noteData.title,
-                    content: noteData.content,
-                    tag: noteData.tag,
-                    createdAt: noteData.date ? `${noteData.date}T${new Date().toLocaleTimeString('en-US', { hour12: false })}` : now,
-                    updatedAt: now,
-                    important: noteData.important
-                });
-            }
-
-            this.saveNotes();
-            this.isEditorOpen = false;
-            this.editingNote = null;
-        },
-        openDetail(note) {
-            this.detailNote = note;
-            this.showDetail = true;
-        },
-        closeDetail() {
-            this.showDetail = false;
-            this.detailNote = null;
-        },
-        confirmDelete(note) {
-            this.deleteTargetNote = note;
-            this.showDeleteConfirm = true;
-            this.showDetail = false;
-            this.isEditorOpen = false;
-        },
-        cancelDelete() {
-            this.showDeleteConfirm = false;
-            this.deleteTargetNote = null;
-        },
-        executeDelete() {
-            if (this.deleteTargetNote) {
-                this.notes = this.notes.filter(n => n.id !== this.deleteTargetNote.id);
-                this.saveNotes();
-            }
-            this.cancelDelete();
-        }
+// Props
+const props = defineProps({
+    toolName: {
+        type: String,
+        default: '工作手记'
     }
+});
+
+// Reactive state
+const notes = ref([]);
+const searchQuery = ref('');
+const selectedTags = ref([]);
+const currentView = ref('calendar');
+const currentDate = ref(new Date());
+const selectedDate = ref(null);
+const isEditorOpen = ref(false);
+const showDetail = ref(false);
+const showDeleteConfirm = ref(false);
+const editingNote = ref(null);
+const detailNote = ref(null);
+const deleteTargetNote = ref(null);
+const allTags = ref([]);
+
+// Computed properties
+const filteredNotes = computed(() => {
+    if (!notes.value || notes.value.length === 0) {
+        return [];
+    }
+
+    let result = [...notes.value];
+
+    if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase();
+        result = result.filter(note => {
+            return (note.title && note.title.toLowerCase().includes(query)) ||
+                note.content.toLowerCase().includes(query) ||
+                (note.tag && note.tag.toLowerCase().includes(query));
+        });
+    }
+
+    if (selectedTags.value && selectedTags.value.length > 0) {
+        result = result.filter(note => {
+            return note.tag && selectedTags.value.includes(note.tag);
+        });
+    }
+
+    return result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+});
+
+const importantNotesCount = computed(() => {
+    return notes.value.filter(note => note.important).length;
+});
+
+const todayNotesCount = computed(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return notes.value.filter(note => note.createdAt.split('T')[0] === today).length;
+});
+
+const formatDetailDate = computed(() => {
+    if (!detailNote.value) return '';
+    return new Date(detailNote.value.createdAt).toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long'
+    });
+});
+
+const formatDetailCreatedAt = computed(() => {
+    if (!detailNote.value) return '';
+    return new Date(detailNote.value.createdAt).toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+});
+
+const formatDetailUpdatedAt = computed(() => {
+    if (!detailNote.value) return '';
+    return new Date(detailNote.value.updatedAt).toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+});
+
+// Watchers
+watch(notes, () => {
+    if (!notes.value || notes.value.length === 0) {
+        allTags.value = [];
+        return;
+    }
+    const tags = new Set();
+    notes.value.forEach(note => {
+        if (note.tag) {
+            tags.add(note.tag);
+        }
+    });
+    allTags.value = Array.from(tags).sort();
+}, { immediate: true });
+
+// Lifecycle
+onMounted(() => {
+    loadNotes();
+    selectedDate.value = new Date().toISOString().split('T')[0];
+});
+
+// Methods
+const loadNotes = () => {
+    const saved = localStorage.getItem('workNotes');
+    if (saved) {
+        notes.value = JSON.parse(saved);
+    }
+};
+
+const saveNotes = () => {
+    localStorage.setItem('workNotes', JSON.stringify(notes.value));
+};
+
+
+
+const handleDateChange = (newDate) => {
+    if (newDate instanceof Date) {
+        currentDate.value = newDate;
+    }
+};
+
+const selectDate = (dateString) => {
+    if (selectedDate.value !== dateString) {
+        selectedDate.value = dateString;
+    }
+};
+
+const toggleEditor = (note = null) => {
+    if (isEditorOpen.value && !note) {
+        isEditorOpen.value = false;
+        editingNote.value = null;
+        return;
+    }
+
+    editingNote.value = note;
+    showDetail.value = false;
+    isEditorOpen.value = true;
+};
+
+const openEditorForDate = (date) => {
+    selectedDate.value = date;
+    toggleEditor(null);
+};
+
+const saveNote = (noteData) => {
+    if (!noteData.content.trim()) return;
+
+    const now = new Date().toISOString();
+
+    if (editingNote.value) {
+        const index = notes.value.findIndex(n => n.id === editingNote.value.id);
+        if (index !== -1) {
+            notes.value[index].title = noteData.title;
+            notes.value[index].content = noteData.content;
+            notes.value[index].tag = noteData.tag;
+            notes.value[index].createdAt = noteData.date ? `${noteData.date}T${new Date().toLocaleTimeString('en-US', { hour12: false })}` : now;
+            notes.value[index].important = noteData.important;
+            notes.value[index].updatedAt = now;
+        }
+    } else {
+        notes.value.push({
+            id: Date.now().toString(),
+            title: noteData.title,
+            content: noteData.content,
+            tag: noteData.tag,
+            createdAt: noteData.date ? `${noteData.date}T${new Date().toLocaleTimeString('en-US', { hour12: false })}` : now,
+            updatedAt: now,
+            important: noteData.important
+        });
+    }
+
+    saveNotes();
+    isEditorOpen.value = false;
+    editingNote.value = null;
+};
+
+const openDetail = (note) => {
+    detailNote.value = note;
+    showDetail.value = true;
+};
+
+const closeDetail = () => {
+    showDetail.value = false;
+    detailNote.value = null;
+};
+
+const confirmDelete = (note) => {
+    deleteTargetNote.value = note;
+    showDeleteConfirm.value = true;
+    showDetail.value = false;
+    isEditorOpen.value = false;
+};
+
+const cancelDelete = () => {
+    showDeleteConfirm.value = false;
+    deleteTargetNote.value = null;
+};
+
+const executeDelete = () => {
+    if (deleteTargetNote.value) {
+        notes.value = notes.value.filter(n => n.id !== deleteTargetNote.value.id);
+        saveNotes();
+    }
+    cancelDelete();
+};
+
+const exportNotes = () => {
+    const exportData = {
+        notes: notes.value,
+        exportDate: new Date().toISOString(),
+        version: '1.0'
+    };
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `work-notes-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 };
 </script>
 
@@ -404,6 +391,75 @@ export default {
     flex-direction: column;
     padding: 16px;
     gap: 12px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .work-notes-container {
+        padding: 12px;
+        gap: 8px;
+    }
+    
+    .work-notes-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding-bottom: 8px;
+    }
+    
+    .header-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .header-buttons {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .search-filter-bar {
+        gap: 8px;
+    }
+    
+    .filter-tags {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .content-area {
+        padding: 8px;
+    }
+    
+    .quick-stats {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .stat-item {
+        flex: 1;
+        min-width: 80px;
+        padding: 6px 8px;
+    }
+    
+    .detail-modal {
+        max-width: 95vw;
+        max-height: 90vh;
+    }
+    
+    .detail-body {
+        padding: 16px;
+    }
+    
+    .category-manager-modal {
+        max-width: 95vw;
+        max-height: 90vh;
+    }
+    
+    .modal-body {
+        padding: 16px;
+    }
 }
 
 .work-notes-header {
@@ -435,7 +491,23 @@ export default {
 .header-actions {
     display: flex;
     align-items: center;
+    gap: 12px;
+}
+
+.header-buttons {
+    display: flex;
+    align-items: center;
     gap: 8px;
+}
+
+.header-buttons :deep(.base-button:disabled) {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.header-buttons :deep(.base-button:disabled:hover) {
+    transform: none;
+    box-shadow: none;
 }
 
 .view-toggle {
@@ -529,6 +601,8 @@ export default {
     background: var(--bg-tertiary);
     border-radius: 4px;
 }
+
+
 
 .filter-tags {
     display: flex;
@@ -707,7 +781,7 @@ export default {
     margin: 0 0 12px 0;
     font-size: 18px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: #111827;
 }
 
 .detail-content {
@@ -759,7 +833,7 @@ export default {
     margin: 0 0 8px 0;
     font-size: 16px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: #111827;
 }
 
 .confirm-modal p {
@@ -797,4 +871,6 @@ export default {
         transform: scale(1.05);
     }
 }
+
+
 </style>

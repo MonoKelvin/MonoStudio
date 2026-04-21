@@ -91,4 +91,57 @@ export default {
 .ui-btn.is-block {
   width: 100%;
 }
+
+.ui-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-tertiary);
+  pointer-events: none;
+  user-select: none;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.ui-btn:disabled:hover,
+.ui-btn:disabled:focus,
+.ui-btn:disabled:active,
+.ui-btn:disabled.active {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-tertiary);
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.ui-btn--primary:disabled {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-tertiary);
+}
+
+.ui-btn--primary:disabled:hover,
+.ui-btn--primary:disabled:focus,
+.ui-btn--primary:disabled:active,
+.ui-btn--primary:disabled.active {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-tertiary);
+}
+
+.ui-btn--danger:disabled {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-tertiary);
+}
+
+.ui-btn--danger:disabled:hover,
+.ui-btn--danger:disabled:focus,
+.ui-btn--danger:disabled:active,
+.ui-btn--danger:disabled.active {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-tertiary);
+}
 </style>

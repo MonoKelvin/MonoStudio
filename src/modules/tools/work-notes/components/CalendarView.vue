@@ -1,79 +1,92 @@
 <template>
     <div class="calendar-view">
-        <!-- 日历头部 -->
-        <div class="calendar-header">
-            <button class="header-btn today-btn" @click="goToToday" title="回到今天">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-            </button>
-            <div class="header-nav">
-                <button class="header-btn" @click="prevMonth">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                    </svg>
-                </button>
-                <h3 class="header-title">{{ currentMonthYear }}</h3>
-                <button class="header-btn" @click="nextMonth">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                </button>
-            </div>
-            <button class="header-btn today-text-btn" @click="goToToday" title="今天">
-                <span class="today-text">今天</span>
-            </button>
-        </div>
-
-        <!-- 视图切换 -->
-        <div class="view-toggle">
-            <button v-for="view in viewOptions" :key="view.value" class="view-btn"
-                :class="{ active: currentView === view.value }" @click="switchView(view.value)">
-                {{ view.label }}
-            </button>
-        </div>
-
         <!-- 日历主体 -->
         <div class="calendar-body">
             <FullCalendar :options="calendarOptions" ref="fullCalendar" />
         </div>
 
-        <!-- 选中日期的笔记 -->
-        <div class="selected-date-notes" v-if="selectedDate">
-            <div class="date-notes-header">
-                <h4>{{ formatSelectedDate }}</h4>
-                <div class="header-actions">
-                    <span class="notes-badge">{{ selectedDateNotes.length }}</span>
-                    <BaseButton size="sm" @click="$emit('add-note', selectedDate)">添加笔记</BaseButton>
+        <!-- 搜索和笔记列表区域 -->
+        <div class="notes-section">
+            <!-- 搜索框 -->
+            <div class="search-bar">
+                <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input :value="searchQuery" @input="handleSearchInput" type="text" class="search-input" placeholder="搜索笔记..." />
+                <button v-if="searchQuery" class="clear-btn" @click="clearSearch">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- 标签过滤 -->
+            <div class="filter-tags" v-if="allTags.length > 0">
+                <button v-for="tag in allTags" :key="tag" class="filter-tag"
+                    :class="{ active: selectedTags.includes(tag) }" @click="toggleTag(tag)">
+                    {{ tag }}
+                </button>
+            </div>
+
+            <!-- 笔记列表 -->
+            <div class="notes-list">
+                <div class="notes-list-header" v-if="selectedDate">
+                    <span class="date-text">{{ formatSelectedDate }}</span>
+                    <span class="notes-count">{{ selectedDateNotes.length }} 条笔记</span>
                 </div>
-            </div>
-            <div class="date-notes-list" v-if="selectedDateNotes.length > 0">
-                <NoteCard v-for="note in selectedDateNotes" :key="note.id" :note="note"
-                    @click="$emit('open-detail', note)" @edit="$emit('edit-note', note)"
-                    @delete="$emit('delete-note', note)" />
-            </div>
-            <div class="no-notes-for-date" v-else>
-                <div class="empty-state">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                
+                <div class="notes-list-content" v-if="selectedDateNotes.length > 0">
+                    <div v-for="note in selectedDateNotes" :key="note.id" 
+                         class="note-item"
+                         @click="$emit('open-detail', note)">
+                        <div class="note-item-header">
+                            <span v-if="note.important" class="important-indicator">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                            </span>
+                            <span class="note-item-title">{{ note.title || '无标题' }}</span>
+                            <div class="note-item-actions">
+                                <button class="icon-btn edit-btn" @click.stop="$emit('edit-note', note)" title="编辑">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                </button>
+                                <button class="icon-btn delete-btn" @click.stop="$emit('delete-note', note)" title="删除">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="note-item-content">{{ note.content.substring(0, 80) }}{{ note.content.length > 80 ? '...' : '' }}</div>
+                        <div class="note-item-footer">
+                            <span class="note-item-time">{{ formatNoteTime(note.createdAt) }}</span>
+                            <span v-if="note.tag" class="tag-badge">{{ note.tag }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="empty-notes" v-else>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
                     </svg>
                     <p>这一天没有笔记</p>
-                    <BaseButton size="sm" @click="$emit('add-note', selectedDate)">添加笔记</BaseButton>
                 </div>
             </div>
         </div>
     </div>
 </template>
 
-<script>
-import BaseButton from '../../../../components/base/BaseButton.vue';
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue';
 import NoteCard from './NoteCard.vue';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -81,164 +94,215 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 
-export default {
-    name: 'CalendarView',
-    components: {
-        BaseButton,
-        NoteCard,
-        FullCalendar
+// Props
+const props = defineProps({
+    currentDate: {
+        type: Date,
+        required: true
     },
-    props: {
-        currentDate: {
-            type: Date,
-            required: true
-        },
-        selectedDate: {
-            type: String,
-            default: null
-        },
-        notes: {
-            type: Array,
-            default: () => []
-        }
+    selectedDate: {
+        type: String,
+        default: null
     },
-    emits: ['prev-month', 'next-month', 'select-date', 'open-detail', 'edit-note', 'delete-note', 'add-note'],
-    data() {
-        return {
-            calendarRef: null,
-            currentView: 'dayGridMonth',
-            viewOptions: [
-                { label: '月', value: 'dayGridMonth' },
-                { label: '周', value: 'timeGridWeek' },
-                { label: '日', value: 'timeGridDay' },
-                { label: '列表', value: 'listMonth' }
-            ]
-        };
+    notes: {
+        type: Array,
+        default: () => []
     },
-    computed: {
-        currentMonthYear() {
-            return this.currentDate.toLocaleDateString('zh-CN', {
-                year: 'numeric',
-                month: 'long'
-            });
-        },
-        calendarOptions() {
-            return {
-                plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
-                initialView: this.currentView,
-                locale: 'zh-cn',
-                headerToolbar: false,
-                navLinks: true,
-                selectable: true,
-                events: this.calendarEvents,
-                dateClick: this.handleDateClick,
-                eventClick: this.handleEventClick,
-                dayMaxEvents: 3,
-                slotMinTime: '08:00',
-                slotMaxTime: '20:00',
-                allDaySlot: true,
-                eventDidMount: function (info) {
-                    const eventEl = info.el;
-                    eventEl.style.borderRadius = '6px';
-                    eventEl.style.fontSize = '12px';
-                    eventEl.style.padding = '3px 6px';
-                    eventEl.style.margin = '2px 0';
-                    eventEl.style.transition = 'all 0.2s ease';
-                },
-                dayCellContent: function (arg) {
-                    return {
-                        html: `<span class="fc-day-number">${arg.dayNumberText}</span>`
-                    };
-                },
-                eventContent: function (arg) {
-                    return {
-                        html: `<span class="event-dot ${arg.event.extendedProps.type}"></span><span class="event-title">${arg.event.title}</span>`
-                    };
-                },
-                datesSet: this.handleDatesSet,
-                height: 'auto'
-            };
-        },
-        calendarEvents() {
-            return this.notes.map(note => {
-                return {
-                    id: note.id,
-                    title: note.title,
-                    start: note.createdAt,
-                    end: note.createdAt,
-                    allDay: true,
-                    extendedProps: {
-                        type: note.important ? 'important' : note.tag ? 'tagged' : 'normal',
-                        note: note
-                    }
-                };
-            });
-        },
-        selectedDateNotes() {
-            if (!this.selectedDate) return [];
-            return this.notes.filter(note => note.createdAt.split('T')[0] === this.selectedDate);
-        },
-        formatSelectedDate() {
-            if (!this.selectedDate) return '';
-            const date = new Date(this.selectedDate);
-            const today = new Date();
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-
-            const dateStr = date.toDateString();
-            const todayStr = today.toDateString();
-            const yesterdayStr = yesterday.toDateString();
-
-            if (dateStr === todayStr) {
-                return '今天';
-            } else if (dateStr === yesterdayStr) {
-                return '昨天';
-            } else {
-                return date.toLocaleDateString('zh-CN', {
-                    month: 'long',
-                    day: 'numeric',
-                    weekday: 'long'
-                });
-            }
-        }
+    searchQuery: {
+        type: String,
+        default: ''
     },
-    mounted() {
-        this.calendarRef = this.$refs.fullCalendar;
+    selectedTags: {
+        type: Array,
+        default: () => []
     },
-    methods: {
-        prevMonth() {
-            if (this.calendarRef) {
-                this.calendarRef.getApi().prev();
-            }
-        },
-        nextMonth() {
-            if (this.calendarRef) {
-                this.calendarRef.getApi().next();
-            }
-        },
-        goToToday() {
-            if (this.calendarRef) {
-                this.calendarRef.getApi().today();
-                this.$emit('select-date', new Date().toISOString().split('T')[0]);
-            }
-        },
-        switchView(view) {
-            this.currentView = view;
-            if (this.calendarRef) {
-                this.calendarRef.getApi().changeView(view);
-            }
-        },
-        handleDateClick(info) {
-            const dateString = info.dateStr;
-            this.$emit('select-date', dateString);
-        },
-        handleEventClick(info) {
-            const note = info.event.extendedProps.note;
-            this.$emit('open-detail', note);
-        },
-        handleDatesSet(info) {
-        }
+    allTags: {
+        type: Array,
+        default: () => []
     }
+});
+
+// Emits
+const emit = defineEmits(['prev-month', 'next-month', 'select-date', 'open-detail', 'edit-note', 'delete-note', 'add-note', 'update:searchQuery', 'update:selectedTags']);
+
+// Reactive state
+const fullCalendar = ref(null);
+const currentView = ref('dayGridMonth');
+
+// View options
+const viewOptions = [
+    { label: '月', value: 'dayGridMonth' },
+    { label: '周', value: 'timeGridWeek' },
+    { label: '日', value: 'timeGridDay' },
+    { label: '列表', value: 'listMonth' }
+];
+
+// Computed properties
+const currentMonthYear = computed(() => {
+    return props.currentDate.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long'
+    });
+});
+
+const calendarOptions = computed(() => {
+    return {
+        plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
+        initialView: currentView.value,
+        locale: 'zh-cn',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+        },
+        navLinks: true,
+        selectable: true,
+        events: calendarEvents.value,
+        dateClick: handleDateClick,
+        eventClick: handleEventClick,
+        dayMaxEvents: 3,
+        slotMinTime: '08:00',
+        slotMaxTime: '20:00',
+        allDaySlot: true,
+        eventDidMount: function (info) {
+            const eventEl = info.el;
+            eventEl.style.borderRadius = '4px';
+            eventEl.style.fontSize = '11px';
+            eventEl.style.padding = '2px 4px';
+        },
+        datesSet: handleDatesSet,
+        height: 'auto'
+    };
+});
+
+const calendarEvents = computed(() => {
+    let filtered = [...props.notes];
+
+    if (props.searchQuery) {
+        const query = props.searchQuery.toLowerCase();
+        filtered = filtered.filter(note => {
+            return (note.title && note.title.toLowerCase().includes(query)) ||
+                note.content.toLowerCase().includes(query) ||
+                (note.tag && note.tag.toLowerCase().includes(query));
+        });
+    }
+
+    if (props.selectedTags && props.selectedTags.length > 0) {
+        filtered = filtered.filter(note => {
+            return note.tag && props.selectedTags.includes(note.tag);
+        });
+    }
+
+    return filtered.map(note => {
+        return {
+            id: note.id,
+            title: note.title,
+            start: note.createdAt,
+            end: note.createdAt,
+            allDay: true,
+            extendedProps: {
+                type: note.important ? 'important' : note.tag ? 'tagged' : 'normal',
+                note: note
+            }
+        };
+    });
+});
+
+const selectedDateNotes = computed(() => {
+    if (!props.selectedDate) return [];
+    return props.notes.filter(note => note.createdAt.split('T')[0] === props.selectedDate);
+});
+
+const formatSelectedDate = computed(() => {
+    if (!props.selectedDate) return '';
+    const date = new Date(props.selectedDate);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const dateStr = date.toDateString();
+    const todayStr = today.toDateString();
+    const yesterdayStr = yesterday.toDateString();
+
+    if (dateStr === todayStr) {
+        return '今天';
+    } else if (dateStr === yesterdayStr) {
+        return '昨天';
+    } else {
+        return date.toLocaleDateString('zh-CN', {
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long'
+        });
+    }
+});
+
+// Methods
+const prevMonth = () => {
+    if (fullCalendar.value) {
+        fullCalendar.value.getApi().prev();
+    }
+};
+
+const nextMonth = () => {
+    if (fullCalendar.value) {
+        fullCalendar.value.getApi().next();
+    }
+};
+
+const goToToday = () => {
+    if (fullCalendar.value) {
+        fullCalendar.value.getApi().today();
+        emit('select-date', new Date().toISOString().split('T')[0]);
+    }
+};
+
+const switchView = (view) => {
+    currentView.value = view;
+    if (fullCalendar.value) {
+        fullCalendar.value.getApi().changeView(view);
+    }
+};
+
+const handleDateClick = (info) => {
+    const dateString = info.dateStr;
+    emit('select-date', dateString);
+};
+
+const handleEventClick = (info) => {
+    const note = info.event.extendedProps.note;
+    emit('open-detail', note);
+};
+
+const handleDatesSet = (info) => {
+    // 更新 currentDate 以同步外部状态
+    const newDate = info.view.currentStart;
+    emit('prev-month', newDate);
+};
+
+const handleSearchInput = (event) => {
+    const value = event.target.value;
+    emit('update:searchQuery', value);
+};
+
+const clearSearch = () => {
+    emit('update:searchQuery', '');
+};
+
+const formatNoteTime = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+};
+
+const toggleTag = (tag) => {
+    const newTags = [...props.selectedTags];
+    const index = newTags.indexOf(tag);
+    if (index === -1) {
+        newTags.push(tag);
+    } else {
+        newTags.splice(index, 1);
+    }
+    emit('update:selectedTags', newTags);
 };
 </script>
 
@@ -248,589 +312,685 @@ export default {
     min-height: 0;
     display: flex;
     flex-direction: column;
-    background: #ffffff;
-    border-radius: 12px;
+    background: var(--background-primary);
+    border-radius: var(--radius-lg);
     overflow: hidden;
-}
-
-.calendar-header {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 18px;
-    background: #3b82f6;
-    color: white;
-}
-
-.header-nav {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.header-btn {
-    background: rgba(255, 255, 255, 0.15);
-    border: none;
-    color: white;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
-    transition: all 0.25s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.header-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: scale(1.08);
-}
-
-.header-btn:active {
-    transform: scale(0.95);
-}
-
-.today-btn {
-    padding: 8px 10px;
-}
-
-.today-text-btn {
-    padding: 8px 12px;
-}
-
-.today-text {
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.header-title {
-    font-size: 17px;
-    font-weight: 700;
-    margin: 0;
-    letter-spacing: 0.3px;
-    min-width: 160px;
-    text-align: center;
-}
-
-.view-toggle {
-    flex-shrink: 0;
-    display: flex;
-    gap: 5px;
-    padding: 10px 18px;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.view-btn {
-    background: transparent;
-    border: 1px solid #e2e8f0;
-    color: #64748b;
-    font-size: 12px;
-    font-weight: 500;
-    padding: 6px 14px;
-    border-radius: 18px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    font-family: inherit;
-}
-
-.view-btn:hover {
-    background: #f1f5f9;
-    color: #1e293b;
-    border-color: #3b82f6;
-}
-
-.view-btn.active {
-    background: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
+    box-shadow: var(--shadow-card);
 }
 
 .calendar-body {
     flex: 1;
     min-height: 0;
     overflow: auto;
-    background: #ffffff;
+    background: var(--background-secondary);
 }
 
 .calendar-body :deep(.fc) {
     height: 100% !important;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: inherit;
 }
 
-.calendar-body :deep(.fc-theme-standard) {
-    background: #ffffff !important;
+.calendar-body :deep(.fc-toolbar) {
+    padding: var(--spacing-md) var(--spacing-lg);
+    margin: 0;
+    background: var(--background-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.calendar-body :deep(.fc-toolbar-title) {
+    font-size: var(--font-size-lg) !important;
+    font-weight: var(--font-weight-semibold) !important;
+    color: var(--text-primary) !important;
+}
+
+.calendar-body :deep(.fc-button) {
+    background: var(--background-tertiary) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+    font-size: var(--font-size-sm) !important;
+    font-weight: var(--font-weight-medium) !important;
+    padding: var(--spacing-xs) var(--spacing-sm) !important;
+    border-radius: var(--radius-sm) !important;
+    box-shadow: none !important;
+    transition: var(--transition-fast);
+}
+
+.calendar-body :deep(.fc-button:hover) {
+    background: var(--background-hover) !important;
+    border-color: var(--accent-color) !important;
+}
+
+.calendar-body :deep(.fc-button-active) {
+    background: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
+    color: white !important;
 }
 
 .calendar-body :deep(.fc-theme-standard .fc-scrollgrid) {
     border: none !important;
-    background: #ffffff !important;
+    background: var(--background-secondary) !important;
 }
 
 .calendar-body :deep(.fc-theme-standard td),
 .calendar-body :deep(.fc-theme-standard th) {
-    border-color: #e2e8f0 !important;
+    border-color: var(--border-color) !important;
+}
+
+.calendar-body :deep(.fc-col-header-cell) {
+    background: var(--background-tertiary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 0 !important;
+}
+
+.calendar-body :deep(.fc-col-header-cell-cushion) {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: var(--spacing-sm) var(--spacing-xs) !important;
+    display: block;
+    text-align: center;
 }
 
 .calendar-body :deep(.fc-daygrid-day) {
-    transition: all 0.25s ease;
+    min-height: 80px !important;
 }
 
 .calendar-body :deep(.fc-daygrid-day:hover) {
-    background: #f1f5f9 !important;
+    background: var(--background-hover) !important;
 }
 
 .calendar-body :deep(.fc-daygrid-day-number) {
-    font-size: 13px;
-    font-weight: 600;
-    color: #1e293b;
-    padding: 6px 8px;
-    border-radius: 50%;
-    min-width: 28px;
-    height: 28px;
-    text-align: center;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
-    margin: 2px;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    padding: var(--spacing-xs) var(--spacing-xs);
+    display: block;
+    text-align: right;
 }
 
 .calendar-body :deep(.fc-day-today .fc-daygrid-day-number) {
-    background: #3b82f6;
+    background: var(--accent-color);
     color: white;
-    font-weight: 700;
-    transform: scale(1.05);
+    font-weight: var(--font-weight-bold);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    margin: 4px;
+}
+
+.calendar-body :deep(.fc-day-other .fc-daygrid-day-number) {
+    color: var(--text-tertiary);
 }
 
 .calendar-body :deep(.fc-daygrid-event) {
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
-    margin: 2px 0 !important;
-    transition: all 0.15s ease;
+    margin: 2px 4px !important;
 }
 
-.calendar-body :deep(.fc-daygrid-event:hover) {
-    transform: translateX(4px);
+.calendar-body :deep(.fc-daygrid-event-content) {
+    display: flex !important;
+    align-items: center !important;
+    padding: 2px 6px !important;
+    background: var(--background-tertiary) !important;
+    border-radius: var(--radius-sm) !important;
+    border-left: 2px solid var(--accent-color) !important;
 }
 
-.event-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 4px;
-    vertical-align: middle;
-    transition: all 0.15s ease;
+.calendar-body :deep(.fc-daygrid-event.important .fc-daygrid-event-content) {
+    border-left-color: var(--warning-color) !important;
 }
 
-.calendar-body :deep(.fc-daygrid-event:hover .event-dot) {
-    transform: scale(1.2);
-}
-
-.event-dot.important {
-    background: #f59e0b;
-}
-
-.event-dot.tagged {
-    background: #10b981;
-}
-
-.event-dot.normal {
-    background: #3b82f6;
-}
-
-.event-title {
-    font-size: 11px;
-    color: #1e293b;
-    font-weight: 500;
-    line-height: 1.4;
+.calendar-body :deep(.fc-daygrid-event.tagged .fc-daygrid-event-content) {
+    border-left-color: var(--success) !important;
 }
 
 .calendar-body :deep(.fc-daygrid-more-link) {
-    font-size: 10px;
-    color: #3b82f6 !important;
-    font-weight: 600;
-    background: #f1f5f9 !important;
-    border-radius: 8px !important;
-    padding: 2px 5px !important;
+    font-size: var(--font-size-xs);
+    color: var(--accent-color) !important;
+    font-weight: var(--font-weight-medium);
+    display: block;
+    padding: 2px 6px;
 }
 
-.calendar-body :deep(.fc-col-header-cell) {
-    background: #f1f5f9 !important;
-    border-bottom: 1px solid #e2e8f0 !important;
+.calendar-body :deep(.fc-list) {
+    background: var(--background-secondary) !important;
+    border: none !important;
 }
 
-.calendar-body :deep(.fc-col-header-cell-cushion) {
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 10px 0;
-}
-
-.calendar-body :deep(.fc-scrollgrid tbody tr) {
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.calendar-body :deep(.fc-scrollgrid tbody tr td) {
-    border-right: 1px solid #e2e8f0;
+.calendar-body :deep(.fc-list-day-cushion) {
+    background: var(--background-tertiary) !important;
+    color: var(--text-primary) !important;
+    font-weight: var(--font-weight-semibold);
+    padding: var(--spacing-sm) var(--spacing-lg) !important;
 }
 
 .calendar-body :deep(.fc-list-event) {
-    border-radius: 8px;
-    margin: 6px 0;
-    transition: all 0.15s ease;
-    border: 1px solid #e2e8f0 !important;
-    background: #ffffff !important;
+    background: var(--background-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-md) !important;
+    margin: var(--spacing-xs) var(--spacing-md) !important;
+    padding: var(--spacing-sm) !important;
 }
 
 .calendar-body :deep(.fc-list-event:hover) {
-    border-color: #3b82f6 !important;
+    background: var(--background-hover) !important;
+    border-color: var(--accent-color) !important;
 }
 
 .calendar-body :deep(.fc-list-event-title) {
-    font-weight: 600;
-    color: #1e293b;
+    color: var(--text-primary) !important;
+    font-weight: var(--font-weight-semibold);
 }
 
 .calendar-body :deep(.fc-list-event-time) {
-    color: #64748b;
-    font-size: 11px;
+    color: var(--text-secondary) !important;
 }
 
-.calendar-body :deep(.fc-list-day-text) {
-    font-weight: 700;
-    color: #3b82f6;
-    font-size: 13px;
+.calendar-body :deep(.fc-timegrid) {
+    background: var(--background-secondary) !important;
 }
 
-.selected-date-notes {
+.calendar-body :deep(.fc-timegrid-slot) {
+    border-bottom: 1px solid var(--border-color) !important;
+    height: 40px !important;
+}
+
+.calendar-body :deep(.fc-timegrid-axis) {
+    background: var(--background-tertiary) !important;
+    border-right: 1px solid var(--border-color) !important;
+}
+
+.calendar-body :deep(.fc-timegrid-event) {
+    background: var(--accent-color) !important;
+    border: none !important;
+    border-radius: var(--radius-sm) !important;
+}
+
+.calendar-body :deep(.fc-timegrid-event.important) {
+    background: var(--warning-color) !important;
+}
+
+.calendar-body :deep(.fc-timegrid-event.tagged) {
+    background: var(--success) !important;
+}
+
+.notes-section {
     flex-shrink: 0;
-    max-height: 300px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    overflow: hidden;
-    background: #ffffff;
-    padding: 14px 18px;
+    background: var(--background-secondary);
+    border-top: 1px solid var(--border-color);
+    max-height: 320px;
 }
 
-.date-notes-header {
-    flex-shrink: 0;
+.search-bar {
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #e2e8f0;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
 }
 
-.date-notes-header h4 {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 700;
-    color: #1e293b;
-    font-family: inherit;
+.search-icon {
+    position: absolute;
+    left: var(--spacing-xl);
+    color: var(--text-tertiary);
+    pointer-events: none;
 }
 
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.search-input {
+    width: 100%;
+    padding: var(--spacing-xs) var(--spacing-xl) var(--spacing-xs) var(--spacing-2xl);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    background: var(--background-tertiary);
+    color: var(--text-primary);
+    transition: var(--transition-fast);
 }
 
-.notes-badge {
-    font-size: 10px;
-    padding: 4px 8px;
-    background: #3b82f6;
-    color: white;
-    border-radius: 12px;
-    font-weight: 600;
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    background: var(--background-secondary);
 }
 
-.date-notes-list {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-right: 5px;
+.search-input::placeholder {
+    color: var(--text-tertiary);
 }
 
-.date-notes-list::-webkit-scrollbar {
-    width: 5px;
-}
-
-.date-notes-list::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 3px;
-}
-
-.date-notes-list::-webkit-scrollbar-thumb {
-    background: #64748b;
-    border-radius: 3px;
-}
-
-.date-notes-list::-webkit-scrollbar-thumb:hover {
-    background: #3b82f6;
-}
-
-.no-notes-for-date {
-    flex: 1;
+.clear-btn {
+    position: absolute;
+    right: var(--spacing-xl);
+    padding: var(--spacing-xs);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-tertiary);
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 150px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition-fast);
 }
 
-.empty-state {
+.clear-btn:hover {
+    color: var(--text-secondary);
+    background: var(--background-hover);
+}
+
+.filter-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.filter-tag {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--background-tertiary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.filter-tag:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.filter-tag.active {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+}
+
+.notes-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.notes-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    background: var(--background-tertiary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.date-text {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.notes-count {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+}
+
+.notes-list-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-xs);
+}
+
+.notes-list-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.notes-list-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.notes-list-content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+}
+
+.notes-list-content::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-color);
+}
+
+.note-item {
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+    background: var(--background-tertiary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    border: 1px solid transparent;
+}
+
+.note-item:hover {
+    background: var(--background-hover);
+    border-color: var(--border-color);
+    transform: translateY(-1px);
+}
+
+.note-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-xs);
+    gap: var(--spacing-xs);
+}
+
+.important-indicator {
+    color: var(--warning-color);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.note-item-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.note-item-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    opacity: 0;
+    transition: var(--transition-fast);
+}
+
+.note-item:hover .note-item-actions {
+    opacity: 1;
+}
+
+.icon-btn {
+    padding: var(--spacing-xs);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: var(--transition-fast);
+}
+
+.icon-btn:hover {
+    background: var(--background-secondary);
+    color: var(--text-primary);
+}
+
+.edit-btn:hover {
+    color: var(--accent-color);
+}
+
+.delete-btn:hover {
+    color: var(--danger);
+}
+
+.note-item-content {
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.note-item-footer {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.note-item-time {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+}
+
+.tag-badge {
+    font-size: var(--font-size-xs);
+    padding: 1px var(--spacing-xs);
+    background: var(--success);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-weight: var(--font-weight-medium);
+}
+
+.empty-notes {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
-    text-align: center;
-    color: #64748b;
-    padding: 40px 24px;
-    background: #f1f5f9;
-    border-radius: 12px;
-    max-width: 320px;
-    width: 100%;
-    transition: all 0.25s ease;
-    border: 1px solid #e2e8f0;
+    justify-content: center;
+    padding: var(--spacing-2xl);
+    color: var(--text-tertiary);
 }
 
-.empty-state:hover {
-    border-color: #3b82f6;
+.empty-notes svg {
+    margin-bottom: var(--spacing-sm);
+    opacity: 0.5;
 }
 
-.empty-state svg {
-    opacity: 0.6;
-    transition: all 0.25s ease;
-}
-
-.empty-state:hover svg {
-    opacity: 0.8;
-    transform: scale(1.1) rotate(5deg);
-}
-
-.empty-state p {
+.empty-notes p {
     margin: 0;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.6;
+    font-size: var(--font-size-sm);
 }
 
 @media (max-width: 768px) {
-    .calendar-header {
-        padding: 12px 15px;
+    .calendar-body :deep(.fc-toolbar) {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
     }
 
-    .header-title {
-        font-size: 15px;
-        min-width: 140px;
-    }
-
-    .view-toggle {
-        padding: 8px 15px;
-    }
-
-    .view-btn {
-        padding: 4px 10px;
-        font-size: 11px;
-    }
-
-    .selected-date-notes {
-        padding: 12px 15px;
-        max-height: 250px;
-    }
-
-    .date-notes-header h4 {
-        font-size: 14px;
-    }
-
-    .calendar-body :deep(.fc-daygrid-day-number) {
-        font-size: 11px;
-        min-width: 24px;
-        padding: 4px;
-    }
-
-    .event-title {
-        font-size: 9px;
-    }
-
-    .empty-state {
-        padding: 24px 16px;
-    }
-
-    .empty-state svg {
-        width: 40px;
-        height: 40px;
-    }
-}
-
-@media (prefers-color-scheme: dark) {
-    .calendar-view {
-        background: #1e293b;
-    }
-
-    .calendar-header {
-        background: #3b82f6;
-    }
-
-    .view-toggle {
-        background: #1e293b;
-        border-bottom: 1px solid #475569;
-    }
-
-    .view-btn {
-        background: transparent;
-        border: 1px solid #475569;
-        color: #94a3b8;
-    }
-
-    .view-btn:hover {
-        background: #334155;
-        color: #f8fafc;
-        border-color: #3b82f6;
-    }
-
-    .view-btn.active {
-        background: #3b82f6;
-        color: white;
-        border-color: #3b82f6;
-    }
-
-    .calendar-body {
-        background: #1e293b;
-    }
-
-    .calendar-body :deep(.fc) {
-        height: 100% !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .calendar-body :deep(.fc-theme-standard) {
-        background: #1e293b !important;
-    }
-
-    .calendar-body :deep(.fc-theme-standard .fc-scrollgrid) {
-        border: none !important;
-        background: #1e293b !important;
-    }
-
-    .calendar-body :deep(.fc-theme-standard td),
-    .calendar-body :deep(.fc-theme-standard th) {
-        border-color: #475569 !important;
+    .calendar-body :deep(.fc-toolbar-title) {
+        font-size: var(--font-size-md) !important;
     }
 
     .calendar-body :deep(.fc-daygrid-day) {
-        background: #1e293b !important;
+        min-height: 60px !important;
     }
 
-    .calendar-body :deep(.fc-daygrid-day:hover) {
-        background: #334155 !important;
+    .notes-section {
+        max-height: 280px;
+    }
+}
+
+.notes-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.notes-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.date-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.notes-count {
+    font-size: 10px;
+    color: var(--text-tertiary);
+}
+
+.notes-list-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.notes-list-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.notes-list-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.notes-list-content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+}
+
+.note-item {
+    padding: 6px 8px;
+    margin-bottom: 2px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.note-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.note-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
+}
+
+.note-item-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.note-item-actions {
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.note-item:hover .note-item-actions {
+    opacity: 1;
+}
+
+.icon-btn {
+    padding: 2px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+}
+
+.icon-btn:hover {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.note-item-content {
+    font-size: 11px;
+    line-height: 1.3;
+    color: var(--text-secondary);
+    margin-bottom: 3px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.note-item-footer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.note-item-time {
+    font-size: 10px;
+    color: var(--text-tertiary);
+}
+
+.important-badge {
+    font-size: 9px;
+    padding: 1px 4px;
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning-color, #f59e0b);
+    border-radius: 2px;
+}
+
+.tag-badge {
+    font-size: 9px;
+    padding: 1px 4px;
+    background: var(--success-color-light);
+    color: var(--success-color);
+    border-radius: 2px;
+}
+
+.empty-notes {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    color: var(--text-tertiary);
+}
+
+.empty-notes svg {
+    margin-bottom: 8px;
+    opacity: 0.5;
+}
+
+.empty-notes p {
+    margin: 0;
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .calendar-body :deep(.fc-toolbar) {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
     }
 
-    .calendar-body :deep(.fc-daygrid-day-number) {
-        color: #f8fafc;
+    .calendar-body :deep(.fc-toolbar-title) {
+        font-size: var(--font-size-md) !important;
     }
 
-    .calendar-body :deep(.fc-day-today .fc-daygrid-day-number) {
-        background: #3b82f6;
-        color: white;
+    .calendar-body :deep(.fc-daygrid-day) {
+        min-height: 60px !important;
     }
 
-    .calendar-body :deep(.fc-col-header-cell) {
-        background: #334155 !important;
-        border-bottom: 1px solid #475569 !important;
-    }
-
-    .calendar-body :deep(.fc-col-header-cell-cushion) {
-        color: #94a3b8;
-    }
-
-    .calendar-body :deep(.fc-scrollgrid tbody tr) {
-        border-bottom: 1px solid #475569;
-    }
-
-    .calendar-body :deep(.fc-scrollgrid tbody tr td) {
-        border-right: 1px solid #475569;
-    }
-
-    .calendar-body :deep(.fc-list-event) {
-        background: #334155 !important;
-        border: 1px solid #475569 !important;
-    }
-
-    .calendar-body :deep(.fc-list-event:hover) {
-        border-color: #3b82f6 !important;
-    }
-
-    .calendar-body :deep(.fc-list-event-title) {
-        color: #f8fafc;
-    }
-
-    .calendar-body :deep(.fc-list-event-time) {
-        color: #94a3b8;
-    }
-
-    .calendar-body :deep(.fc-list-day-text) {
-        color: #60a5fa;
-    }
-
-    .calendar-body :deep(.fc-daygrid-more-link) {
-        background: #334155 !important;
-        color: #60a5fa !important;
-    }
-
-    .calendar-body :deep(.fc-daygrid-more-link:hover) {
-        background: #3b82f6 !important;
-        color: white !important;
-    }
-
-    .event-title {
-        color: #f8fafc;
-    }
-
-    .selected-date-notes {
-        background: #1e293b;
-    }
-
-    .date-notes-header {
-        border-bottom: 1px solid #475569;
-    }
-
-    .date-notes-header h4 {
-        color: #f8fafc;
-    }
-
-    .date-notes-list::-webkit-scrollbar-track {
-        background: #334155;
-    }
-
-    .date-notes-list::-webkit-scrollbar-thumb {
-        background: #94a3b8;
-    }
-
-    .date-notes-list::-webkit-scrollbar-thumb:hover {
-        background: #3b82f6;
-    }
-
-    .empty-state {
-        background: #334155;
-        color: #94a3b8;
-        border: 1px solid #475569;
-    }
-
-    .empty-state:hover {
-        border-color: #3b82f6;
-    }
-
-    .empty-state svg {
-        color: #60a5fa;
+    .notes-section {
+        max-height: 280px;
     }
 }
 </style>

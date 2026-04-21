@@ -15,13 +15,13 @@
     <div class="note-card-footer">
       <span class="note-time">{{ formatNoteTime(note.createdAt) }}</span>
       <div class="note-card-actions">
-        <button class="action-btn" @click.stop="$emit('edit')" title="编辑">
+        <button class="action-btn edit-btn" @click.stop="$emit('edit')" title="编辑">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
           </svg>
         </button>
-        <button class="action-btn danger" @click.stop="$emit('delete')" title="删除">
+        <button class="action-btn delete-btn" @click.stop="$emit('delete')" title="删除">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -32,39 +32,34 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'NoteCard',
-  props: {
-    note: {
-      type: Object,
-      required: true
-    }
-  },
-  emits: ['click', 'edit', 'delete'],
-  methods: {
-    formatNoteTime(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-    }
+<script setup>
+import { computed } from 'vue';
+
+// Props
+const props = defineProps({
+  note: {
+    type: Object,
+    required: true
   }
+});
+
+// Emits
+const emit = defineEmits(['click', 'edit', 'delete']);
+
+// Methods
+const formatNoteTime = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
 };
 </script>
 
 <style scoped>
 .note-card {
-  padding: 10px;
+  padding: 8px;
   background: var(--bg-secondary);
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
   border: 1px solid transparent;
-}
-
-.note-card:hover {
-  border-color: var(--accent-color);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .note-card.important {
@@ -76,91 +71,82 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .note-card-title-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   flex: 1;
 }
 
 .important-star {
   color: var(--warning-color, #f59e0b);
   display: flex;
-  animation: twinkle 2s infinite;
 }
 
 .note-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-primary);
+  line-height: 1.3;
 }
 
 .note-tag-badge {
-  font-size: 10px;
-  padding: 2px 6px;
+  font-size: 9px;
+  padding: 1px 4px;
   background: var(--success-color-light);
   color: var(--success-color);
-  border-radius: 4px;
+  border-radius: 3px;
   flex-shrink: 0;
 }
 
 .note-card-content {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: 11px;
+  line-height: 1.3;
   color: var(--text-secondary);
+  max-height: 40px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .note-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .note-time {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
 }
 
 .note-card-actions {
   display: flex;
-  gap: 4px;
+  gap: 3px;
 }
 
 .action-btn {
-  padding: 3px;
+  padding: 2px;
   border: none;
   background: transparent;
   cursor: pointer;
-  color: var(--text-tertiary);
-  border-radius: 4px;
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
 }
 
-.action-btn:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  transform: scale(1.1);
+.edit-btn {
+  color: var(--primary-color);
 }
 
-.action-btn.danger:hover {
-  background: var(--danger-color-light);
+.delete-btn {
   color: var(--danger-color);
-}
-
-@keyframes twinkle {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
 }
 </style>

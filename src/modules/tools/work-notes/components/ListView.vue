@@ -1,11 +1,21 @@
 <template>
   <div class="list-view">
+    <!-- 列表头部 -->
+    <div class="list-header" v-if="filteredNotes.length > 0">
+      <div class="list-info">
+        <span class="notes-count">{{ filteredNotes.length }} 条笔记</span>
+        <span class="sort-info">按时间排序：最新优先</span>
+      </div>
+    </div>
+    
+    <!-- 笔记列表 -->
     <div class="notes-list" v-if="filteredNotes.length > 0">
       <div
-        v-for="note in filteredNotes"
+        v-for="(note, index) in filteredNotes"
         :key="note.id"
         class="note-list-item"
-        :class="{ 'important': note.important }"
+        :class="{ 'important': note.important, 'fade-in': true }"
+        :style="{ animationDelay: `${index * 0.05}s` }"
         @click="$emit('open-detail', note)"
       >
         <div class="note-list-indicator" :class="{ 'important': note.important }"></div>
@@ -40,6 +50,8 @@
         </div>
       </div>
     </div>
+    
+    <!-- 空状态 -->
     <div class="empty-state" v-else>
       <div class="empty-icon">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -56,62 +68,64 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'ListView',
-  props: {
-    notes: {
-      type: Array,
-      default: () => []
-    },
-    searchQuery: {
-      type: String,
-      default: ''
-    },
-    selectedTags: {
-      type: Array,
-      default: () => []
-    }
+<script setup>
+import { computed } from 'vue';
+
+// Props
+const props = defineProps({
+  notes: {
+    type: Array,
+    default: () => []
   },
-  emits: ['open-detail', 'edit-note', 'delete-note'],
-  computed: {
-    filteredNotes() {
-      let result = [...this.notes];
-
-      if (this.searchQuery) {
-        const query = this.searchQuery.toLowerCase();
-        result = result.filter(note => {
-          return (note.title && note.title.toLowerCase().includes(query)) ||
-                 note.content.toLowerCase().includes(query) ||
-                 (note.tag && note.tag.toLowerCase().includes(query));
-        });
-      }
-
-      if (this.selectedTags.length > 0) {
-        result = result.filter(note => {
-          return note.tag && this.selectedTags.includes(note.tag);
-        });
-      }
-
-      return result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    }
+  searchQuery: {
+    type: String,
+    default: ''
   },
-  methods: {
-    formatDateHeader(dateString) {
-      const date = new Date(dateString);
-      const today = new Date();
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
+  selectedTags: {
+    type: Array,
+    default: () => []
+  }
+});
 
-      if (date.toDateString() === today.toDateString()) {
-        return '今天 ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      } else if (date.toDateString() === yesterday.toDateString()) {
-        return '昨天 ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      } else {
-        return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) + ' ' +
-               date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      }
-    }
+// Emits
+const emit = defineEmits(['open-detail', 'edit-note', 'delete-note']);
+
+// Computed properties
+const filteredNotes = computed(() => {
+  let result = [...props.notes];
+
+  if (props.searchQuery) {
+    const query = props.searchQuery.toLowerCase();
+    result = result.filter(note => {
+      return (note.title && note.title.toLowerCase().includes(query)) ||
+             note.content.toLowerCase().includes(query) ||
+             (note.tag && note.tag.toLowerCase().includes(query));
+    });
+  }
+
+  if (props.selectedTags.length > 0) {
+    result = result.filter(note => {
+      return note.tag && props.selectedTags.includes(note.tag);
+    });
+  }
+
+  return result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+});
+
+// Methods
+const formatDateHeader = (dateString) => {
+  const date = new Date(dateString);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) {
+    return '今天 ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  } else if (date.toDateString() === yesterday.toDateString()) {
+    return '昨天 ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  } else {
+    return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) + ' ' +
+           date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
   }
 };
 </script>
@@ -122,10 +136,48 @@ export default {
   overflow-y: auto;
 }
 
+.list-header {
+  padding: 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.list-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notes-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sort-info {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
 .notes-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .note-list-item {
