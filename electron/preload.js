@@ -40,7 +40,8 @@ const fileSearchBridge = {
 };
 
 const systemInfoBridge = {
-  getSystemInfo: () => ipcRenderer.invoke('system-info:get')
+  getSystemInfo: () => ipcRenderer.invoke('system-info:get'),
+  getBattery: () => ipcRenderer.invoke('system-info:get-battery')
 };
 
 contextBridge.exposeInMainWorld('monoWindow', {

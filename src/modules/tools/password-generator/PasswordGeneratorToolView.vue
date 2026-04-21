@@ -8,11 +8,8 @@
                 </div>
                 <div class="password-display">
                     <code class="password-text">{{ generatedPassword }}</code>
-                    <BaseButton class="copy-button"
-                        :class="{ 'is-success': copySuccess, 'is-recovering': copyRecovering }" size="sm"
-                        @click="copyPassword" :disabled="!generatedPassword">
-                        <img :src="copySuccess ? successIcon : copyIcon" alt="" aria-hidden="true" />
-                    </BaseButton>
+                    <BaseCopyButton :text-to-copy="generatedPassword" class="copy-button" size="sm" :disabled="!generatedPassword" :button-text="''" :success-text="''" />
+
                 </div>
                 <div class="password-strength">
                     <span>密码强度: </span>
@@ -102,13 +99,12 @@
 import { ref, computed, onMounted } from 'vue';
 import BaseInput from '../../../components/base/BaseInput.vue';
 import BaseButton from '../../../components/base/BaseButton.vue';
+import BaseCopyButton from '../../../components/base/BaseCopyButton.vue';
 import BaseCheckbox from '../../../components/base/BaseCheckbox.vue';
 import BaseSpinbox from '../../../components/base/BaseSpinbox.vue';
 import BasePromptDialog from '../../../components/base/BasePromptDialog.vue';
 import BaseTooltip from '../../../components/base/BaseTooltip.vue';
 import { useDialog } from '../../../composables/useDialog.js';
-import copyIcon from '../../../assets/icons/copy.svg';
-import successIcon from '../../../assets/icons/check-success.svg';
 
 export default {
     name: 'PasswordGeneratorToolView',
@@ -116,6 +112,7 @@ export default {
     components: {
         BaseInput,
         BaseButton,
+        BaseCopyButton,
         BaseCheckbox,
         BaseSpinbox,
         BasePromptDialog,
@@ -128,11 +125,6 @@ export default {
         const passwordLength = ref(12);
         const basicSettingsOpen = ref(true);
         const advancedSettingsOpen = ref(true);
-        const copyIconRef = ref(copyIcon);
-        const successIconRef = ref(successIcon);
-        const copySuccess = ref(false);
-        const copyRecovering = ref(false);
-        const copySuccessTimer = ref(null);
         const options = ref({
             uppercase: true,
             lowercase: true,
@@ -281,29 +273,7 @@ export default {
             generatedPassword.value = password.slice(0, passwordLength.value);
         };
 
-        const copyPassword = async () => {
-            if (generatedPassword.value) {
-                try {
-                    await navigator.clipboard.writeText(generatedPassword.value);
-                    copySuccess.value = false;
-                    copyRecovering.value = false;
-                    requestAnimationFrame(() => {
-                        copySuccess.value = true;
-                    });
-                    if (copySuccessTimer.value) clearTimeout(copySuccessTimer.value);
-                    copySuccessTimer.value = setTimeout(() => {
-                        copySuccess.value = false;
-                        copyRecovering.value = true;
-                        copySuccessTimer.value = setTimeout(() => {
-                            copyRecovering.value = false;
-                            copySuccessTimer.value = null;
-                        }, 240);
-                    }, 1500);
-                } catch (err) {
-                    console.error('复制失败:', err);
-                }
-            }
-        };
+
 
         const toggleBasicSettings = () => {
             basicSettingsOpen.value = !basicSettingsOpen.value;
@@ -323,17 +293,11 @@ export default {
             passwordLength,
             basicSettingsOpen,
             advancedSettingsOpen,
-            copyIcon: copyIconRef,
-            successIcon: successIconRef,
-            copySuccess,
-            copyRecovering,
-            copySuccessTimer,
             options,
             passwordStrength,
             passwordStrengthText,
             generatePassword,
             generateMemorablePassword,
-            copyPassword,
             toggleBasicSettings,
             toggleAdvancedSettings
         };

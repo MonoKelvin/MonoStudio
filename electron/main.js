@@ -122,7 +122,7 @@ app.whenReady().then(async () => {
         const cpus = os.cpus();
         const totalMemory = os.totalmem();
         const freeMemory = os.freemem();
-        
+
         // 电池信息
         let batteryInfo = '不支持';
         try {
@@ -132,13 +132,13 @@ app.whenReady().then(async () => {
           console.error('获取电池信息失败:', error);
           batteryInfo = '不支持';
         }
-        
+
         const hardwareInfo = {
           cpu: cpus[0].model,
           cpuCores: cpus.length,
           memory: `${(totalMemory / (1024 * 1024 * 1024)).toFixed(2)} GB 总内存`,
           freeMemory: `${(freeMemory / (1024 * 1024 * 1024)).toFixed(2)} GB 可用`,
-          screen: '未知 (需要在渲染进程中获取)',
+          screen: null, // 屏幕信息需要在渲染进程中获取
           battery: batteryInfo
         };
 
@@ -146,7 +146,9 @@ app.whenReady().then(async () => {
         const networkInfo = {
           localIp: getLocalIP(),
           publicIp: await getPublicIP(),
-          ping: await getNetworkPing()
+          ping: await getNetworkPing(),
+          connectionType: '未知', // 在渲染进程中获取更准确
+          dnsServers: '未知' // 在渲染进程中获取更准确
         };
 
         // 存储信息
@@ -162,12 +164,20 @@ app.whenReady().then(async () => {
           nodeVersion: process.versions.node
         };
 
+        // GPU信息（在渲染进程中获取更准确）
+        const gpuInfo = {
+          model: '未知',
+          vendor: '未知',
+          webglVersion: '未知'
+        };
+
         return {
           os: osInfo,
           hardware: hardwareInfo,
           network: networkInfo,
           storage: storageInfo,
-          app: appInfo
+          app: appInfo,
+          gpu: gpuInfo
         };
       } catch (error) {
         console.error('获取系统信息失败:', error);
@@ -186,13 +196,15 @@ app.whenReady().then(async () => {
             cpuCores: '未知',
             memory: '未知',
             freeMemory: '未知',
-            screen: '未知',
+            screen: null,
             battery: '未知'
           },
           network: {
             localIp: '未知',
             publicIp: '未知',
-            ping: '未知'
+            ping: '未知',
+            connectionType: '未知',
+            dnsServers: '未知'
           },
           storage: {
             drives: []
@@ -202,6 +214,11 @@ app.whenReady().then(async () => {
             path: '未知',
             electronVersion: '未知',
             nodeVersion: '未知'
+          },
+          gpu: {
+            model: '未知',
+            vendor: '未知',
+            webglVersion: '未知'
           }
         };
       }
@@ -272,7 +289,7 @@ app.whenReady().then(async () => {
     // 获取存储信息
     function getStorageInfo() {
       const drives = [];
-      
+
       if (process.platform === 'win32') {
         const driveLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
         for (const letter of driveLetters) {
@@ -282,21 +299,33 @@ app.whenReady().then(async () => {
             if (stats.isDirectory()) {
               const { execSync } = require('child_process');
               try {
-                const output = execSync(`wmic logicaldisk where "DeviceID='${drive}'" get Size,FreeSpace,VolumeName`, { encoding: 'utf8' });
+                // WMIC 输出格式: FreeSpace  Size  VolumeName (注意顺序)
+                const output = execSync(`wmic logicaldisk where "DeviceID='${drive}'" get FreeSpace,Size,VolumeName`, { encoding: 'utf8' });
                 const lines = output.trim().split('\n');
                 if (lines.length >= 2) {
                   const dataLine = lines[1].trim().split(/\s+/);
-                  const totalSize = parseInt(dataLine[0]) || 0;
-                  const freeSpace = parseInt(dataLine[1]) || 0;
+                  // 注意：WMIC输出的顺序是 FreeSpace, Size, VolumeName
+                  const freeSpace = parseInt(dataLine[0]) || 0;
+                  const totalSize = parseInt(dataLine[1]) || 0;
                   const usedSpace = totalSize - freeSpace;
                   const percent = totalSize > 0 ? Math.round((usedSpace / totalSize) * 100) : 0;
-                  const volumeName = dataLine.length >= 3 && dataLine[2] ? dataLine[2].trim() : '';
-                  
+                  // VolumeName 可能在第3个位置或更后面，处理编码问题
+                  let volumeName = '';
+                  if (dataLine.length >= 3) {
+                    // 尝试从剩余部分拼接卷标名称（可能有空格）
+                    volumeName = dataLine.slice(2).join(' ').trim();
+                    // 如果卷标名称为空或全是乱码，使用驱动器字母作为名称
+                    if (!volumeName || /[^\u0000-\u007F]/.test(volumeName)) {
+                      volumeName = '';
+                    }
+                  }
+
                   drives.push({
                     mount: drive,
                     name: volumeName,
                     total: totalSize > 0 ? `${(totalSize / (1024 * 1024 * 1024)).toFixed(2)} GB` : '未知',
                     used: totalSize > 0 ? `${(usedSpace / (1024 * 1024 * 1024)).toFixed(2)} GB` : '未知',
+                    free: freeSpace > 0 ? `${(freeSpace / (1024 * 1024 * 1024)).toFixed(2)} GB` : '未知',
                     percent: percent.toString()
                   });
                 }
@@ -320,7 +349,7 @@ app.whenReady().then(async () => {
               const total = dataLine[1];
               const used = dataLine[2];
               const percent = dataLine[4].replace('%', '');
-              
+
               drives.push({
                 mount: '/',
                 total: total,
@@ -358,7 +387,7 @@ app.whenReady().then(async () => {
           const { execSync } = require('child_process');
           const output = execSync('df -h', { encoding: 'utf8' });
           const lines = output.trim().split('\n');
-          
+
           for (let i = 1; i < lines.length; i++) {
             const dataLine = lines[i].trim().split(/\s+/);
             if (dataLine.length >= 6) {
@@ -368,7 +397,7 @@ app.whenReady().then(async () => {
                 const total = dataLine[1];
                 const used = dataLine[2];
                 const percent = dataLine[4].replace('%', '');
-                
+
                 drives.push({
                   mount: mountPoint,
                   total: total,
@@ -394,7 +423,7 @@ app.whenReady().then(async () => {
           }
         }
       }
-      
+
       // 如果没有找到任何驱动器，添加一个默认项
       if (drives.length === 0) {
         drives.push({
@@ -404,7 +433,7 @@ app.whenReady().then(async () => {
           percent: '未知'
         });
       }
-      
+
       return drives;
     }
 
@@ -449,9 +478,9 @@ app.on('window-all-closed', function () {
     fileSearch.cancelSearch(searchId);
   });
   activeSearchIds.clear();
-  
+
   // 注销全局快捷键
   globalShortcut.unregisterAll();
-  
+
   if (process.platform !== 'darwin') app.quit();
 });

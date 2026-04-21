@@ -5,7 +5,7 @@
         :value="searchQuery"
         type="text"
         placeholder="搜索桌面项（文件 / 文件夹 / 快捷方式）"
-        @input="searchQuery = $event"
+        @input="searchQuery = $event.target.value"
       />
       <BaseButton class="desktop-refresh-btn" @click="loadDesktopItems">
         <img :src="refreshIcon" alt="" aria-hidden="true" />
