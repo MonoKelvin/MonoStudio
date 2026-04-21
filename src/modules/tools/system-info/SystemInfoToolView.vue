@@ -937,24 +937,6 @@ export default {
     padding-right: 8px;
 }
 
-.info-sections::-webkit-scrollbar {
-    width: 6px;
-}
-
-.info-sections::-webkit-scrollbar-track {
-    background: var(--surface-2, #ffffff);
-    border-radius: 3px;
-}
-
-.info-sections::-webkit-scrollbar-thumb {
-    background: var(--border-color, #e5e7eb);
-    border-radius: 3px;
-}
-
-.info-sections::-webkit-scrollbar-thumb:hover {
-    background: var(--text-tertiary, #9ca3af);
-}
-
 .info-section {
     background-color: var(--surface-2, #ffffff);
     padding: 16px;

@@ -4,8 +4,8 @@
     "description": "A desktop toolbox application",
     "main": "electron/main.js",
     "scripts": {
-        "renderer:dev": "vite",
-        "electron:dev": "npx cross-env VITE_DEV_SERVER_URL=http://localhost:5174 npx electron .",
+        "renderer:dev": "vite --port 5173",
+        "electron:dev": "npx cross-env VITE_DEV_SERVER_URL=http://localhost:5173 npx electron .",
         "desktop:dev": "npx concurrently -k \"npm:renderer:dev\" \"npx wait-on http-get://localhost:5173 && npx cross-env VITE_DEV_SERVER_URL=http://localhost:5173 npx electron .\"",
         "desktop:dev:port": "npx concurrently -k \"npm:renderer:dev\" \"npx wait-on http-get://localhost:5173 && npx cross-env VITE_DEV_SERVER_URL=http://localhost:5173 npx electron .\"",
         "desktop:dev:renderer": "npm run renderer:dev",
@@ -24,6 +24,12 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@fullcalendar/core": "^6.1.20",
+        "@fullcalendar/daygrid": "^6.1.20",
+        "@fullcalendar/interaction": "^6.1.20",
+        "@fullcalendar/list": "^6.1.20",
+        "@fullcalendar/timegrid": "^6.1.20",
+        "@fullcalendar/vue3": "^6.1.20",
         "vue": "^3.5.13"
     },
     "devDependencies": {
