@@ -11,7 +11,7 @@
       </div>
       <span v-if="note.tag" class="note-tag-badge">{{ note.tag }}</span>
     </div>
-    <p class="note-card-content">{{ note.content.substring(0, 100) }}{{ note.content.length > 100 ? '...' : '' }}</p>
+    <p class="note-card-content">{{ previewText(note) }}</p>
     <div class="note-card-footer">
       <span class="note-time">{{ formatNoteTime(note.createdAt) }}</span>
       <div class="note-card-actions">
@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { NoteQueryService } from '../services/NoteQueryService.js';
 
 // Props
 const props = defineProps({
@@ -50,6 +50,10 @@ const emit = defineEmits(['click', 'edit', 'delete']);
 const formatNoteTime = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+};
+
+const previewText = (note) => {
+  return NoteQueryService.toPreviewText(note, 100);
 };
 </script>
 

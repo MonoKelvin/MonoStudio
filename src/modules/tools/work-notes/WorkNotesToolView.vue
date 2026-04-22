@@ -8,21 +8,37 @@
                     <span class="notes-count">{{ filteredNotes.length }} 条笔记</span>
                 </div>
                 <div class="header-actions">
+                    <div class="view-toggle" role="tablist" aria-label="视图切换">
+                        <button class="view-btn" :class="{ active: currentView === 'calendar' }"
+                            @click="currentView = 'calendar'" type="button">
+                            日历
+                        </button>
+                        <button class="view-btn" :class="{ active: currentView === 'list' }" @click="currentView = 'list'"
+                            type="button">
+                            列表
+                        </button>
+                    </div>
                     <!-- 操作按钮 -->
                     <div class="header-buttons">
                         <BaseButton @click="exportNotes" size="sm" :disabled="notes.length === 0">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="7 10 12 15 17 10"></polyline>
                                 <line x1="12" y1="15" x2="12" y2="3"></line>
                             </svg>
                             导出
                         </BaseButton>
-                        <BaseButton @click="toggleEditor(null)" variant="primary">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
+                        <BaseButton @click="toggleEditor(null)" :variant="isEditorOpen ? 'danger' : 'primary'"
+                            size="sm">
+                            <svg v-if="!isEditorOpen" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <svg v-else width="12" height="12" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" stroke-width="1.6"
+                                    stroke-linecap="round" />
                             </svg>
                             {{ isEditorOpen ? '取消' : '新建笔记' }}
                         </BaseButton>
@@ -35,14 +51,12 @@
                 :selected-date="selectedDate" :all-tags="allTags" @cancel="toggleEditor" @save="saveNote" />
 
             <!-- 内容区域 -->
-            <div class="content-area">
+            <div class="content-area" v-if="!isEditorOpen">
                 <CalendarView v-if="currentView === 'calendar'" :selected-date="selectedDate"
-                    :current-date="currentDate" :notes="notes" :search-query="searchQuery"
-                    :selected-tags="selectedTags" :all-tags="allTags"
-                    @prev-month="handleDateChange" @select-date="selectDate"
-                    @open-detail="openDetail" @edit-note="toggleEditor"
-                    @delete-note="confirmDelete" @add-note="openEditorForDate"
-                    @update:searchQuery="searchQuery = $event"
+                    :current-date="currentDate" :notes="notes" :search-query="searchQuery" :selected-tags="selectedTags"
+                    :all-tags="allTags" @prev-month="handleDateChange" @select-date="selectDate"
+                    @open-detail="openDetail" @edit-note="toggleEditor" @delete-note="confirmDelete"
+                    @add-note="openEditorForDate" @update:searchQuery="searchQuery = $event"
                     @update:selectedTags="selectedTags = $event" />
 
                 <ListView v-else :notes="notes" :search-query="searchQuery" :selected-tags="selectedTags"
@@ -50,7 +64,7 @@
             </div>
 
             <!-- 快速统计 -->
-            <div class="quick-stats" v-if="notes.length > 0">
+            <div class="quick-stats" v-if="notes.length > 0 && !isEditorOpen">
                 <div class="stat-item">
                     <span class="stat-value">{{ notes.length }}</span>
                     <span class="stat-label">总笔记</span>
@@ -96,7 +110,7 @@
                     </div>
                     <div class="detail-body">
                         <h2 class="detail-title">{{ detailNote?.title || '无标题' }}</h2>
-                        <div class="detail-content">{{ detailNote?.content }}</div>
+                        <div class="detail-content">{{ detailContentText }}</div>
                     </div>
                     <div class="detail-footer">
                         <div class="detail-info">
@@ -138,11 +152,14 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import BaseButton from '../../../components/base/BaseButton.vue';
 import CalendarView from './components/CalendarView.vue';
 import ListView from './components/ListView.vue';
 import NoteEditor from './components/NoteEditor.vue';
+import noteService from './services/NoteService.js';
+import { NoteModel } from './services/NoteModel.js';
+import { NoteQueryService } from './services/NoteQueryService.js';
 
 // Props
 const props = defineProps({
@@ -169,28 +186,7 @@ const allTags = ref([]);
 
 // Computed properties
 const filteredNotes = computed(() => {
-    if (!notes.value || notes.value.length === 0) {
-        return [];
-    }
-
-    let result = [...notes.value];
-
-    if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase();
-        result = result.filter(note => {
-            return (note.title && note.title.toLowerCase().includes(query)) ||
-                note.content.toLowerCase().includes(query) ||
-                (note.tag && note.tag.toLowerCase().includes(query));
-        });
-    }
-
-    if (selectedTags.value && selectedTags.value.length > 0) {
-        result = result.filter(note => {
-            return note.tag && selectedTags.value.includes(note.tag);
-        });
-    }
-
-    return result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    return NoteQueryService.filterNotes(notes.value, searchQuery.value, selectedTags.value);
 });
 
 const importantNotesCount = computed(() => {
@@ -234,6 +230,11 @@ const formatDetailUpdatedAt = computed(() => {
     });
 });
 
+const detailContentText = computed(() => {
+    if (!detailNote.value) return '';
+    return NoteModel.getPlainText(detailNote.value.content || '');
+});
+
 // Watchers
 watch(notes, () => {
     if (!notes.value || notes.value.length === 0) {
@@ -250,21 +251,19 @@ watch(notes, () => {
 }, { immediate: true });
 
 // Lifecycle
-onMounted(() => {
-    loadNotes();
+onMounted(async () => {
+    await noteService.init();
+    await loadNotes();
     selectedDate.value = new Date().toISOString().split('T')[0];
 });
 
 // Methods
-const loadNotes = () => {
-    const saved = localStorage.getItem('workNotes');
-    if (saved) {
-        notes.value = JSON.parse(saved);
-    }
+const loadNotes = async () => {
+    notes.value = await noteService.getAllNotes();
 };
 
-const saveNotes = () => {
-    localStorage.setItem('workNotes', JSON.stringify(notes.value));
+const refreshNotes = async () => {
+    await loadNotes();
 };
 
 
@@ -298,34 +297,33 @@ const openEditorForDate = (date) => {
     toggleEditor(null);
 };
 
-const saveNote = (noteData) => {
-    if (!noteData.content.trim()) return;
+const composeDateTime = (dateValue, fallbackDateTime) => {
+    if (!dateValue) return fallbackDateTime;
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    return `${dateValue}T${hh}:${mm}:${ss}`;
+};
 
-    const now = new Date().toISOString();
+const saveNote = async (noteData) => {
+    const plainContent = NoteModel.getPlainText(noteData.content || '');
+    if (!plainContent.trim()) return;
 
-    if (editingNote.value) {
-        const index = notes.value.findIndex(n => n.id === editingNote.value.id);
-        if (index !== -1) {
-            notes.value[index].title = noteData.title;
-            notes.value[index].content = noteData.content;
-            notes.value[index].tag = noteData.tag;
-            notes.value[index].createdAt = noteData.date ? `${noteData.date}T${new Date().toLocaleTimeString('en-US', { hour12: false })}` : now;
-            notes.value[index].important = noteData.important;
-            notes.value[index].updatedAt = now;
-        }
-    } else {
-        notes.value.push({
-            id: Date.now().toString(),
-            title: noteData.title,
-            content: noteData.content,
-            tag: noteData.tag,
-            createdAt: noteData.date ? `${noteData.date}T${new Date().toLocaleTimeString('en-US', { hour12: false })}` : now,
-            updatedAt: now,
-            important: noteData.important
-        });
-    }
+    const existing = editingNote.value || null;
+    const fallbackDate = existing?.createdAt || new Date().toISOString();
+    const nextCreatedAt = composeDateTime(noteData.date, fallbackDate);
+    const payload = {
+        ...existing,
+        title: noteData.title,
+        content: noteData.content,
+        tag: noteData.tag,
+        createdAt: nextCreatedAt,
+        important: noteData.important
+    };
 
-    saveNotes();
+    await noteService.saveNote(payload);
+    await refreshNotes();
     isEditorOpen.value = false;
     editingNote.value = null;
 };
@@ -352,22 +350,17 @@ const cancelDelete = () => {
     deleteTargetNote.value = null;
 };
 
-const executeDelete = () => {
+const executeDelete = async () => {
     if (deleteTargetNote.value) {
-        notes.value = notes.value.filter(n => n.id !== deleteTargetNote.value.id);
-        saveNotes();
+        await noteService.deleteNote(deleteTargetNote.value.id);
+        await refreshNotes();
     }
     cancelDelete();
 };
 
-const exportNotes = () => {
-    const exportData = {
-        notes: notes.value,
-        exportDate: new Date().toISOString(),
-        version: '1.0'
-    };
-    
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+const exportNotes = async () => {
+    const exportText = await noteService.exportNotes();
+    const blob = new Blob([exportText], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -389,8 +382,9 @@ const exportNotes = () => {
     height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 16px;
-    gap: 12px;
+    padding: 18px;
+    gap: 14px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--bg-primary) 96%, var(--accent-color) 4%), var(--bg-primary));
 }
 
 /* 响应式设计 */
@@ -399,64 +393,64 @@ const exportNotes = () => {
         padding: 12px;
         gap: 8px;
     }
-    
+
     .work-notes-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
         padding-bottom: 8px;
     }
-    
+
     .header-actions {
         width: 100%;
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
     }
-    
+
     .header-buttons {
         width: 100%;
         justify-content: space-between;
     }
-    
+
     .search-filter-bar {
         gap: 8px;
     }
-    
+
     .filter-tags {
         flex-wrap: wrap;
         gap: 4px;
     }
-    
+
     .content-area {
         padding: 8px;
     }
-    
+
     .quick-stats {
         flex-wrap: wrap;
         gap: 8px;
     }
-    
+
     .stat-item {
         flex: 1;
         min-width: 80px;
         padding: 6px 8px;
     }
-    
+
     .detail-modal {
         max-width: 95vw;
         max-height: 90vh;
     }
-    
+
     .detail-body {
         padding: 16px;
     }
-    
+
     .category-manager-modal {
         max-width: 95vw;
         max-height: 90vh;
     }
-    
+
     .modal-body {
         padding: 16px;
     }
@@ -466,8 +460,11 @@ const exportNotes = () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border-color);
+    padding: 10px 12px;
+    border: none;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--bg-secondary) 94%, var(--accent-color) 6%);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
 }
 
 .header-left {
@@ -478,7 +475,7 @@ const exportNotes = () => {
 
 .header-left h2 {
     margin: 0;
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 600;
     color: var(--text-primary);
 }
@@ -486,6 +483,9 @@ const exportNotes = () => {
 .notes-count {
     font-size: 12px;
     color: var(--text-secondary);
+    padding: 3px 8px;
+    background: color-mix(in srgb, var(--bg-tertiary) 80%, var(--accent-color) 20%);
+    border-radius: 999px;
 }
 
 .header-actions {
@@ -512,16 +512,17 @@ const exportNotes = () => {
 
 .view-toggle {
     display: flex;
-    background: var(--bg-secondary);
-    border-radius: 6px;
-    padding: 2px;
+    background: color-mix(in srgb, var(--bg-secondary) 88%, var(--accent-color) 12%);
+    border-radius: 10px;
+    padding: 3px;
+    border: none;
 }
 
 .view-btn {
-    padding: 4px 8px;
+    padding: 5px 11px;
     border: none;
     background: transparent;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     color: var(--text-secondary);
     display: flex;
@@ -536,9 +537,9 @@ const exportNotes = () => {
 }
 
 .view-btn.active {
-    background: var(--bg-primary);
+    background: color-mix(in srgb, var(--bg-primary) 90%, var(--accent-color) 10%);
     color: var(--accent-color);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
     transform: translateY(-1px);
 }
 
@@ -636,35 +637,35 @@ const exportNotes = () => {
 .content-area {
     flex: 1;
     overflow: hidden;
-    border-radius: 8px;
-    background: var(--bg-secondary);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--bg-secondary) 94%, var(--accent-color) 6%);
     padding: 12px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
 }
 
 .quick-stats {
     display: flex;
     gap: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-color);
+    padding-top: 2px;
 }
 
 .stat-item {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding: 8px 12px;
-    background: var(--bg-secondary);
-    border-radius: 6px;
+    padding: 10px 12px;
+    background: color-mix(in srgb, var(--bg-secondary) 94%, var(--accent-color) 6%);
+    border-radius: 10px;
+    border: none;
     min-width: 60px;
     text-align: center;
     transition: all 0.2s ease;
 }
 
 .stat-item:hover {
-    background: var(--bg-tertiary);
+    background: color-mix(in srgb, var(--bg-tertiary) 84%, var(--accent-color) 16%);
     transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
 }
 
 .stat-value {
@@ -871,6 +872,4 @@ const exportNotes = () => {
         transform: scale(1.05);
     }
 }
-
-
 </style>

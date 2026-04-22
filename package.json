@@ -30,6 +30,14 @@
         "@fullcalendar/list": "^6.1.20",
         "@fullcalendar/timegrid": "^6.1.20",
         "@fullcalendar/vue3": "^6.1.20",
+        "@tiptap/extension-highlight": "^2.10.0",
+        "@tiptap/extension-link": "^2.10.0",
+        "@tiptap/extension-placeholder": "^2.10.0",
+        "@tiptap/extension-task-item": "^2.10.0",
+        "@tiptap/extension-task-list": "^2.10.0",
+        "@tiptap/extension-underline": "^2.10.0",
+        "@tiptap/starter-kit": "^2.10.0",
+        "@tiptap/vue-3": "^2.10.0",
         "vue": "^3.5.13"
     },
     "devDependencies": {

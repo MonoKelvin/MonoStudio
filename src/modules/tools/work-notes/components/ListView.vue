@@ -32,7 +32,7 @@
             </div>
             <span class="note-list-date">{{ formatDateHeader(note.createdAt) }}</span>
           </div>
-          <p class="note-list-text">{{ note.content.substring(0, 150) }}{{ note.content.length > 150 ? '...' : '' }}</p>
+          <p class="note-list-text">{{ previewText(note) }}</p>
         </div>
         <div class="note-list-actions">
           <button class="action-btn" @click.stop="$emit('edit-note', note)" title="编辑">
@@ -70,6 +70,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { NoteQueryService } from '../services/NoteQueryService.js';
 
 // Props
 const props = defineProps({
@@ -92,24 +93,7 @@ const emit = defineEmits(['open-detail', 'edit-note', 'delete-note']);
 
 // Computed properties
 const filteredNotes = computed(() => {
-  let result = [...props.notes];
-
-  if (props.searchQuery) {
-    const query = props.searchQuery.toLowerCase();
-    result = result.filter(note => {
-      return (note.title && note.title.toLowerCase().includes(query)) ||
-             note.content.toLowerCase().includes(query) ||
-             (note.tag && note.tag.toLowerCase().includes(query));
-    });
-  }
-
-  if (props.selectedTags.length > 0) {
-    result = result.filter(note => {
-      return note.tag && props.selectedTags.includes(note.tag);
-    });
-  }
-
-  return result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  return NoteQueryService.filterNotes(props.notes, props.searchQuery, props.selectedTags);
 });
 
 // Methods
@@ -127,6 +111,10 @@ const formatDateHeader = (dateString) => {
     return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) + ' ' +
            date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
   }
+};
+
+const previewText = (note) => {
+  return NoteQueryService.toPreviewText(note, 150);
 };
 </script>
 
