@@ -17,35 +17,32 @@
                             列表
                         </button>
                     </div>
-                    <div class="header-buttons">
+                    <div class="header-buttons" v-if="!isEditorOpen">
                         <BaseButton @click="exportNotes" size="sm" :disabled="notes.length === 0">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="7 10 12 15 17 10"></polyline>
-                                <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
+                            <img src="@/assets/icons/export.svg" alt="导出" class="icon header-icon" />
                             导出
                         </BaseButton>
                         <BaseButton @click="toggleEditor(null)" :variant="isEditorOpen ? 'danger' : 'primary'"
                             size="sm">
-                            <svg v-if="!isEditorOpen" width="12" height="12" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                            <svg v-else width="12" height="12" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" stroke-width="1.6"
-                                    stroke-linecap="round" />
-                            </svg>
+                            <img v-if="!isEditorOpen" src="@/assets/icons/add.svg" alt="新建" class="icon" />
+                            <img v-else src="@/assets/icons/cancel.svg" alt="取消" class="icon" />
                             {{ isEditorOpen ? '取消' : '新建笔记' }}
+                        </BaseButton>
+                    </div>
+                    <div class="header-buttons" v-else>
+                        <BaseButton @click="handleCancelEditor" size="sm">
+                            <img src="@/assets/icons/cancel.svg" alt="取消" class="icon" />
+                            取消
+                        </BaseButton>
+                        <BaseButton @click="handleSaveNote" size="sm" variant="primary" :disabled="!canSaveNote">
+                            保存
                         </BaseButton>
                     </div>
                 </div>
             </div>
 
-            <NoteEditor v-if="isEditorOpen" :is-open="isEditorOpen" :editing-note="editingNote"
-                :selected-date="selectedDate" :all-tags="allTags" @cancel="toggleEditor" @save="saveNote" />
+            <NoteEditor v-if="isEditorOpen" ref="noteEditorRef" :is-open="isEditorOpen" :editing-note="editingNote"
+                :selected-date="selectedDate" :all-tags="allTags" />
 
             <div class="main-content" v-if="!isEditorOpen">
                 <div class="content-area">
@@ -72,21 +69,12 @@
                             <span class="detail-date">{{ formatDetailDate }}</span>
                             <span v-if="detailNote?.tag" class="detail-tag">{{ detailNote.tag }}</span>
                             <span v-if="detailNote?.important" class="detail-important">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"
-                                    stroke="currentColor" stroke-width="2">
-                                    <polygon
-                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                                    </polygon>
-                                </svg>
+                                <img src="@/assets/icons/star.svg" alt="重要" class="icon" />
                                 重要
                             </span>
                         </div>
                         <button class="close-btn" @click="closeDetail">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
+                            <img src="@/assets/icons/cancel.svg" alt="关闭" class="icon" />
                         </button>
                     </div>
                     <div class="detail-body">
@@ -110,12 +98,7 @@
             <div class="modal-overlay" v-if="showDeleteConfirm" @click="cancelDelete">
                 <div class="confirm-modal" @click.stop>
                     <div class="confirm-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="1.5">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="8" x2="12" y2="12"></line>
-                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                        </svg>
+                        <img src="@/assets/icons/warning.svg" alt="警告" class="icon" />
                     </div>
                     <h3>确认删除</h3>
                     <p>确定要删除这条笔记吗？此操作无法撤销。</p>
@@ -162,6 +145,9 @@ const editingNote = ref(null);
 const detailNote = ref(null);
 const deleteTargetNote = ref(null);
 const allTags = ref([]);
+const noteEditorRef = ref(null);
+
+const canSaveNote = computed(() => noteEditorRef.value?.canSave ?? false);
 
 const filteredNotes = computed(() => {
     return NoteQueryService.filterNotes(notes.value, searchQuery.value, selectedTags.value);
@@ -253,9 +239,43 @@ const toggleEditor = (note = null) => {
         return;
     }
 
+    if (isEditorOpen.value && note) {
+        editingNote.value = note;
+        return;
+    }
+
     editingNote.value = note;
     showDetail.value = false;
     isEditorOpen.value = true;
+};
+
+const handleCancelEditor = () => {
+    isEditorOpen.value = false;
+    editingNote.value = null;
+};
+
+const handleSaveNote = async () => {
+    if (!noteEditorRef.value) return;
+    const noteData = noteEditorRef.value.getNoteData();
+    const plainContent = NoteModel.getPlainText(noteData.content || '');
+    if (!plainContent.trim()) return;
+
+    const existing = editingNote.value || null;
+    const fallbackDate = existing?.createdAt || new Date().toISOString();
+    const nextCreatedAt = composeDateTime(noteData.date, fallbackDate);
+    const payload = {
+        ...existing,
+        title: noteData.title,
+        content: noteData.content,
+        tag: noteData.tag,
+        createdAt: nextCreatedAt,
+        important: noteData.important
+    };
+
+    await noteService.saveNote(payload);
+    await refreshNotes();
+    isEditorOpen.value = false;
+    editingNote.value = null;
 };
 
 const openEditorForDate = (date) => {
@@ -338,6 +358,11 @@ const exportNotes = () => {
 </script>
 
 <style scoped>
+.header-icon {
+    width: 14px;
+    height: 14px;
+}
+
 .work-notes-panel {
     height: 100%;
     display: flex;

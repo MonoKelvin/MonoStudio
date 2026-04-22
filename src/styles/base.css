@@ -29,6 +29,52 @@ textarea::placeholder {
     opacity: 0.8;
 }
 
+.icon {
+    width: 16px;
+    height: 16px;
+    display: block;
+    flex-shrink: 0;
+    filter: var(--icon-action-filter, none);
+}
+
+.icon-color {
+    color: var(--icon-color);
+    filter: none;
+}
+
+.icon-color-secondary {
+    color: var(--icon-color-secondary);
+    filter: none;
+}
+
+.icon-accent {
+    color: var(--accent-color);
+    filter: none;
+}
+
+.icon-danger {
+    color: var(--danger);
+    filter: none;
+}
+
+.icon-warning {
+    color: var(--warning);
+    filter: none;
+}
+
+.icon-success {
+    color: var(--success);
+    filter: none;
+}
+
+.icon-on-dark {
+    filter: brightness(0) invert(1);
+}
+
+.icon-on-light {
+    filter: brightness(0);
+}
+
 button,
 input,
 select,

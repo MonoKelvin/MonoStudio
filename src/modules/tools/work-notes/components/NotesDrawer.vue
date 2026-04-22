@@ -42,34 +42,15 @@
                             @click="$emit('open-detail', note)">
                             <div class="note-item-header">
                                 <span v-if="note.important" class="important-indicator">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
-                                        stroke="currentColor" stroke-width="2">
-                                        <polygon
-                                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                                        </polygon>
-                                    </svg>
+                                    <img src="@/assets/icons/star.svg" alt="重要" class="icon" />
                                 </span>
                                 <span class="note-item-title">{{ note.title || '无标题' }}</span>
                                 <div class="note-item-actions">
                                     <button class="icon-btn edit-btn" @click.stop="$emit('edit-note', note)" title="编辑">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7">
-                                            </path>
-                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z">
-                                            </path>
-                                        </svg>
+                                        <img src="@/assets/icons/edit.svg" alt="编辑" class="icon" />
                                     </button>
-                                    <button class="icon-btn delete-btn" @click.stop="$emit('delete-note', note)"
-                                        title="删除">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <polyline points="3 6 5 6 21 6"></polyline>
-                                            <path
-                                                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
-                                            </path>
-                                        </svg>
-                                        height="12" />
+                                    <button class="icon-btn delete-btn" @click.stop="$emit('delete-note', note)" title="删除">
+                                        <img src="@/assets/icons/delete.svg" alt="删除" class="icon" />
                                     </button>
                                 </div>
                             </div>
@@ -81,15 +62,8 @@
                         </div>
                     </div>
                     <div class="empty-notes" v-else>
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="1.5">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                        </svg>
+                        <img src="@/assets/images/no-record.png" alt="无笔记" class="empty-icon" />
                         <p>这一天没有笔记</p>
-                        <button class="empty-add-btn" type="button" @click="$emit('add-note', selectedDate)">
-                            新建第一条
-                        </button>
                     </div>
                 </div>
             </div>
@@ -224,14 +198,14 @@ watch(() => props.searchQuery, (newValue) => {
     height: 42px;
     overflow: hidden;
     border-radius: 22px 22px 0 0;
-    box-shadow: 0 -4px 12px color-mix(in srgb, var(--bg-primary) 15%, transparent);
+    box-shadow: 0 -4px 12px color-mix(in srgb, var(--shadow-color-soft) 15%, transparent);
     pointer-events: auto;
     transition: height 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease 0.2s;
 }
 
 .notes-drawer.expanded {
     height: 400px;
-    box-shadow: 0 -14px 36px color-mix(in srgb, var(--bg-primary) 70%, transparent);
+    box-shadow: 0 -14px 36px color-mix(in srgb, var(--shadow-color-soft) 40%, transparent);
 }
 
 .notes-section {
@@ -547,32 +521,23 @@ watch(() => props.searchQuery, (newValue) => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    text-align: center;
     padding: var(--spacing-2xl);
     color: var(--text-tertiary);
 }
 
-.empty-notes svg {
-    margin-bottom: var(--spacing-sm);
-    opacity: 0.5;
+.empty-icon {
+    width: 164px;
+    height: auto;
+    opacity: 0.9;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .empty-notes p {
     margin: 0;
-    font-size: var(--font-size-sm);
-}
-
-.empty-add-btn {
-    margin-top: 8px;
-    border: none;
-    border-radius: 8px;
-    padding: 6px 10px;
-    cursor: pointer;
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-}
-
-.empty-add-btn:hover {
-    background: var(--bg-hover);
+    font-size: var(--font-size-md);
+    color: var(--text-muted);
 }
 
 @media (max-width: 768px) {

@@ -1,19 +1,5 @@
 <template>
     <div class="inline-editor" :class="{ 'editor-enter': isOpen, 'editor-exit': !isOpen }">
-        <div class="editor-header">
-            <h3>{{ editingNote ? '编辑笔记' : '新建笔记' }}</h3>
-            <div class="editor-header-actions">
-                <BaseButton size="sm" @click="$emit('cancel')" title="取消">
-                    <svg width="14" height="14" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" stroke-width="1.6"
-                            stroke-linecap="round" />
-                    </svg>
-                </BaseButton>
-                <BaseButton size="sm" variant="primary" @click="saveNote" :disabled="!localContent.trim()">
-                    保存
-                </BaseButton>
-            </div>
-        </div>
         <div class="editor-body">
             <div class="editor-meta">
                 <input v-model="localDate" type="date" class="date-input" />
@@ -29,117 +15,59 @@
             <div class="editor-toolbar" v-if="editor">
                 <button type="button" class="toolbar-btn" :class="{ active: editor.isActive('bold') }"
                     @click="editor.chain().focus().toggleBold().run()" title="粗体">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2.5">
-                        <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
-                        <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
-                    </svg>
+                    <img src="@/assets/icons/bold.svg" alt="粗体" class="icon" />
                 </button>
                 <button type="button" class="toolbar-btn" :class="{ active: editor.isActive('italic') }"
                     @click="editor.chain().focus().toggleItalic().run()" title="斜体">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="19" y1="4" x2="10" y2="4"></line>
-                        <line x1="14" y1="20" x2="5" y2="20"></line>
-                        <line x1="15" y1="4" x2="9" y2="20"></line>
-                    </svg>
+                    <img src="@/assets/icons/italic.svg" alt="斜体" class="icon" />
                 </button>
                 <button type="button" class="toolbar-btn" :class="{ active: editor.isActive('underline') }"
                     @click="editor.chain().focus().toggleUnderline().run()" title="下划线">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 4v6a6 6 0 0 0 12 0V4"></path>
-                        <line x1="4" y1="20" x2="20" y2="20"></line>
-                    </svg>
+                    <img src="@/assets/icons/underline.svg" alt="下划线" class="icon" />
                 </button>
                 <button type="button" class="toolbar-btn" :class="{ active: editor.isActive('strike') }"
                     @click="editor.chain().focus().toggleStrike().run()" title="删除线">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M16 4H9a3 3 0 0 0-2.83 4"></path>
-                        <path d="M14 12a4 4 0 0 1 0 8H6"></path>
-                        <line x1="4" y1="12" x2="20" y2="12"></line>
-                    </svg>
+                    <img src="@/assets/icons/strike.svg" alt="删除线" class="icon" />
                 </button>
                 <span class="toolbar-divider"></span>
                 <button type="button" class="toolbar-btn" :class="{ active: editor.isActive('highlight') }"
                     @click="editor.chain().focus().toggleHighlight().run()" title="高亮">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path
-                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
-                        </path>
-                    </svg>
+                    <img src="@/assets/icons/highlight.svg" alt="高亮" class="icon" />
                 </button>
                 <button type="button" class="toolbar-btn" :class="{ active: editor.isActive('link') }"
                     @click="showLinkModal = true" title="链接">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                    </svg>
+                    <img src="@/assets/icons/link.svg" alt="链接" class="icon" />
                 </button>
                 <span class="toolbar-divider"></span>
                 <button type="button" class="toolbar-btn" :class="{ active: editor.isActive('bulletList') }"
                     @click="editor.chain().focus().toggleBulletList().run()" title="无序列表">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="8" y1="6" x2="21" y2="6"></line>
-                        <line x1="8" y1="12" x2="21" y2="12"></line>
-                        <line x1="8" y1="18" x2="21" y2="18"></line>
-                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                    </svg>
+                    <img src="@/assets/icons/bullet-list.svg" alt="无序列表" class="icon" />
                 </button>
                 <button type="button" class="toolbar-btn" :class="{ active: editor.isActive('orderedList') }"
                     @click="editor.chain().focus().toggleOrderedList().run()" title="有序列表">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="10" y1="6" x2="21" y2="6"></line>
-                        <line x1="10" y1="12" x2="21" y2="12"></line>
-                        <line x1="10" y1="18" x2="21" y2="18"></line>
-                        <path d="M4 6h1v4"></path>
-                        <path d="M4 10h2"></path>
-                        <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
-                    </svg>
+                    <img src="@/assets/icons/ordered-list.svg" alt="有序列表" class="icon" />
                 </button>
                 <button type="button" class="toolbar-btn" :class="{ active: editor.isActive('taskList') }"
                     @click="editor.chain().focus().toggleTaskList().run()" title="任务列表">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="5" width="6" height="6" rx="1"></rect>
-                        <path d="M5 8l1 1 2-2"></path>
-                        <line x1="12" y1="8" x2="21" y2="8"></line>
-                        <rect x="3" y="14" width="6" height="6" rx="1"></rect>
-                        <line x1="12" y1="17" x2="21" y2="17"></line>
-                    </svg>
+                    <img src="@/assets/icons/task-list.svg" alt="任务列表" class="icon" />
                 </button>
                 <span class="toolbar-divider"></span>
                 <button type="button" class="toolbar-btn" :class="{ active: editor.isActive('blockquote') }"
                     @click="editor.chain().focus().toggleBlockquote().run()" title="引用">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path
-                            d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z">
-                        </path>
-                        <path
-                            d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z">
-                        </path>
-                    </svg>
+                    <img src="@/assets/icons/blockquote.svg" alt="引用" class="icon" />
                 </button>
                 <button type="button" class="toolbar-btn" :class="{ active: editor.isActive('codeBlock') }"
                     @click="editor.chain().focus().toggleCodeBlock().run()" title="代码块">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="16 18 22 12 16 6"></polyline>
-                        <polyline points="8 6 2 12 8 18"></polyline>
-                    </svg>
+                    <img src="@/assets/icons/code-block.svg" alt="代码块" class="icon" />
                 </button>
                 <span class="toolbar-divider"></span>
                 <button type="button" class="toolbar-btn" @click="editor.chain().focus().undo().run()"
                     :disabled="!editor.can().undo()" title="撤销">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 7v6h6"></path>
-                        <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-                    </svg>
+                    <img src="@/assets/icons/undo.svg" alt="撤销" class="icon" />
                 </button>
                 <button type="button" class="toolbar-btn" @click="editor.chain().focus().redo().run()"
                     :disabled="!editor.can().redo()" title="重做">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 7v6h-6"></path>
-                        <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"></path>
-                    </svg>
+                    <img src="@/assets/icons/redo.svg" alt="重做" class="icon" />
                 </button>
             </div>
             <div class="editor-content-wrapper">
@@ -150,12 +78,7 @@
             <div class="editor-options">
                 <label class="important-toggle" :class="{ active: localImportant }">
                     <input type="checkbox" v-model="localImportant" />
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"
-                        stroke-width="2">
-                        <polygon
-                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                        </polygon>
-                    </svg>
+                    <img src="@/assets/icons/star.svg" alt="重要" class="icon" />
                     标记重要
                 </label>
                 <div class="editor-stats">
@@ -182,7 +105,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onBeforeUnmount } from 'vue';
+import { ref, watch, onBeforeUnmount, computed } from 'vue';
 import BaseButton from '../../../../components/base/BaseButton.vue';
 import { useEditor, EditorContent } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
@@ -325,6 +248,23 @@ onBeforeUnmount(() => {
     if (editor.value) {
         editor.value.destroy();
     }
+});
+
+const canSave = computed(() => localContent.value.trim() !== '' && localContent.value !== '<p></p>');
+
+const getNoteData = () => {
+    return {
+        title: localTitle.value,
+        content: localContent.value,
+        tag: localTag.value,
+        date: localDate.value,
+        important: localImportant.value
+    };
+};
+
+defineExpose({
+    getNoteData,
+    canSave
 });
 </script>
 

@@ -3,9 +3,7 @@
     <div class="note-card-header">
       <div class="note-card-title-row">
         <span v-if="note.important" class="important-star">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-          </svg>
+          <img src="@/assets/icons/star.svg" alt="重要" class="icon" />
         </span>
         <span class="note-title">{{ note.title || '无标题' }}</span>
       </div>
@@ -16,16 +14,10 @@
       <span class="note-time">{{ formatNoteTime(note.createdAt) }}</span>
       <div class="note-card-actions">
         <button class="action-btn edit-btn" @click.stop="$emit('edit')" title="编辑">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-          </svg>
+          <img src="@/assets/icons/edit.svg" alt="编辑" class="icon" />
         </button>
         <button class="action-btn delete-btn" @click.stop="$emit('delete')" title="删除">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-          </svg>
+          <img src="@/assets/icons/delete.svg" alt="删除" class="icon" />
         </button>
       </div>
     </div>
