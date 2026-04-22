@@ -1,17 +1,8 @@
 <template>
     <aside class="sidebar app-panel" :class="{ collapsed }">
         <div v-if="!collapsed" class="search-box app-panel-section">
-            <div class="search-shell">
-                <span class="search-prefix-icon" aria-hidden="true">
-                    <img :src="searchIcon" alt="" />
-                </span>
-                <BaseInput :value="searchQuery" type="text" class="search-input search-input-with-prefix"
-                    placeholder="搜索工具" @input="$emit('update-search', $event.target.value)" />
-                <BaseButton v-if="searchQuery" class="search-clear-btn" size="sm" v-tooltip:top="'清空搜索'"
-                    @click="clearSearch">
-                    ✕
-                </BaseButton>
-            </div>
+            <SearchInput v-model="localSearchQuery" placeholder="搜索工具" @input="handleSearchInput"
+                @clear="clearSearch" />
         </div>
 
         <nav class="tool-tree app-panel-section">
@@ -72,6 +63,7 @@ import iconMusings from '../../../assets/icons/musings.svg';
 import lockIcon from '../../../assets/icons/lock.svg';
 import unlockIcon from '../../../assets/icons/unlock.svg';
 import searchIcon from '../../../assets/icons/search-16.svg';
+import SearchInput from '../../../components/base/SearchInput.vue';
 import { hideTooltip } from '../../../directives/tooltip.js';
 
 const icons = {
@@ -100,6 +92,9 @@ const icons = {
 
 export default {
     name: 'SidebarNav',
+    components: {
+        SearchInput
+    },
     props: {
         searchQuery: { type: String, required: true },
         toolsByCategory: { type: Object, required: true },
@@ -119,6 +114,10 @@ export default {
             hideTooltip();
             this.$emit('update-search', '');
         },
+        handleSearchInput(event) {
+            const value = event.target.value;
+            this.$emit('update-search', value);
+        },
         isToolActive(tool) {
             // 个人生活工具需要特殊处理高亮
             if (tool.category === '个人生活') {
@@ -135,10 +134,19 @@ export default {
     },
     data() {
         return {
+            localSearchQuery: this.searchQuery,
             searchIcon,
             lockIcon,
             unlockIcon
         };
+    },
+    watch: {
+        searchQuery: {
+            handler(newValue) {
+                this.localSearchQuery = newValue;
+            },
+            immediate: true
+        }
     }
 };
 </script>
