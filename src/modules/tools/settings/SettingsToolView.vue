@@ -59,17 +59,17 @@ export default {
         currentAccentColor: { type: String, default: '#8b5cf6' },
         openDevTools: { type: Boolean, default: false }
     },
-    emits: ['change-theme', 'change-accent-color', 'change-dev-tools', 'data-path-changed'],
+    emits: ['change-theme', 'change-accent-color', 'change-dev-tools', 'data-path-changed', 'security-settings-changed', 'unlocked'],
     data() {
         return {
             activeGroup: 'personalization',
             showSponsorPanel: false,
             showPrivacyPanel: false,
             settingGroups: [
-                { id: 'personalization', label: '个性化', desc: '主题与外观', icon: '🎨' },
-                { id: 'app', label: '应用', desc: '窗口与行为', icon: '🧩' },
-                { id: 'user', label: '用户', desc: '数据与存储', icon: '👤' },
-                { id: 'about', label: '关于', desc: '产品与版本', icon: 'ℹ️' }
+                { id: 'personalization', label: '个性化', desc: '自定义界面与视觉体验', icon: '🎨' },
+                { id: 'app', label: '应用', desc: '程序功能与行为偏好', icon: '🧩' },
+                { id: 'user', label: '用户', desc: '用户隐私与数据管理', icon: '👱‍♂️' },
+                { id: 'about', label: '关于', desc: '应用信息与支持服务', icon: 'ℹ️' }
             ]
         };
     }

@@ -51,8 +51,8 @@ const calendarOptions = computed(() => {
         initialView: 'dayGridMonth',
         locale: zhCnLocale,
         headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
+            left: 'prev,next',
+            center: 'title today',
             right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
         },
         navLinks: true,
@@ -138,16 +138,27 @@ const handleDatesSet = (info) => {
 }
 
 .calendar-view :deep(.fc-toolbar) {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+    padding: 0 8px;
 }
 
 .calendar-view :deep(.fc-toolbar-title) {
-    font-size: 18px !important;
+    font-size: 16px !important;
     font-weight: 600 !important;
     color: var(--text-primary) !important;
     letter-spacing: -0.3px;
+    margin: 0 !important;
+    flex-shrink: 0;
+}
+
+.calendar-view :deep(.fc-toolbar-chunk) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .calendar-view :deep(.fc-button) {
@@ -156,10 +167,22 @@ const handleDatesSet = (info) => {
     color: var(--text-primary) !important;
     font-size: 12px !important;
     font-weight: 500 !important;
-    padding: 8px 14px !important;
-    border-radius: 8px !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
     transition: all 0.2s ease !important;
+}
+
+.calendar-view :deep(.fc-button.fc-today-button) {
+    background: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
+    color: white !important;
+    margin: 0 4px;
+}
+
+.calendar-view :deep(.fc-button.fc-today-button:hover) {
+    background: color-mix(in srgb, var(--accent-color) 90%, white) !important;
+    border-color: var(--accent-color) !important;
 }
 
 .calendar-view :deep(.fc-button:hover) {
@@ -181,11 +204,22 @@ const handleDatesSet = (info) => {
 }
 
 .calendar-view :deep(.fc-button-group) {
-    gap: 4px;
+    display: flex;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
 }
 
 .calendar-view :deep(.fc-button-group .fc-button) {
-    border-radius: 6px !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-right: 1px solid var(--border-color) !important;
+    margin: 0 !important;
+}
+
+.calendar-view :deep(.fc-button-group .fc-button:last-child) {
+    border-right: none !important;
 }
 
 .calendar-view :deep(.fc-button-group .fc-button:first-child) {
@@ -196,10 +230,20 @@ const handleDatesSet = (info) => {
     border-radius: 0 6px 6px 0 !important;
 }
 
+.calendar-view :deep(.fc-prev-button) {
+    border-radius: 6px 0 0 6px !important;
+    border-right: 1px solid var(--border-color) !important;
+}
+
+.calendar-view :deep(.fc-next-button) {
+    border-radius: 0 6px 6px 0 !important;
+}
+
 .calendar-view :deep(.fc-scrollgrid) {
     border: 1px solid var(--border-color) !important;
     border-radius: 12px;
     overflow: hidden;
+    margin: 0 8px;
 }
 
 .calendar-view :deep(.fc-scrollgrid-section-header td) {
@@ -234,7 +278,6 @@ const handleDatesSet = (info) => {
 
 .calendar-view :deep(.fc-daygrid-day:hover) {
     background: var(--bg-soft);
-    border-radius: 8px;
 }
 
 .calendar-view :deep(.fc-daygrid-day-frame) {
@@ -268,7 +311,7 @@ const handleDatesSet = (info) => {
 }
 
 .calendar-view :deep(.fc-daygrid-day.fc-day-selected) {
-    background: transparent !important;
+    background: var(--bg-soft) !important;
 }
 
 .calendar-view :deep(.fc-daygrid-day.fc-day-selected:hover) {
