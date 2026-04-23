@@ -377,7 +377,7 @@ const exportNotes = () => {
     flex-direction: column;
     padding: var(--spacing-md);
     gap: var(--spacing-md);
-    overflow: hidden;
+    /* 移除 overflow: hidden 避免裁剪按钮圆角 */
     position: relative;
 }
 
@@ -467,10 +467,8 @@ const exportNotes = () => {
     position: relative;
     background: var(--bg-secondary);
     border-radius: var(--radius-lg);
-    overflow: hidden;
+    /* 移除 overflow: hidden 避免裁剪日历按钮 */
 }
-
-
 
 .modal-overlay {
     position: fixed;
