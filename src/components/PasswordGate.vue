@@ -32,7 +32,6 @@
 <script>
 import lockIcon from '../assets/icons/lock.svg';
 
-const PASSWORD_STORAGE_KEY = 'personal-life-password-hash';
 const MIN_PASSWORD_LENGTH = 6;
 
 export default {
@@ -60,42 +59,51 @@ export default {
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
             return hashHex;
         },
-        checkPassword() {
-            const stored = localStorage.getItem(PASSWORD_STORAGE_KEY);
-            this.hasPassword = !!stored;
+        async checkPassword() {
+            try {
+                const passwordData = await window.electronAPI.userData.getPassword();
+                this.hasPassword = !!(passwordData && passwordData.hash);
+            } catch (e) {
+                console.error('Failed to check password:', e);
+                this.hasPassword = false;
+            }
         },
         async handleSubmit() {
             this.error = '';
 
-            if (this.hasPassword) {
-                const storedHash = localStorage.getItem(PASSWORD_STORAGE_KEY);
-                const inputHash = await this.hashPassword(this.password);
+            try {
+                const passwordData = await window.electronAPI.userData.getPassword();
 
-                if (inputHash === storedHash) {
-                    this.$emit('unlocked');
-                    // 解锁成功后清空密码
-                    this.password = '';
+                if (this.hasPassword && passwordData) {
+                    const inputHash = await this.hashPassword(this.password);
+
+                    if (inputHash === passwordData.hash) {
+                        this.$emit('unlocked');
+                        this.password = '';
+                    } else {
+                        this.error = '密码错误，请重试';
+                    }
                 } else {
-                    this.error = '密码错误，请重试';
-                }
-            } else {
-                if (this.newPassword.length < MIN_PASSWORD_LENGTH) {
-                    this.error = `密码至少需要${MIN_PASSWORD_LENGTH}位`;
-                    return;
-                }
+                    if (this.newPassword.length < MIN_PASSWORD_LENGTH) {
+                        this.error = `密码至少需要${MIN_PASSWORD_LENGTH}位`;
+                        return;
+                    }
 
-                if (this.newPassword !== this.confirmPassword) {
-                    this.error = '两次输入的密码不一致';
-                    return;
-                }
+                    if (this.newPassword !== this.confirmPassword) {
+                        this.error = '两次输入的密码不一致';
+                        return;
+                    }
 
-                const passwordHash = await this.hashPassword(this.newPassword);
-                localStorage.setItem(PASSWORD_STORAGE_KEY, passwordHash);
-                this.hasPassword = true;
-                this.$emit('unlocked');
-                // 重置密码输入框
-                this.newPassword = '';
-                this.confirmPassword = '';
+                    const passwordHash = await this.hashPassword(this.newPassword);
+                    await window.electronAPI.userData.savePassword({ hash: passwordHash });
+                    this.hasPassword = true;
+                    this.$emit('unlocked');
+                    this.newPassword = '';
+                    this.confirmPassword = '';
+                }
+            } catch (e) {
+                console.error('Password operation failed:', e);
+                this.error = '操作失败，请重试';
             }
         }
     }

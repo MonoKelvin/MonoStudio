@@ -65,7 +65,7 @@ export default {
                     left: '0',
                     minWidth: '100%'
                 };
-                
+
                 // 使用双重 requestAnimationFrame 确保布局稳定
                 setTimeout(() => {
                     requestAnimationFrame(() => {
@@ -240,11 +240,13 @@ export default {
     max-height: 300px;
     border: 0;
     border-radius: 8px;
-    background: var(--bg-elevated);
+    background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     padding: 6px;
     overflow: auto;
     clip-path: none;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 }
 
 .ui-select-option {

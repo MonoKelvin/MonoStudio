@@ -25,7 +25,6 @@ import { TOOL_CONFIG } from '../../config/toolConfig';
 
 const SELECTED_TOOL_KEY = TOOL_CONFIG.SELECTED_TOOL_KEY;
 const PERSONAL_LIFE_CATEGORY = '个人生活';
-const SECURITY_SETTINGS_KEY = 'personal-life-security-settings';
 const LAST_UNLOCK_TIME_KEY = 'personal-life-last-unlock';
 
 /**
@@ -125,10 +124,14 @@ export function useTools() {
   /**
    * 加载安全设置
    */
-  function loadSecuritySettings() {
-    const stored = localStorage.getItem(SECURITY_SETTINGS_KEY);
-    if (stored) {
-      securitySettings.value = { ...securitySettings.value, ...JSON.parse(stored) };
+  async function loadSecuritySettings() {
+    try {
+      const settings = await window.electronAPI.userData.getSecuritySettings();
+      if (settings) {
+        securitySettings.value = { ...securitySettings.value, ...settings };
+      }
+    } catch (e) {
+      console.error('Failed to load security settings:', e);
     }
   }
 

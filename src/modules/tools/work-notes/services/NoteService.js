@@ -1,18 +1,16 @@
 /**
  * 笔记业务服务
- * 仅依赖通用存储接口，不感知底层介质实现。
+ * 使用 Electron API 直接进行文件存储
  */
 import { NoteModel } from './NoteModel.js';
-import { JsonStore } from '../../../../common/services/storage/JsonStore.js';
 import workNotesStorageConfig from './storage.config.js';
 
 /**
  * 存储服务类
- * 提供笔记的CRUD操作，支持存储后端的切换
+ * 提供笔记的CRUD操作，使用 Electron 文件存储
  */
 class NoteService {
     constructor() {
-        this._store = null;
         this._cache = [];
         this._initialized = false;
         this._config = { ...workNotesStorageConfig };
@@ -29,11 +27,7 @@ class NoteService {
                 ...this._config,
                 ...config
             };
-            this._store = new JsonStore({
-                key: this._config.storageKey,
-                providerType: this._config.providerType
-            });
-            this._cache = this._loadFromStore();
+            this._cache = await this._loadFromStore();
             this._initialized = true;
             return true;
         } catch (e) {
@@ -55,7 +49,7 @@ class NoteService {
      * @returns {String}
      */
     getAdapterType() {
-        return this._config.providerType || 'unknown';
+        return 'electronFile';
     }
 
     /**
@@ -86,7 +80,7 @@ class NoteService {
         this._checkInit();
         const note = NoteModel.updateMetadata(NoteModel.create(noteData));
         this._cache.push(note);
-        const success = this._persist();
+        const success = await this._persist();
         return success ? note : null;
     }
 
@@ -133,7 +127,7 @@ class NoteService {
         const index = this._cache.findIndex((note) => note.id === id);
         if (index === -1) return false;
         this._cache[index] = NoteModel.markDeleted(this._cache[index]);
-        return this._persist();
+        return await this._persist();
     }
 
     /**
@@ -146,7 +140,7 @@ class NoteService {
         const before = this._cache.length;
         this._cache = this._cache.filter((note) => note.id !== id);
         if (this._cache.length === before) return false;
-        return this._persist();
+        return await this._persist();
     }
 
     /**
@@ -158,7 +152,7 @@ class NoteService {
         this._checkInit();
         const idSet = new Set(ids);
         this._cache = this._cache.filter((note) => !idSet.has(note.id));
-        return this._persist();
+        return await this._persist();
     }
 
     /**
@@ -169,7 +163,7 @@ class NoteService {
     async restoreNote(note) {
         this._checkInit();
         const restored = NoteModel.restore(note);
-        return this._upsert(restored);
+        return await this._upsert(restored);
     }
 
     /**
@@ -283,12 +277,17 @@ class NoteService {
         return await this.init({ providerType });
     }
 
-    _loadFromStore() {
-        const payload = this._store.load({ notes: [] });
-        const rawNotes = Array.isArray(payload) ? payload : (payload.notes || []);
-        return rawNotes
-            .map((note) => NoteModel.updateMetadata(NoteModel.create(note)))
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    async _loadFromStore() {
+        try {
+            const payload = await window.electronAPI.userData.getWorkNotes();
+            const rawNotes = Array.isArray(payload) ? payload : (payload?.notes || []);
+            return rawNotes
+                .map((note) => NoteModel.updateMetadata(NoteModel.create(note)))
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        } catch (error) {
+            console.error('NoteService _loadFromStore failed:', error);
+            return [];
+        }
     }
 
     _activeNotes() {
@@ -297,12 +296,19 @@ class NoteService {
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
-    _persist() {
-        return this._store.save({
-            version: this._config.version || '2.0',
-            lastModified: new Date().toISOString(),
-            notes: this._cache
-        });
+    async _persist() {
+        try {
+            const data = {
+                version: this._config.version || '2.0',
+                lastModified: new Date().toISOString(),
+                notes: this._cache
+            };
+            await window.electronAPI.userData.saveWorkNotes(data);
+            return true;
+        } catch (error) {
+            console.error('NoteService _persist failed:', error);
+            return false;
+        }
     }
 
     _upsertCacheOnly(note) {
@@ -317,9 +323,9 @@ class NoteService {
         }
     }
 
-    _upsert(note) {
+    async _upsert(note) {
         this._upsertCacheOnly(note);
-        return this._persist();
+        return await this._persist();
     }
 
     /**

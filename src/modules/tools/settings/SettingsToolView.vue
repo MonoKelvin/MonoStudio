@@ -14,7 +14,12 @@
                     @change-accent-color="$emit('change-accent-color', $event)" />
             </template>
             <template v-else-if="activeGroup === 'app'">
-                <AppSettings :open-dev-tools="openDevTools" @change-dev-tools="$emit('change-dev-tools', $event)" @security-settings-changed="$emit('security-settings-changed')" />
+                <AppSettings :open-dev-tools="openDevTools" @change-dev-tools="$emit('change-dev-tools', $event)"
+                    @security-settings-changed="$emit('security-settings-changed')" />
+            </template>
+            <template v-else-if="activeGroup === 'user'">
+                <UserSettings @data-path-changed="$emit('data-path-changed', $event)"
+                    @security-settings-changed="$emit('security-settings-changed')" />
             </template>
             <template v-else>
                 <AboutSettings @open-sponsor-panel="showSponsorPanel = true"
@@ -33,6 +38,7 @@
 <script>
 import PersonalizationSettings from './components/personalization/PersonalizationSettings.vue';
 import AppSettings from './components/app/AppSettings.vue';
+import UserSettings from './components/user/UserSettings.vue';
 import AboutSettings from './components/about/AboutSettings.vue';
 import SponsorPanel from './components/about/SponsorPanel.vue';
 import PrivacyPanel from './components/about/PrivacyPanel.vue';
@@ -42,6 +48,7 @@ export default {
     components: {
         PersonalizationSettings,
         AppSettings,
+        UserSettings,
         AboutSettings,
         SponsorPanel,
         PrivacyPanel
@@ -52,7 +59,7 @@ export default {
         currentAccentColor: { type: String, default: '#8b5cf6' },
         openDevTools: { type: Boolean, default: false }
     },
-    emits: ['change-theme', 'change-accent-color', 'change-dev-tools'],
+    emits: ['change-theme', 'change-accent-color', 'change-dev-tools', 'data-path-changed'],
     data() {
         return {
             activeGroup: 'personalization',
@@ -61,6 +68,7 @@ export default {
             settingGroups: [
                 { id: 'personalization', label: '个性化', desc: '主题与外观', icon: '🎨' },
                 { id: 'app', label: '应用', desc: '窗口与行为', icon: '🧩' },
+                { id: 'user', label: '用户', desc: '数据与存储', icon: '👤' },
                 { id: 'about', label: '关于', desc: '产品与版本', icon: 'ℹ️' }
             ]
         };

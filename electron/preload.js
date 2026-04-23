@@ -44,6 +44,24 @@ const systemInfoBridge = {
   getBattery: () => ipcRenderer.invoke('system-info:get-battery')
 };
 
+const userDataBridge = {
+  getPath: () => ipcRenderer.invoke('userData:getPath'),
+  getDefaultPath: () => ipcRenderer.invoke('userData:getDefaultPath'),
+  setPath: (newPath) => ipcRenderer.invoke('userData:setPath', newPath),
+  selectDirectory: () => ipcRenderer.invoke('userData:selectDirectory'),
+  openDirectory: (path) => ipcRenderer.invoke('userData:openDirectory', path),
+  getInspirations: () => ipcRenderer.invoke('userData:getInspirations'),
+  saveInspirations: (inspirations) => ipcRenderer.invoke('userData:saveInspirations', inspirations),
+  getMusings: () => ipcRenderer.invoke('userData:getMusings'),
+  saveMusings: (musings) => ipcRenderer.invoke('userData:saveMusings', musings),
+  getWorkNotes: () => ipcRenderer.invoke('userData:getWorkNotes'),
+  saveWorkNotes: (notes) => ipcRenderer.invoke('userData:saveWorkNotes', notes),
+  getPassword: () => ipcRenderer.invoke('userData:getPassword'),
+  savePassword: (passwordData) => ipcRenderer.invoke('userData:savePassword', passwordData),
+  getSecuritySettings: () => ipcRenderer.invoke('userData:getSecuritySettings'),
+  saveSecuritySettings: (settings) => ipcRenderer.invoke('userData:saveSecuritySettings', settings)
+};
+
 contextBridge.exposeInMainWorld('monoWindow', {
   minimize: () => ipcRenderer.send('window:minimize'),
   toggleMaximize: () => ipcRenderer.send('window:toggle-maximize'),
@@ -57,6 +75,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   settings: settingsBridge,
   devtools: devtoolsBridge,
   systemInfo: systemInfoBridge,
+  userData: userDataBridge,
   shell: {
     openExternal: (url) => shell.openExternal(url)
   }

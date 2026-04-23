@@ -1,9 +1,14 @@
 <template>
-  <div class="settings-item" :class="{ 'has-description': description }">
+  <div class="settings-item" :class="{ 'has-description': description || $slots.description }">
     <div class="settings-item-header">
       <div class="settings-item-content">
         <span class="settings-item-title">{{ title }}</span>
-        <span v-if="description" class="settings-item-description">{{ description }}</span>
+        <template v-if="$slots.description">
+          <div class="settings-item-description">
+            <slot name="description"></slot>
+          </div>
+        </template>
+        <span v-else-if="description" class="settings-item-description">{{ description }}</span>
       </div>
       <div class="settings-item-control">
         <slot></slot>

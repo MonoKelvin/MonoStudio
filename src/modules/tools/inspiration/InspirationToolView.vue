@@ -96,14 +96,21 @@ export default {
     this.loadInspirations();
   },
   methods: {
-    loadInspirations() {
-      const saved = localStorage.getItem('inspirations');
-      if (saved) {
-        this.inspirations = JSON.parse(saved);
+    async loadInspirations() {
+      try {
+        const data = await window.electronAPI.userData.getInspirations();
+        this.inspirations = Array.isArray(data) ? data : [];
+      } catch (e) {
+        console.error('Failed to load inspirations:', e);
+        this.inspirations = [];
       }
     },
-    saveInspirations() {
-      localStorage.setItem('inspirations', JSON.stringify(this.inspirations));
+    async saveInspirations() {
+      try {
+        await window.electronAPI.userData.saveInspirations(this.inspirations);
+      } catch (e) {
+        console.error('Failed to save inspirations:', e);
+      }
     },
     addInspiration() {
       this.isEditing = false;

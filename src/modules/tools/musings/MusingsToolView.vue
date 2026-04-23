@@ -145,14 +145,21 @@ export default {
     this.loadMusings();
   },
   methods: {
-    loadMusings() {
-      const saved = localStorage.getItem('musings');
-      if (saved) {
-        this.musings = JSON.parse(saved);
+    async loadMusings() {
+      try {
+        const data = await window.electronAPI.userData.getMusings();
+        this.musings = Array.isArray(data) ? data : [];
+      } catch (e) {
+        console.error('Failed to load musings:', e);
+        this.musings = [];
       }
     },
-    saveMusings() {
-      localStorage.setItem('musings', JSON.stringify(this.musings));
+    async saveMusings() {
+      try {
+        await window.electronAPI.userData.saveMusings(this.musings);
+      } catch (e) {
+        console.error('Failed to save musings:', e);
+      }
     },
     addMusing() {
       this.isEditing = false;

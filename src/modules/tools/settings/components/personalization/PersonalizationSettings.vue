@@ -4,7 +4,7 @@
         <p>调整主题与外观风格。</p>
         <div class="settings-group">
             <SettingsItem title="主题模式" description="选择浅色、深色或跟随系统">
-                <BaseSelect :model-value="themeMode" :options="themeOptions"
+                <BaseSelect :model-value="themeMode" :options="themeOptions" style="min-width: 120px;"
                     @update:modelValue="$emit('change-theme', $event)" />
             </SettingsItem>
             <SettingsItem title="主题色" description="选择软件的主要强调色">

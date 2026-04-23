@@ -1,4 +1,4 @@
-const { app, ipcMain, BrowserWindow, shell, globalShortcut } = require('electron');
+const { app, ipcMain, BrowserWindow, shell, globalShortcut, dialog } = require('electron');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
@@ -7,6 +7,8 @@ const { getDesktopItems, removeDesktopItem, restoreShortcut, chooseIconFile, upd
 const { getSettings, saveSettings } = require('./settings');
 const { createWindow } = require('./windowManager');
 const fileSearch = require('./fileSearch');
+const pathManager = require('./userDataPathManager');
+const userDataStorage = require('./userDataStorage');
 
 // 存储搜索状态
 let activeSearchIds = new Set();
@@ -38,6 +40,8 @@ ipcMain.on('window:set-always-on-top', (event, flag) => {
 
 app.whenReady().then(async () => {
   try {
+    await pathManager.initialize();
+
     ipcMain.handle('desktop-icons:list', async () => getDesktopItems());
     ipcMain.handle('desktop-icons:remove', async (_, targetPath) => removeDesktopItem(targetPath));
     ipcMain.handle('desktop-icons:restore-shortcut', async (_, targetPath) => restoreShortcut(targetPath));
@@ -51,6 +55,80 @@ app.whenReady().then(async () => {
       const folderPath = path.dirname(targetPath);
       await shell.openPath(folderPath);
       return { success: true };
+    });
+
+    ipcMain.handle('userData:getPath', async () => {
+      return userDataStorage.getUserDataPath();
+    });
+
+    ipcMain.handle('userData:getDefaultPath', async () => {
+      return userDataStorage.getDefaultUserDataPath();
+    });
+
+    ipcMain.handle('userData:setPath', async (_, newPath) => {
+      return userDataStorage.setUserDataPath(newPath);
+    });
+
+    ipcMain.handle('userData:selectDirectory', async (event) => {
+      const parentWindow = BrowserWindow.fromWebContents(event.sender);
+      const result = await dialog.showOpenDialog(parentWindow || undefined, {
+        properties: ['openDirectory', 'createDirectory'],
+        title: '选择用户数据目录'
+      });
+      if (result.canceled || result.filePaths.length === 0) {
+        return { success: false, canceled: true };
+      }
+      return { success: true, path: result.filePaths[0] };
+    });
+
+    ipcMain.handle('userData:openDirectory', async (_, path) => {
+      try {
+        await shell.openPath(path);
+        return { success: true };
+      } catch (e) {
+        console.error('Failed to open directory:', e);
+        return { success: false, error: e.message };
+      }
+    });
+
+    ipcMain.handle('userData:getInspirations', async () => {
+      return userDataStorage.getInspirations();
+    });
+
+    ipcMain.handle('userData:saveInspirations', async (_, inspirations) => {
+      return userDataStorage.saveInspirations(inspirations);
+    });
+
+    ipcMain.handle('userData:getMusings', async () => {
+      return userDataStorage.getMusings();
+    });
+
+    ipcMain.handle('userData:saveMusings', async (_, musings) => {
+      return userDataStorage.saveMusings(musings);
+    });
+
+    ipcMain.handle('userData:getWorkNotes', async () => {
+      return userDataStorage.getWorkNotes();
+    });
+
+    ipcMain.handle('userData:saveWorkNotes', async (_, notes) => {
+      return userDataStorage.saveWorkNotes(notes);
+    });
+
+    ipcMain.handle('userData:getPassword', async () => {
+      return userDataStorage.getPassword();
+    });
+
+    ipcMain.handle('userData:savePassword', async (_, passwordData) => {
+      return userDataStorage.savePassword(passwordData);
+    });
+
+    ipcMain.handle('userData:getSecuritySettings', async () => {
+      return userDataStorage.getSecuritySettings();
+    });
+
+    ipcMain.handle('userData:saveSecuritySettings', async (_, settings) => {
+      return userDataStorage.saveSecuritySettings(settings);
     });
 
     ipcMain.handle('file-search:get-drives', async () => {

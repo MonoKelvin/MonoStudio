@@ -9,6 +9,7 @@ import BaseSelect from './components/base/BaseSelect.vue'
 import BaseSpinbox from './components/base/BaseSpinbox.vue'
 import GlobalTooltip from './components/base/GlobalTooltip.vue'
 import { vTooltip } from './directives/tooltip.js'
+import ToastService from './common/services/toastService.js'
 
 function showRuntimeErrorOverlay(title, detail) {
   const existing = document.getElementById('mono-runtime-error')
@@ -47,6 +48,7 @@ app.component('BaseSelect', BaseSelect)
 app.component('BaseSpinbox', BaseSpinbox)
 app.component('GlobalTooltip', GlobalTooltip)
 app.directive('tooltip', vTooltip)
+app.use(ToastService)
 app.config.errorHandler = (err, instance, info) => {
   const stack = err instanceof Error ? err.stack || err.message : String(err)
   const componentName = instance?.$options?.name || 'UnknownComponent'
