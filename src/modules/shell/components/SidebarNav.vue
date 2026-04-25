@@ -60,6 +60,7 @@ import iconFileHasher from '../../../assets/icons/file-hasher.svg';
 import iconInspiration from '../../../assets/icons/inspiration.svg';
 import iconWorkNotes from '../../../assets/icons/work-notes.svg';
 import iconMusings from '../../../assets/icons/musings.svg';
+import iconJapaneseLearning from '../../../assets/icons/japanese-learning.svg';
 import lockIcon from '../../../assets/icons/lock.svg';
 import unlockIcon from '../../../assets/icons/unlock.svg';
 import searchIcon from '../../../assets/icons/search-16.svg';
@@ -87,6 +88,7 @@ const icons = {
     'inspiration': iconInspiration,
     'work-notes': iconWorkNotes,
     'musings': iconMusings,
+    'japanese-learning': iconJapaneseLearning,
     settings: iconSettings
 };
 

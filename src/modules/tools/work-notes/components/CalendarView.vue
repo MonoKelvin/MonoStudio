@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, computed, watch } from 'vue';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -45,7 +45,6 @@ const emit = defineEmits(['prev-month', 'next-month', 'select-date', 'open-detai
 
 const fullCalendar = ref(null);
 const calendarContainer = ref(null);
-const calendarHeight = ref('auto');
 
 const calendarOptions = computed(() => {
     return {
@@ -71,12 +70,11 @@ const calendarOptions = computed(() => {
             eventEl.classList.add(`event-${info.event.extendedProps.type}`);
         },
         datesSet: handleDatesSet,
-        height: calendarHeight.value,
-        // 自定义日期格式，只显示数字
+        height: 'auto',
+        fixedWeekCount: false,
+        showNonCurrentDates: false,
         dayCellContent: function(info) {
-            return {
-                html: `<span class="fc-daygrid-day-number">${info.date.getDate()}</span>`
-            };
+            return info.date.getDate();
         }
     };
 });
@@ -114,59 +112,13 @@ const handleEventClick = (info) => {
 const handleDatesSet = (info) => {
     const newDate = info.view.currentStart;
     emit('prev-month', newDate);
-    // 视图变化时重新计算高度
-    nextTick(() => {
-        calculateCalendarHeight();
-    });
-};
-
-const calculateCalendarHeight = () => {
-    if (!calendarContainer.value) return;
-    
-    const container = calendarContainer.value;
-    const containerRect = container.getBoundingClientRect();
-    
-    // 计算可用高度：容器高度 - 工具栏高度 - 底部间距
-    const toolbar = container.querySelector('.fc-toolbar');
-    const toolbarHeight = toolbar ? toolbar.offsetHeight : 0;
-    const padding = 16; // 上下内边距
-    const bottomSpace = 8; // 底部8px间距
-    
-    // 确保有足够的高度显示完整的一个月
-    // 考虑到一个月最多可能有6行日期，每行高度80px
-    const minRequiredHeight = 6 * 80 + 150; // 6行 * 每行80px + 150px头部和间距
-    const availableHeight = Math.max(containerRect.height - toolbarHeight - padding - bottomSpace, minRequiredHeight);
-    
-    calendarHeight.value = `${availableHeight}px`;
-};
-
-// 监听窗口大小变化
-const handleResize = () => {
-    nextTick(() => {
-        calculateCalendarHeight();
-    });
-};
-
-onMounted(() => {
-    nextTick(() => {
-        calculateCalendarHeight();
-    });
-    window.addEventListener('resize', handleResize);
-});
-
-// 组件卸载时清理事件监听
-onUnmounted(() => {
-    window.removeEventListener('resize', handleResize);
-});</script>
+};</script>
 
 <style scoped>
 .calendar-view {
-    height: 100%;
-    min-height: 600px;
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden;
 }
 
 .calendar-view :deep(.fc) {
@@ -186,8 +138,8 @@ onUnmounted(() => {
     --fc-neutral-bg-color: var(--bg-soft);
     --fc-list-event-hover-bg-color: var(--bg-hover);
     font-family: inherit;
-    overflow: hidden;
-    height: 100%;
+    height: auto;
+    overflow: visible;
 }
 
 .calendar-view :deep(.fc-toolbar) {
@@ -286,41 +238,29 @@ onUnmounted(() => {
     border-radius: 12px !important;
     overflow: hidden !important;
     width: 100% !important;
-    max-width: 100% !important;
-    height: calc(100% - 60px) !important;
 }
 
 .calendar-view :deep(.fc-scrollgrid-section-header) {
     border-top-left-radius: 12px !important;
     border-top-right-radius: 12px !important;
     overflow: hidden !important;
-    width: 100% !important;
-}
-
-.calendar-view :deep(.fc-scrollgrid-section-body) {
-    width: 100% !important;
-    overflow: hidden !important;
-    height: calc(100% - 40px) !important;
 }
 
 .calendar-view :deep(.fc-scrollgrid-section-footer) {
     border-bottom-left-radius: 12px !important;
     border-bottom-right-radius: 12px !important;
     overflow: hidden !important;
-    width: 100% !important;
 }
 
 .calendar-view :deep(.fc-scrollgrid-section-header td) {
     border-bottom: 1px solid var(--border-color) !important;
     text-align: center !important;
-    padding: 0 !important;
 }
 
 .calendar-view :deep(.fc-col-header-cell) {
     background: var(--bg-soft) !important;
     padding: 0 !important;
     text-align: center !important;
-    width: calc(100% / 7) !important;
 }
 
 .calendar-view :deep(.fc-col-header-cell-cushion) {
@@ -329,126 +269,80 @@ onUnmounted(() => {
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 12px 4px !important;
+    padding: 6px 4px !important;
     display: block;
     text-align: center !important;
     margin: 0 auto !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
 }
 
 .calendar-view :deep(.fc-daygrid-day) {
-    min-height: 80px !important;
-    padding: 10px 6px !important;
+    min-height: 0 !important;
+    padding: 4px !important;
     box-sizing: border-box !important;
-    text-align: center !important;
-    white-space: normal !important;
-    overflow: visible !important;
-    width: calc(100% / 7) !important;
 }
 
 .calendar-view :deep(.fc-daygrid-day:hover) {
     background: var(--bg-soft);
 }
 
-/* 基础日期数字样式 */
+.calendar-view :deep(.fc-daygrid-day-top) {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    padding-top: 0 !important;
+}
+
 .calendar-view :deep(.fc-daygrid-day-number) {
     font-size: 12px !important;
     font-weight: 500 !important;
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     text-align: center !important;
     text-decoration: none !important;
-    transition: all 0.15s ease;
     width: 24px;
     height: 24px;
     line-height: 24px;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    margin: 0 auto 8px !important;
-    white-space: nowrap !important;
-    text-overflow: ellipsis !important;
-    z-index: 1 !important;
-    position: relative !important;
-    background: transparent !important;
-    border-radius: 0 !important;
+    border-radius: 50% !important;
 }
 
-/* 移除日期中的"日"字 */
-.calendar-view :deep(.fc-daygrid-day-number)::after {
-    content: '' !important;
+.calendar-view :deep(.fc-day-today) {
+    background: color-mix(in srgb, var(--accent-color) 8%, transparent) !important;
 }
 
-/* 确保日期数字和事件内容不重叠 */
-.calendar-view :deep(.fc-daygrid-day-top) {
-    margin-bottom: 8px !important;
-    padding-bottom: 4px !important;
-    display: block !important;
-    height: 32px !important;
-    line-height: 32px !important;
-}
-
-/* 确保日历主体内容宽度正确 */
-.calendar-view :deep(.fc-daygrid-body) {
-    width: 100% !important;
-    overflow: hidden !important;
-}
-
-/* 确保表格宽度正确 */
-.calendar-view :deep(.fc-scrollgrid table) {
-    width: 100% !important;
-    table-layout: fixed !important;
-}
-
-/* 日期数字 hover 效果 */
-.calendar-view :deep(.fc-daygrid-day:hover .fc-daygrid-day-number) {
-    background: var(--bg-hover);
-    border-radius: 50%;
-}
-
-/* 今天日期的高亮效果 */
 .calendar-view :deep(.fc-day-today .fc-daygrid-day-number) {
     background: var(--accent-color) !important;
     color: white !important;
     font-weight: 600 !important;
-    border-radius: 50% !important;
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* 选中日期的效果 */
 .calendar-view :deep(.fc-daygrid-day.fc-day-selected) {
     background: var(--bg-soft) !important;
 }
 
-.calendar-view :deep(.fc-daygrid-day.fc-day-selected:hover) {
-    background: var(--bg-soft) !important;
-}
-
 .calendar-view :deep(.fc-daygrid-day.fc-day-selected .fc-daygrid-day-number) {
-    background: var(--accent-color);
-    color: white;
-    border-radius: 50%;
+    background: var(--accent-color) !important;
+    color: white !important;
 }
 
 .calendar-view :deep(.fc-day-other .fc-daygrid-day-number) {
-    color: var(--text-tertiary);
+    color: var(--text-tertiary) !important;
 }
 
-/* 事件样式 */
 .calendar-view :deep(.fc-daygrid-event) {
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
-    margin: 4px 0 !important;
+    margin: 1px 0 !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    z-index: 2 !important;
-    position: relative !important;
 }
 
 .calendar-view :deep(.fc-daygrid-event .fc-daygrid-event-content) {
     border-radius: 4px !important;
-    padding: 3px 5px !important;
+    padding: 2px 4px !important;
     margin: 0 !important;
     width: 100% !important;
     box-sizing: border-box !important;
@@ -459,8 +353,6 @@ onUnmounted(() => {
     background: color-mix(in srgb, var(--accent-color) 10%, var(--bg-elevated)) !important;
     font-size: 10px !important;
     line-height: 1.2 !important;
-    height: auto !important;
-    min-height: 20px !important;
 }
 
 .calendar-view :deep(.fc-daygrid-event:hover .fc-daygrid-event-content) {
@@ -477,21 +369,17 @@ onUnmounted(() => {
     background: color-mix(in srgb, var(--success) 10%, var(--bg-elevated)) !important;
 }
 
-/* 周视图和日视图样式 */
 .calendar-view :deep(.fc-timegrid) {
     background: var(--bg-elevated) !important;
     border-radius: 12px !important;
     overflow: hidden !important;
     border: 1px solid var(--border-color) !important;
     width: 100% !important;
-    max-width: 100% !important;
-    height: calc(100% - 60px) !important;
 }
 
 .calendar-view :deep(.fc-timegrid-axis) {
     background: var(--bg-soft) !important;
     border-right: 1px solid var(--border-color) !important;
-    min-width: 60px !important;
 }
 
 .calendar-view :deep(.fc-timegrid-axis-cushion) {
@@ -502,40 +390,12 @@ onUnmounted(() => {
     text-align: center !important;
 }
 
-/* 确保时间网格内容不溢出 */
-.calendar-view :deep(.fc-timegrid-body) {
-    width: 100% !important;
-    overflow: hidden !important;
-}
-
-.calendar-view :deep(.fc-timegrid-cols) {
-    width: calc(100% - 60px) !important;
-}
-
-.calendar-view :deep(.fc-timegrid-col) {
-    width: calc(100% / 7) !important;
-    padding: 0 !important;
-}
-
-/* 优化周视图和日视图的单元格 */
-.calendar-view :deep(.fc-timegrid-slot) {
-    border-bottom: 1px solid var(--border-color) !important;
-    min-height: 40px !important;
-}
-
-.calendar-view :deep(.fc-timegrid-slot-label) {
-    font-size: 10px !important;
-    color: var(--text-secondary) !important;
-    padding: 2px 4px !important;
-}
-
 .calendar-view :deep(.fc-timegrid-event) {
     background: var(--accent-color) !important;
     border: none !important;
     border-radius: 6px !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: all 0.15s ease;
-    margin: 2px 0 !important;
 }
 
 .calendar-view :deep(.fc-timegrid-event:hover) {
@@ -565,12 +425,10 @@ onUnmounted(() => {
     padding: 0 6px;
 }
 
-/* 列表视图样式 */
 .calendar-view :deep(.fc-list-table) {
     border-radius: 12px !important;
     overflow: hidden !important;
     border: 1px solid var(--border-color) !important;
-    height: calc(100% - 60px) !important;
 }
 
 .calendar-view :deep(.fc-list-day-cushion) {
@@ -603,12 +461,15 @@ onUnmounted(() => {
     font-size: 11px !important;
 }
 
-/* 确保日历控件不出现滚动条 */
 .calendar-view :deep(.fc-scroller) {
     overflow: hidden !important;
 }
 
 .calendar-view :deep(.fc-daygrid-body) {
+    overflow: hidden !important;
+}
+
+.calendar-view :deep(.fc-daygrid-body-unbalanced) {
     overflow: hidden !important;
 }
 
@@ -618,5 +479,13 @@ onUnmounted(() => {
 
 .calendar-view :deep(.fc-list-body) {
     overflow: hidden !important;
+}
+
+.calendar-view :deep(.fc-scroller::-webkit-scrollbar) {
+    display: none !important;
+}
+
+.calendar-view :deep(.fc-scroller *::-webkit-scrollbar) {
+    display: none !important;
 }
 </style>

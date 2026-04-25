@@ -3,10 +3,6 @@
         <div class="work-notes-container">
             <div class="work-notes-header">
                 <div class="header-left">
-                    <h2>{{ toolName }}</h2>
-                    <span class="notes-count">{{ filteredNotes.length }} 条笔记</span>
-                </div>
-                <div class="header-actions">
                     <div class="view-toggle" role="tablist" aria-label="视图切换">
                         <button class="view-btn" :class="{ active: currentView === 'calendar' }"
                             @click="currentView = 'calendar'" type="button">
@@ -17,6 +13,8 @@
                             列表
                         </button>
                     </div>
+                </div>
+                <div class="header-actions">
                     <div class="header-buttons" v-if="!isEditorOpen">
                         <BaseButton @click="exportNotes" size="sm" :disabled="notes.length === 0">
                             <img src="@/assets/icons/export.svg" alt="导出" class="icon header-icon" />
@@ -125,13 +123,6 @@ import noteService from './services/NoteService.js';
 import { NoteModel } from './services/NoteModel.js';
 import { NoteQueryService } from './services/NoteQueryService.js';
 
-const props = defineProps({
-    toolName: {
-        type: String,
-        default: '工作手记'
-    }
-});
-
 const notes = ref([]);
 const searchQuery = ref('');
 const selectedTags = ref([]);
@@ -148,12 +139,6 @@ const allTags = ref([]);
 const noteEditorRef = ref(null);
 
 const canSaveNote = computed(() => noteEditorRef.value?.canSave ?? false);
-
-const filteredNotes = computed(() => {
-    return NoteQueryService.filterNotes(notes.value, searchQuery.value, selectedTags.value);
-});
-
-
 
 const formatDetailDate = computed(() => {
     if (!detailNote.value) return '';
@@ -396,21 +381,6 @@ const exportNotes = () => {
     gap: var(--spacing-md);
 }
 
-.header-left h2 {
-    font-size: 20px;
-    font-weight: var(--font-weight-semibold);
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.notes-count {
-    font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
-    background: var(--bg-secondary);
-    padding: 2px 8px;
-    border-radius: var(--radius-md);
-}
-
 .header-actions {
     display: flex;
     align-items: center;
@@ -467,7 +437,6 @@ const exportNotes = () => {
     position: relative;
     background: var(--bg-secondary);
     border-radius: var(--radius-lg);
-    /* 移除 overflow: hidden 避免裁剪日历按钮 */
 }
 
 .modal-overlay {

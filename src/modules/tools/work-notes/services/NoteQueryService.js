@@ -12,7 +12,8 @@ export const NoteQueryService = {
     },
 
     filterNotes(notes = [], query = '', selectedTags = []) {
-        const normalizedQuery = normalizeText(query.trim());
+        const safeQuery = query == null ? '' : String(query);
+        const normalizedQuery = normalizeText(safeQuery.trim());
         const activeTags = Array.isArray(selectedTags) ? selectedTags : [];
 
         return this.sortByCreatedDesc(notes).filter((note) => {

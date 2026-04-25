@@ -125,6 +125,12 @@ export const TOOL_CONFIG = {
       name: '屏幕截图',
       description: '截取屏幕和编辑图片',
       category: '媒体工具'
+    },
+    {
+      id: 'japanese-learning',
+      name: '日语学习',
+      description: '学习日语五十音图和常用单词',
+      category: '学习'
     }
   ],
   // 设置入口

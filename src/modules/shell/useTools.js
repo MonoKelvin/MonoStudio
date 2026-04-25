@@ -19,6 +19,7 @@ import FileHasherToolView from '../tools/file-hasher/FileHasherToolView.vue';
 import InspirationToolView from '../tools/inspiration/InspirationToolView.vue';
 import WorkNotesToolView from '../tools/work-notes/WorkNotesToolView.vue';
 import MusingsToolView from '../tools/musings/MusingsToolView.vue';
+import JapaneseLearningToolView from '../tools/japanese-learning/JapaneseLearningToolView.vue';
 import SettingsToolView from '../tools/settings/SettingsToolView.vue';
 import PasswordGate from '../../components/PasswordGate.vue';
 import { TOOL_CONFIG } from '../../config/toolConfig';
@@ -81,7 +82,8 @@ export function useTools() {
       'file-hasher': FileHasherToolView,
       'inspiration': InspirationToolView,
       'work-notes': WorkNotesToolView,
-      'musings': MusingsToolView
+      'musings': MusingsToolView,
+      'japanese-learning': JapaneseLearningToolView
     }[tool.id])
   }));
 
