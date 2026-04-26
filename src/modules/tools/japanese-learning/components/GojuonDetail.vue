@@ -15,22 +15,33 @@
                         <div class="detail-body" v-if="char">
                             <div class="kana-container">
                                 <div class="kana-main">
-                                    <div class="kana-item">
-                                        <span class="kana-label">平假名</span>
-                                        <span class="kana-value hiragana">{{ char.hiragana }}</span>
-                                    </div>
-                                    <div class="kana-item">
-                                        <span class="kana-label">片假名</span>
-                                        <span class="kana-value katakana">{{ char.katakana }}</span>
-                                    </div>
-                                    <div class="kana-item">
-                                        <span class="kana-label">罗马音</span>
-                                        <span class="kana-value romaji-text">{{ char.romaji }}</span>
+                                    <div class="kana-boxes" :class="{ multiple: kanaChars.length > 1 }">
+                                        <div class="kana-highlight" v-for="(char, idx) in kanaChars" :key="idx">
+                                            <canvas :ref="el => setCanvasRef(el, idx)" class="kana-canvas" width="72"
+                                                height="72"></canvas>
+                                            <span class="kana-text">{{ char }}</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="kana-item kanji-source" v-if="char.kanji">
-                                    <span class="kana-label">汉字来源</span>
-                                    <span class="kana-value kanji-text">{{ char.kanji }}</span>
+                                <div class="kana-info">
+                                    <table class="info-table">
+                                        <tr v-if="activeKana !== 'hiragana'">
+                                            <td class="info-label">平假名</td>
+                                            <td class="info-value">{{ char.hiragana }}</td>
+                                        </tr>
+                                        <tr v-if="activeKana !== 'katakana'">
+                                            <td class="info-label">片假名</td>
+                                            <td class="info-value">{{ char.katakana }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="info-label">罗马音</td>
+                                            <td class="info-value">{{ char.romaji }}</td>
+                                        </tr>
+                                        <tr v-if="char.kanji">
+                                            <td class="info-label">汉字源</td>
+                                            <td class="info-value">{{ char.kanji }}</td>
+                                        </tr>
+                                    </table>
                                 </div>
                             </div>
 
@@ -45,10 +56,10 @@
                                     <div class="example-item" v-for="(example, idx) in examples" :key="idx">
                                         <span class="example-word" v-html="highlightKana(example.word)"></span>
                                         <span class="example-kana" v-if="example.kana">{{ example.kana }}</span>
+                                        <span class="example-meaning">{{ example.meaning }}</span>
                                     </div>
                                 </div>
                             </div>
-
 
                         </div>
                     </div>
@@ -59,7 +70,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 
 const props = defineProps({
     visible: {
@@ -73,10 +84,59 @@ const props = defineProps({
     examples: {
         type: Array,
         default: () => []
+    },
+    activeKana: {
+        type: String,
+        default: 'hiragana'
     }
 });
 
 const emit = defineEmits(['update:visible', 'close']);
+
+const canvasRefs = ref([]);
+
+const setCanvasRef = (el, idx) => {
+    if (el) {
+        canvasRefs.value[idx] = el;
+    }
+};
+
+const drawMiziGrid = (canvas) => {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    const style = getComputedStyle(document.documentElement);
+    const strokeColor = style.getPropertyValue('--text-muted').trim();
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.strokeStyle = strokeColor;
+    ctx.globalAlpha = 0.3;
+    ctx.lineWidth = 1.7;
+    ctx.setLineDash([5, 5]);
+
+    ctx.beginPath();
+    ctx.moveTo(width / 2, 0);
+    ctx.lineTo(width / 2, height);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, height / 2);
+    ctx.lineTo(width, height / 2);
+    ctx.stroke();
+
+    // 如果要开启米字格，取消注释掉以下内容
+    // ctx.beginPath();
+    // ctx.moveTo(0, 0);
+    // ctx.lineTo(width, height);
+    // ctx.stroke();
+
+    // ctx.beginPath();
+    // ctx.moveTo(width, 0);
+    // ctx.lineTo(0, height);
+    // ctx.stroke();
+};
 
 const handleOverlayClick = () => {
     handleClose();
@@ -101,6 +161,21 @@ const highlightKana = (word) => {
     }
     return word;
 };
+
+const kanaChars = computed(() => {
+    if (!props.char) return [];
+    const kana = props.activeKana === 'hiragana' ? props.char.hiragana : props.char.katakana;
+    return kana.split('');
+});
+
+watch([() => props.visible, kanaChars], ([visible]) => {
+    if (visible) {
+        canvasRefs.value = [];
+        setTimeout(() => {
+            canvasRefs.value.forEach(canvas => drawMiziGrid(canvas));
+        }, 50);
+    }
+}, { immediate: true });
 </script>
 
 <style scoped>
@@ -133,7 +208,7 @@ const highlightKana = (word) => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -175,65 +250,78 @@ const highlightKana = (word) => {
 
 .kana-container {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md) 0;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-lg);
 }
 
 .kana-main {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: var(--spacing-lg);
-    flex: 1;
-}
-
-.kana-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-xs);
-    min-width: 60px;
-}
-
-.kanji-source {
     flex-shrink: 0;
+}
+
+.kana-boxes {
+    display: flex;
+    gap: 4px;
+}
+
+.kana-boxes.multiple {
+    gap: 8px;
+}
+
+.kana-highlight {
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    background: var(--bg-soft);
+    border-radius: var(--radius-lg);
+    position: relative;
+    overflow: hidden;
 }
 
-.kanji-source .kana-value {
-    font-size: 28px;
+.kana-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
 }
 
-.kana-label {
-    font-size: 12px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-}
-
-.kana-value {
+.kana-text {
+    font-size: 40px;
     font-weight: 700;
-    line-height: 1;
-}
-
-.kana-value.hiragana,
-.kana-value.katakana {
-    font-size: 36px;
     color: var(--text-primary);
+    z-index: 1;
 }
 
-.kana-value.romaji-text {
-    font-size: 24px;
-    color: var(--text-primary);
+.kana-info {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
 }
 
-.kana-value.kanji-text {
-    font-size: 32px;
+.info-table {
+    border-collapse: collapse;
+}
+
+.info-label {
+    font-size: 14px;
+    color: var(--text-muted);
+    text-align: right;
+    white-space: nowrap;
+    padding-right: var(--spacing-sm);
+}
+
+.info-value {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-align: left;
+    padding-left: var(--spacing-xs);
+}
+
+.kana-value-cell .romaji-text {
+    font-size: 18px;
+    font-weight: 500;
     color: var(--text-secondary);
 }
 
@@ -243,9 +331,9 @@ const highlightKana = (word) => {
 }
 
 .section-title {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin: 0 0 var(--spacing-sm) 0;
 }
 
@@ -264,7 +352,7 @@ const highlightKana = (word) => {
 .examples-list {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-xs);
 }
 
 .example-item {
@@ -279,8 +367,9 @@ const highlightKana = (word) => {
 .example-word {
     font-size: 18px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--accent-primary);
     min-width: 80px;
+    margin-left: var(--spacing-md);
 }
 
 .example-kana {
@@ -288,9 +377,11 @@ const highlightKana = (word) => {
     color: var(--text-muted);
 }
 
-.highlight {
-    color: var(--accent-primary);
-    font-weight: 700;
+.example-meaning {
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-left: auto;
+    margin-right: var(--spacing-md);
 }
 
 .history-text {

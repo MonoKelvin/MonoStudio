@@ -1,24 +1,16 @@
 <template>
     <div class="vocabulary-card" :class="{ favorite: isFavorited }">
         <div class="card-header">
-            <div class="word-info">
-                <span class="word">{{ item[1] }}</span>
-                <span class="romaji">{{ item[2] }}</span>
-                <span class="furigana" v-if="item[4]">{{ item[4] }}</span>
-            </div>
+            <span class="word">{{ item[1] }}</span>
+            <span class="pos">[{{ item[5] }}]</span>
+            <span class="romaji">{{ item[2] }}</span>
             <button class="favorite-btn" @click.stop="toggleFavorite" :class="{ active: isFavorited }">
-                <svg viewBox="0 0 24 24" fill="currentColor" class="star-icon">
-                    <path
-                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
+                <span class="star-icon" :style="{ '--star-icon-url': `url(${starSolidIcon})` }"></span>
             </button>
         </div>
-        <div class="card-body">
-            <div class="meaning">{{ item[3] }}</div>
-            <div class="meta">
-                <span class="part-of-speech-badge">{{ item[5] }}</span>
-                <span class="category">{{ getCategoryName(item[6]) }}</span>
-            </div>
+        <div class="card-content">
+            <span class="category">{{ getCategoryName(item[6]) }}</span>
+            <span class="meaning">{{ item[3] }}</span>
         </div>
     </div>
 </template>
@@ -26,6 +18,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { SCENE_CATEGORIES } from '../../../../assets/data/japanese/vocabulary/categories.js';
+import starSolidIcon from '../../../../assets/icons/star-solid.svg?url';
 
 const props = defineProps({
     item: {
@@ -54,132 +47,166 @@ const getCategoryName = (category) => {
 <style scoped>
 .vocabulary-card {
     background: var(--bg-elevated);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm);
     cursor: pointer;
-    transition: all var(--transition-normal);
-    box-shadow: var(--shadow-card);
-    border: 1px solid transparent;
-}
-
-.vocabulary-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-elevated);
-}
-
-.vocabulary-card.favorite {
-    border-color: var(--warning);
-    background: linear-gradient(135deg, var(--bg-elevated) 0%, rgba(245, 158, 11, 0.05) 100%);
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--spacing-md);
-}
-
-.word-info {
+    transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+    flex: 1;
+    min-width: 180px;
+    max-width: 24%;
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xs);
 }
 
+.vocabulary-card:hover {
+    background: var(--bg-subtle);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: var(--accent-primary);
+}
+
+.vocabulary-card.favorite {
+    border-color: var(--warning);
+    background: color-mix(in srgb, var(--warning) 6%, var(--bg-elevated));
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-xs);
+}
+
 .word {
-    font-size: var(--font-size-xl);
-    font-weight: 600;
+    font-size: var(--font-size-lg);
+    font-weight: 700;
     color: var(--text-primary);
+    line-height: 1;
+}
+
+.pos {
+    font-size: var(--font-size-md);
+    color: var(--text-muted);
+    font-weight: 500;
+    flex-shrink: 0;
+    margin-left: 2px;
 }
 
 .romaji {
     font-size: var(--font-size-md);
     color: var(--accent-primary);
-}
-
-.furigana {
-    font-size: var(--font-size-sm);
-    color: var(--text-tertiary);
-    margin-top: var(--spacing-xs);
+    font-weight: 500;
+    flex-shrink: 0;
 }
 
 .favorite-btn {
     background: none;
     border: none;
     cursor: pointer;
-    padding: var(--spacing-xs);
+    padding: 6px;
+    margin-left: auto;
     color: var(--text-muted);
-    transition: all var(--transition-fast);
-    border-radius: var(--radius-sm);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.vocabulary-card:hover .favorite-btn,
+.favorite-btn.active {
+    opacity: 1;
+    transform: scale(1);
 }
 
 .favorite-btn:hover {
     color: var(--warning);
-    background: var(--bg-soft);
+    background: color-mix(in srgb, var(--warning) 12%, transparent);
+    border-radius: 20%;
 }
 
 .favorite-btn.active {
     color: var(--warning);
+    border-radius: 50%;
+    animation: heartbeat 0.6s ease-in-out;
+}
+
+@keyframes heartbeat {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
+    }
+    30% {
+        transform: scale(1.3);
+        box-shadow: 0 0 0 8px rgba(255, 193, 7, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+    }
 }
 
 .star-icon {
-    width: 20px;
-    height: 20px;
+    width: 14px;
+    height: 14px;
+    display: block;
+    opacity: 0.3;
+    background-color: var(--text-muted);
+    mask-image: var(--star-icon-url);
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
 }
 
-.card-body {
+.vocabulary-card:hover .star-icon,
+.favorite-btn:hover .star-icon {
+    opacity: 1;
+    background-color: var(--text-muted);
+}
+
+.favorite-btn.active .star-icon {
+    opacity: 1;
+    background-color: var(--warning);
+}
+
+.card-content {
     display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-xs);
+    flex: 1;
+    min-height: 0;
 }
 
 .meaning {
     font-size: var(--font-size-md);
     color: var(--text-secondary);
-    line-height: 1.5;
-}
-
-.meta {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    margin-top: var(--spacing-xs);
-}
-
-.part-of-speech-badge {
-    font-size: var(--font-size-xs);
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: var(--radius-sm);
-    background: var(--accent-primary);
-    color: white;
-}
-
-.part-of-speech-badge.名 {
-    background: #22c55e;
-}
-
-.part-of-speech-badge.动 {
-    background: #3b82f6;
-}
-
-.part-of-speech-badge.形 {
-    background: #f59e0b;
-}
-
-.part-of-speech-badge.副 {
-    background: #ef4444;
-}
-
-.part-of-speech-badge.助 {
-    background: #8b5cf6;
-}
-
-.part-of-speech-badge.感 {
-    background: #ec4899;
+    line-height: 1.4;
+    text-align: right;
+    flex: 1;
+    min-width: 0;
 }
 
 .category {
-    font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    font-size: 9px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    .vocabulary-card {
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
+
+    .vocabulary-card:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
 }
 </style>

@@ -101,8 +101,10 @@ export function useVocabularyService() {
       if (filters.partOfSpeech && item[5] !== filters.partOfSpeech) {
         return false;
       }
-      if (filters.category && item[6] !== filters.category) {
-        return false;
+      if (filters.categories && filters.categories.length > 0) {
+        if (!filters.categories.includes(item[6])) {
+          return false;
+        }
       }
       if (filters.search) {
         const query = filters.search.toLowerCase();

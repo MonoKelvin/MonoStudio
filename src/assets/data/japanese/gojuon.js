@@ -12,11 +12,11 @@ export const GOJUON_DATA = {
         { hiragana: 'お', katakana: 'オ', romaji: 'o', kanji: '於', meaning: 'at', history: '平假名「お」取自汉字「於」的草书体。「於」字在古汉语中表示「在」「于是」之意。片假名「才」取自「才」字的楷书偏旁。お在口语中既是重要的助词，也可作为接头辞表示郑重。' }
       ],
       examples: [
-        { word: 'あさ', romaji: 'asa', meaning: 'morning', kana: '朝' },
-        { word: 'あめ', romaji: 'ame', meaning: 'rain', kana: '雨' },
-        { word: 'あお', romaji: 'ao', meaning: 'blue', kana: '青' },
-        { word: 'あか', romaji: 'aka', meaning: 'red', kana: '赤' },
-        { word: 'あおる', romaji: 'aoru', meaning: 'to wash', kana: '洗う' }
+        { word: 'あさ', romaji: 'asa', meaning: '早晨', kana: '朝' },
+        { word: 'あめ', romaji: 'ame', meaning: '雨', kana: '雨' },
+        { word: 'あお', romaji: 'ao', meaning: '蓝色', kana: '青' },
+        { word: 'あか', romaji: 'aka', meaning: '红色', kana: '赤' },
+        { word: 'あおる', romaji: 'aoru', meaning: '洗', kana: '洗う' }
       ]
     },
     {
@@ -29,11 +29,11 @@ export const GOJUON_DATA = {
         { hiragana: 'こ', katakana: 'コ', romaji: 'ko', kanji: '己', meaning: 'self', history: '平假名「こ」取自汉字「己」的草书体。「己」字本义是自己，古代也用于天干第六位。片假名「コ」取自「古」字的上半部分。「こ」在现代日语中是非常重要的人称代词，表示「我」的意思。' }
       ],
       examples: [
-        { word: 'かさ', romaji: 'kasa', meaning: 'umbrella', kana: '傘' },
-        { word: 'かみ', romaji: 'kami', meaning: 'paper', kana: '紙' },
-        { word: 'かぜ', romaji: 'kaze', meaning: 'wind', kana: '風' },
-        { word: 'かわ', romaji: 'kawa', meaning: 'river', kana: '川' },
-        { word: 'こども', romaji: 'kodomo', meaning: 'child', kana: '子供' }
+        { word: 'かさ', romaji: 'kasa', meaning: '伞', kana: '傘' },
+        { word: 'かみ', romaji: 'kami', meaning: '纸', kana: '紙' },
+        { word: 'かぜ', romaji: 'kaze', meaning: '风', kana: '風' },
+        { word: 'かわ', romaji: 'kawa', meaning: '河', kana: '川' },
+        { word: 'こども', romaji: 'kodomo', meaning: '小孩', kana: '子供' }
       ]
     },
     {
@@ -46,11 +46,11 @@ export const GOJUON_DATA = {
         { hiragana: 'そ', katakana: 'ソ', romaji: 'so', kanji: '曾', meaning: 'previously', history: '平假名「そ」取自汉字「曾」的草书体。「曾」字本义是曾经、乃至于，也有增加之意。片假名「ソ」取自「曾」字的楷书偏旁。值得注意的是，「そ」和「ん」字形相似，是最容易混淆的假名之一。' }
       ],
       examples: [
-        { word: 'さくら', romaji: 'sakura', meaning: 'cherry blossom', kana: '桜' },
-        { word: 'さかな', romaji: 'sakana', meaning: 'fish', kana: '魚' },
-        { word: 'さとる', romaji: 'satoru', meaning: 'to comprehend', kana: '悟る' },
-        { word: 'さむい', romaji: 'samui', meaning: 'cold', kana: '寒い' },
-        { word: 'そら', romaji: 'sora', meaning: 'sky', kana: '空' }
+        { word: 'さくら', romaji: 'sakura', meaning: '樱花', kana: '桜' },
+        { word: 'さかな', romaji: 'sakana', meaning: '鱼', kana: '魚' },
+        { word: 'さとる', romaji: 'satoru', meaning: '领悟', kana: '悟る' },
+        { word: 'さむい', romaji: 'samui', meaning: '冷', kana: '寒い' },
+        { word: 'そら', romaji: 'sora', meaning: '天空', kana: '空' }
       ]
     },
     {
@@ -63,8 +63,8 @@ export const GOJUON_DATA = {
         { hiragana: 'と', katakana: 'ト', romaji: 'to', kanji: '止', meaning: 'stop', history: '平假名「と」取自汉字「止」的草书体。「止」字本义是脚趾，衍伸为停止、截止。片假名「ト」取自「止」字的楷书偏旁。「と」作为助词有多种用法，包括表示并列、条件、引用等，是日常会话中最常用的助词之一。' }
       ],
       examples: [
-        { word: 'たべる', romaji: 'taberu', meaning: 'to eat', kana: '食べる' },
-        { word: 'つき', romaji: 'tsuki', meaning: 'moon', kana: '月' }
+        { word: 'たべる', romaji: 'taberu', meaning: '吃', kana: '食べる' },
+        { word: 'つき', romaji: 'tsuki', meaning: '月亮', kana: '月' }
       ]
     },
     {
@@ -77,11 +77,11 @@ export const GOJUON_DATA = {
         { hiragana: 'の', katakana: 'ノ', romaji: 'no', kanji: '乃', meaning: 'of', history: '平假名「の」取自汉字「乃」的草书体。「乃」字本义是于是、才，引申为所有格。片假名「ノ」取自「乃」字的楷书偏旁。「の」是日语中使用频率最高的助词之一，主要表示所属、所有关系，相当于汉语的「的」。' }
       ],
       examples: [
-        { word: 'なつ', romaji: 'natsu', meaning: 'summer', kana: '夏' },
-        { word: 'ねこ', romaji: 'neko', meaning: 'cat', kana: '猫' },
-        { word: 'ななめ', romaji: 'naname', meaning: 'diagonal', kana: '斜め' },
-        { word: 'にほん', romaji: 'nihon', meaning: 'Japan', kana: '日本' },
-        { word: 'にくい', romaji: 'nikui', meaning: 'difficult', kana: '悪い' }
+        { word: 'なつ', romaji: 'natsu', meaning: '夏天', kana: '夏' },
+        { word: 'ねこ', romaji: 'neko', meaning: '猫', kana: '猫' },
+        { word: 'ななめ', romaji: 'naname', meaning: '斜', kana: '斜め' },
+        { word: 'にほん', romaji: 'nihon', meaning: '日本', kana: '日本' },
+        { word: 'にくい', romaji: 'nikui', meaning: '难', kana: '悪い' }
       ]
     },
     {
@@ -94,11 +94,11 @@ export const GOJUON_DATA = {
         { hiragana: 'ほ', katakana: 'ホ', romaji: 'ho', kanji: '保', meaning: 'protect', history: '平假名「ほ」取自汉字「保」的草书体。「保」字本义是保护、维持。片假名「ホ」取自「保」字的楷书偏旁。从字形上看，「ほ」像是一个人在张嘴说话，因此有说法认为其本义与「話す」（はなす，说话）相关。' }
       ],
       examples: [
-        { word: 'はな', romaji: 'hana', meaning: 'flower', kana: '花' },
-        { word: 'ひと', romaji: 'hito', meaning: 'person', kana: '人' },
-        { word: 'はる', romaji: 'haru', meaning: 'spring', kana: '春' },
-        { word: 'はし', romaji: 'hashi', meaning: 'bridge/chopsticks', kana: '橋/箸' },
-        { word: 'ひる', romaji: 'hiru', meaning: 'noon', kana: '昼' }
+        { word: 'はな', romaji: 'hana', meaning: '花', kana: '花' },
+        { word: 'ひと', romaji: 'hito', meaning: '人', kana: '人' },
+        { word: 'はる', romaji: 'haru', meaning: '春天', kana: '春' },
+        { word: 'はし', romaji: 'hashi', meaning: '桥/筷子', kana: '橋/箸' },
+        { word: 'ひる', romaji: 'hiru', meaning: '中午', kana: '昼' }
       ]
     },
     {
@@ -111,11 +111,11 @@ export const GOJUON_DATA = {
         { hiragana: 'も', katakana: 'モ', romaji: 'mo', kanji: '毛', meaning: 'hair', history: '取自「毛」字的草书体。片假名「モ」取自「毛」字的楷书偏旁。作为助词「も」表示「也」「都」的含义，使用频率极高。' }
       ],
       examples: [
-        { word: 'みず', romaji: 'mizu', meaning: 'water', kana: '水' },
-        { word: 'もり', romaji: 'mori', meaning: 'forest', kana: '森' },
-        { word: 'まち', romaji: 'machi', meaning: 'town', kana: '町' },
-        { word: 'みみ', romaji: 'mimi', meaning: 'ear', kana: '耳' },
-        { word: 'むすめ', romaji: 'musume', meaning: 'daughter', kana: '娘' }
+        { word: 'みず', romaji: 'mizu', meaning: '水', kana: '水' },
+        { word: 'もり', romaji: 'mori', meaning: '森林', kana: '森' },
+        { word: 'まち', romaji: 'machi', meaning: '城镇', kana: '町' },
+        { word: 'みみ', romaji: 'mimi', meaning: '耳朵', kana: '耳' },
+        { word: 'むすめ', romaji: 'musume', meaning: '女儿', kana: '娘' }
       ]
     },
     {
@@ -128,11 +128,11 @@ export const GOJUON_DATA = {
         { hiragana: 'よ', katakana: 'ヨ', romaji: 'yo', kanji: '余', meaning: 'surplus', history: '取自「余」字的草书体。片假名「ヨ」取自「余」字的楷书偏旁。常见于「夜」（yoru，晚上）和「世」（yo，世界）。' }
       ],
       examples: [
-        { word: 'やま', romaji: 'yama', meaning: 'mountain', kana: '山' },
-        { word: 'ゆき', romaji: 'yuki', meaning: 'snow', kana: '雪' },
-        { word: 'やすい', romaji: 'yasui', meaning: 'cheap', kana: '安い' },
-        { word: 'よる', romaji: 'yoru', meaning: 'night', kana: '夜' },
-        { word: 'ゆうえんち', romaji: 'yuenchi', meaning: 'amusement park', kana: '遊園地' }
+        { word: 'やま', romaji: 'yama', meaning: '山', kana: '山' },
+        { word: 'ゆき', romaji: 'yuki', meaning: '雪', kana: '雪' },
+        { word: 'やすい', romaji: 'yasui', meaning: '便宜', kana: '安い' },
+        { word: 'よる', romaji: 'yoru', meaning: '夜晚', kana: '夜' },
+        { word: 'ゆうえんち', romaji: 'yuenchi', meaning: '游乐园', kana: '遊園地' }
       ]
     },
     {
@@ -145,11 +145,11 @@ export const GOJUON_DATA = {
         { hiragana: 'ろ', katakana: 'ロ', romaji: 'ro', kanji: '呂', meaning: 'spine', history: '取自「呂」字的草书体。片假名「ロ」取自「呂」字的楷书偏旁。字形像「口」（嘴巴），与「る」同源，都表示声音从口中发出。' }
       ],
       examples: [
-        { word: 'らいねん', romaji: 'rainen', meaning: 'next year', kana: '来年' },
-        { word: 'りんご', romaji: 'ringo', meaning: 'apple', kana: '林檎' },
-        { word: 'るす', romaji: 'rusu', meaning: 'absent', kana: '留守' },
-        { word: 'れきし', romaji: 'rekishi', meaning: 'history', kana: '歴史' },
-        { word: 'ろく', romaji: 'roku', meaning: 'six', kana: '六' }
+        { word: 'らいねん', romaji: 'rainen', meaning: '明年', kana: '来年' },
+        { word: 'りんご', romaji: 'ringo', meaning: '苹果', kana: '林檎' },
+        { word: 'るす', romaji: 'rusu', meaning: '不在', kana: '留守' },
+        { word: 'れきし', romaji: 'rekishi', meaning: '历史', kana: '歴史' },
+        { word: 'ろく', romaji: 'roku', meaning: '六', kana: '六' }
       ]
     },
     {
@@ -162,11 +162,11 @@ export const GOJUON_DATA = {
         { hiragana: 'を', katakana: 'ヲ', romaji: 'wo', kanji: '乎', meaning: 'oh', history: '取自「乎」字的草书体。片假名「ヲ」取自「乎」字的楷书偏旁。现代日语中主要作为宾语助词使用，但实际对话中已较少发音。' }
       ],
       examples: [
-        { word: 'わたし', romaji: 'watashi', meaning: 'I', kana: '私' },
-        { word: 'わすれる', romaji: 'wasureru', meaning: 'to forget', kana: '忘れる' },
-        { word: 'われる', romaji: 'wareru', meaning: 'to break', kana: '割れる' },
-        { word: 'かわいい', romaji: 'kawaii', meaning: 'cute', kana: '可愛い' },
-        { word: 'わかい', romaji: 'wakai', meaning: 'young', kana: '若い' }
+        { word: 'わたし', romaji: 'watashi', meaning: '我', kana: '私' },
+        { word: 'わすれる', romaji: 'wasureru', meaning: '忘', kana: '忘れる' },
+        { word: 'われる', romaji: 'wareru', meaning: '碎', kana: '割れる' },
+        { word: 'かわいい', romaji: 'kawaii', meaning: '可爱', kana: '可愛い' },
+        { word: 'わかい', romaji: 'wakai', meaning: '年轻', kana: '若い' }
       ]
     },
     {
@@ -179,11 +179,11 @@ export const GOJUON_DATA = {
         null
       ],
       examples: [
-        { word: 'にほん', romaji: 'nihon', meaning: 'Japan', kana: '日本' },
-        { word: 'さんぽ', romaji: 'sanpo', meaning: 'walk', kana: '散歩' },
-        { word: 'せんぱい', romaji: 'senpai', meaning: 'senior', kana: '先輩' },
-        { word: 'じんみん', romaji: 'jinmin', meaning: 'people', kana: '人民' },
-        { word: 'あんしん', romaji: 'anshin', meaning: 'relief', kana: '安心' }
+        { word: 'にほん', romaji: 'nihon', meaning: '日本', kana: '日本' },
+        { word: 'さんぽ', romaji: 'sanpo', meaning: '散步', kana: '散歩' },
+        { word: 'せんぱい', romaji: 'senpai', meaning: '前辈', kana: '先輩' },
+        { word: 'じんみん', romaji: 'jinmin', meaning: '人民', kana: '人民' },
+        { word: 'あんしん', romaji: 'anshin', meaning: '安心', kana: '安心' }
       ]
     },
     {
@@ -196,11 +196,11 @@ export const GOJUON_DATA = {
         { hiragana: 'ご', katakana: 'ゴ', romaji: 'go', kanji: '五', meaning: 'five', history: '浊音记号「゛」加在清音「こ」上构成。片假名「ゴ」取自「五」字。常见于「五つ」（itsutsu，五个）和「ご挨拶」（goaisatsu，寒暄）。' }
       ],
       examples: [
-        { word: 'がいこく', romaji: 'gaikoku', meaning: 'foreign country', kana: '外国' },
-        { word: 'げんき', romaji: 'genki', meaning: 'healthy', kana: '元気' },
-        { word: 'ぎんか', romaji: 'ginka', meaning: 'silver flower', kana: '銀花' },
-        { word: 'ぐんぐん', romaji: 'gungun', meaning: 'vigor', kana: 'ぐんぐん' },
-        { word: 'ごご', romaji: 'gogo', meaning: 'afternoon', kana: '午後' }
+        { word: 'がいこく', romaji: 'gaikoku', meaning: '外国', kana: '外国' },
+        { word: 'げんき', romaji: 'genki', meaning: '健康', kana: '元気' },
+        { word: 'ぎんか', romaji: 'ginka', meaning: '银花', kana: '銀花' },
+        { word: 'ぐんぐん', romaji: 'gungun', meaning: '旺盛', kana: 'ぐんぐん' },
+        { word: 'ごご', romaji: 'gogo', meaning: '下午', kana: '午後' }
       ]
     },
     {
@@ -213,11 +213,11 @@ export const GOJUON_DATA = {
         { hiragana: 'ぞ', katakana: 'ゾ', romaji: 'zo', kanji: '鼠', meaning: 'mouse', history: '浊音记号「゛」加在清音「そ」上构成。片假名「ゾ」取自「鼠」字。在拟态词中使用，如「ぞくぞく」（兴奋得浑身发抖）。' }
       ],
       examples: [
-        { word: 'じかん', romaji: 'jikan', meaning: 'time', kana: '時間' },
-        { word: 'ざんねん', romaji: 'zannen', meaning: 'unfortunately', kana: '残念' },
-        { word: 'ずんずん', romaji: 'zunzun', meaning: 'steadily', kana: 'ずんずん' },
-        { word: 'ぜったい', romaji: 'zettai', meaning: 'absolute', kana: '絶対' },
-        { word: 'ぞんび', romaji: 'zonbi', meaning: 'zombie', kana: 'ゾンビ' }
+        { word: 'じかん', romaji: 'jikan', meaning: '时间', kana: '時間' },
+        { word: 'ざんねん', romaji: 'zannen', meaning: '可惜', kana: '残念' },
+        { word: 'ずんずん', romaji: 'zunzun', meaning: '顺利', kana: 'ずんずん' },
+        { word: 'ぜったい', romaji: 'zettai', meaning: '绝对', kana: '絶対' },
+        { word: 'ぞんび', romaji: 'zonbi', meaning: '僵尸', kana: 'ゾンビ' }
       ]
     },
     {
@@ -230,11 +230,11 @@ export const GOJUON_DATA = {
         { hiragana: 'ど', katakana: 'ド', romaji: 'do', kanji: '土', meaning: 'earth', history: '浊音记号「゛」加在清音「と」上构成。片假名「ド」取自「土」字。在「どこ」（doko，哪里）等疑问词中使用频率极高。' }
       ],
       examples: [
-        { word: 'だいがく', romaji: 'daigaku', meaning: 'university', kana: '大学' },
-        { word: 'でも', romaji: 'demo', meaning: 'but', kana: '' },
-        { word: 'どこ', romaji: 'doko', meaning: 'where', kana: '' },
-        { word: 'ドア', romaji: 'doa', meaning: 'door', kana: '' },
-        { word: 'どうぶつ', romaji: 'doubutsu', meaning: 'animal', kana: '動物' }
+        { word: 'だいがく', romaji: 'daigaku', meaning: '大学', kana: '大学' },
+        { word: 'でも', romaji: 'demo', meaning: '但是', kana: '' },
+        { word: 'どこ', romaji: 'doko', meaning: '哪里', kana: '' },
+        { word: 'ドア', romaji: 'doa', meaning: '门', kana: '' },
+        { word: 'どうぶつ', romaji: 'doubutsu', meaning: '动物', kana: '動物' }
       ]
     },
     {
@@ -247,11 +247,11 @@ export const GOJUON_DATA = {
         { hiragana: 'ぼ', katakana: 'ボ', romaji: 'bo', kanji: '坊', meaning: 'boy', history: '浊音记号「゛」加在清音「ほ」上构成。片假名「ボ」取自「坊」字。常见于「坊ちゃん」（bocchan，少爷）等称呼。' }
       ],
       examples: [
-        { word: 'びょうき', romaji: 'byouki', meaning: 'illness', kana: '病気' },
-        { word: 'ぼしゅう', romaji: 'boshuu', meaning: 'recruitment', kana: '募集' },
-        { word: 'ばいてん', romaji: 'baiten', meaning: 'vending machine', kana: '売店' },
-        { word: 'ぶつか', romaji: 'butsuka', meaning: 'object', kana: '物体' },
-        { word: 'ぼんさい', romaji: 'bonsai', meaning: 'bonsai', kana: '盆栽' }
+        { word: 'びょうき', romaji: 'byouki', meaning: '生病', kana: '病気' },
+        { word: 'ぼしゅう', romaji: 'boshuu', meaning: '招募', kana: '募集' },
+        { word: 'ばいてん', romaji: 'baiten', meaning: '贩卖机', kana: '売店' },
+        { word: 'ぶつか', romaji: 'butsuka', meaning: '物体', kana: '物体' },
+        { word: 'ぼんさい', romaji: 'bonsai', meaning: '盆栽', kana: '盆栽' }
       ]
     },
     {
@@ -264,11 +264,11 @@ export const GOJUON_DATA = {
         { hiragana: 'ぽ', katakana: 'ポ', romaji: 'po', kanji: '歩', meaning: 'walk', history: '半浊音记号「゜」加在清音「ほ」上构成。片假名从未在日常日语中使用。「ポ」常见于外来语，如「ポスト」（posuto，邮筒）。' }
       ],
       examples: [
-        { word: 'パーティー', romaji: 'paatii', meaning: 'party', kana: '' },
-        { word: 'ピンク', romaji: 'pinku', meaning: 'pink', kana: '' },
-        { word: 'ピアノ', romaji: 'piano', meaning: 'piano', kana: '' },
-        { word: 'ポスト', romaji: 'posuto', meaning: 'post', kana: '' },
-        { word: 'ページ', romaji: 'peiji', meaning: 'page', kana: '' }
+        { word: 'パーティー', romaji: 'paatii', meaning: '派对', kana: '' },
+        { word: 'ピンク', romaji: 'pinku', meaning: '粉色', kana: '' },
+        { word: 'ピアノ', romaji: 'piano', meaning: '钢琴', kana: '' },
+        { word: 'ポスト', romaji: 'posuto', meaning: '邮筒', kana: '' },
+        { word: 'ページ', romaji: 'peiji', meaning: '页', kana: '' }
       ]
     }
   ]

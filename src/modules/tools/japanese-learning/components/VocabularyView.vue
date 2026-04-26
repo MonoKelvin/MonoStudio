@@ -1,50 +1,31 @@
 <template>
     <div class="vocabulary-view" ref="containerRef">
-        <div class="view-header">
-            <h2 class="view-title">常用单词学习</h2>
-            <div class="header-stats">
-                <span class="stat">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <SearchInput v-model="searchQuery" placeholder="搜索..." @input="debouncedSearch" />
+                <span class="stats-inline" v-if="totalWords > 0">
                     <span class="stat-value">{{ totalWords }}</span>
-                    <span class="stat-label">单词总数</span>
+                    <span class="stat-label">个单词</span>
                 </span>
-                <span class="stat" v-if="favoritesCount > 0">
-                    <span class="stat-value favorites">{{ favoritesCount }}</span>
-                    <span class="stat-label">已收藏</span>
-                </span>
+            </div>
+            <div class="toolbar-right">
+                <BaseSelect v-model="selectedLevel" @update:modelValue="handleLevelChange" :options="levelOptions" placeholder="级别" />
+                <BaseSelect v-model="selectedPartOfSpeech" @update:modelValue="handlePartOfSpeechChange" :options="partOfSpeechOptions" placeholder="词性" />
+                <template v-if="favoritesCount > 0">
+                    <span class="stats-inline">
+                        <span class="stat-value favorites">{{ favoritesCount }}</span>
+                        <span class="stat-label">已收藏</span>
+                    </span>
+                </template>
+                <BaseCheckbox v-model="showFavoritesOnly" @update:modelValue="loadVocabulary">只看收藏</BaseCheckbox>
             </div>
         </div>
-
-        <div class="filters">
-            <div class="filter-row">
-                <div class="level-filters">
-                    <button v-for="level in levels" :key="level" class="level-btn" :class="{ active: selectedLevel === level }"
-                        @click="selectLevel(level)">
-                        {{ level.toUpperCase() }}
-                    </button>
-                </div>
-                <label class="favorites-toggle">
-                    <input type="checkbox" v-model="showFavoritesOnly" @change="loadVocabulary" />
-                    <span>只看收藏</span>
-                </label>
-            </div>
-
-            <div class="category-filters" v-if="availableCategories.length > 0">
-                <button v-for="cat in availableCategories" :key="cat.key" class="category-btn"
-                    :class="{ active: selectedCategory === cat.key }" @click="selectCategory(cat.key)">
-                    {{ cat.name }}
-                </button>
-            </div>
-
-            <div class="part-of-speech-filters">
-                <button v-for="pos in partsOfSpeech" :key="pos.key" class="pos-btn"
-                    :class="{ active: selectedPartOfSpeech === pos.key }" @click="selectPartOfSpeech(pos.key)">
-                    {{ pos.name }}
-                </button>
-            </div>
-
-            <div class="search-box">
-                <SearchInput v-model="searchQuery" placeholder="搜索单词、意思或罗马音..." @input="debouncedSearch" />
-            </div>
+        <div class="category-bar" v-if="availableCategories.length > 0">
+            <button class="category-btn" :class="{ active: selectedCategories.length === 0 }" @click="clearCategories">全部</button>
+            <button v-for="cat in availableCategories" :key="cat.key" class="category-btn"
+                :class="{ active: selectedCategories.includes(cat.key) }" @click="toggleCategory(cat.key)">
+                {{ cat.name }}
+            </button>
         </div>
 
         <div class="vocabulary-list" v-if="words.length > 0">
@@ -87,6 +68,8 @@ import { useVocabularyService } from '../services/vocabularyService.js';
 import { VOCABULARY_CATEGORIES, SCENE_CATEGORIES, PARTS_OF_SPEECH } from '../../../../assets/data/japanese/vocabulary/categories.js';
 import SearchInput from '../../../../components/base/SearchInput.vue';
 import BaseButton from '../../../../components/base/BaseButton.vue';
+import BaseSelect from '../../../../components/base/BaseSelect.vue';
+import BaseCheckbox from '../../../../components/base/BaseCheckbox.vue';
 import VocabularyCard from './VocabularyCard.vue';
 
 const {
@@ -101,8 +84,8 @@ const containerRef = ref(null);
 const loadMoreRef = ref(null);
 
 const selectedLevel = ref('n5');
-const selectedCategory = ref(null);
-const selectedPartOfSpeech = ref(null);
+const selectedCategories = ref([]);
+const selectedPartOfSpeech = ref('');
 const showFavoritesOnly = ref(false);
 const searchQuery = ref('');
 const words = ref([]);
@@ -113,6 +96,13 @@ const loading = ref(false);
 const favoritesCount = ref(0);
 
 let searchTimeout = null;
+
+const levelOptions = computed(() => {
+    return levels.map(level => ({
+        label: level.toUpperCase(),
+        value: level
+    }));
+});
 
 const availableCategories = computed(() => {
     const levelConfig = VOCABULARY_CATEGORIES[selectedLevel.value];
@@ -133,6 +123,16 @@ const partsOfSpeech = computed(() => {
     }));
 });
 
+const partOfSpeechOptions = computed(() => {
+    return [
+        { label: '全部', value: '' },
+        ...Object.entries(PARTS_OF_SPEECH).map(([key, value]) => ({
+            label: value.name,
+            value: key
+        }))
+    ];
+});
+
 const isFavorite = (wordId) => {
     return checkIsFavorite(wordId);
 };
@@ -142,20 +142,30 @@ const handleToggleFavorite = (wordId) => {
     favoritesCount.value = getFavorites().length;
 };
 
-const selectLevel = (level) => {
+const handleLevelChange = (level) => {
     selectedLevel.value = level;
-    selectedCategory.value = null;
-    selectedPartOfSpeech.value = null;
+    selectedCategories.value = [];
+    selectedPartOfSpeech.value = '';
     loadVocabulary();
 };
 
-const selectCategory = (category) => {
-    selectedCategory.value = selectedCategory.value === category ? null : category;
+const handlePartOfSpeechChange = (pos) => {
+    selectedPartOfSpeech.value = pos;
     loadVocabulary();
 };
 
-const selectPartOfSpeech = (pos) => {
-    selectedPartOfSpeech.value = selectedPartOfSpeech.value === pos ? null : pos;
+const toggleCategory = (category) => {
+    const idx = selectedCategories.value.indexOf(category);
+    if (idx === -1) {
+        selectedCategories.value.push(category);
+    } else {
+        selectedCategories.value.splice(idx, 1);
+    }
+    loadVocabulary();
+};
+
+const clearCategories = () => {
+    selectedCategories.value = [];
     loadVocabulary();
 };
 
@@ -170,7 +180,7 @@ const loadVocabulary = async () => {
     loading.value = true;
 
     const filters = {
-        category: selectedCategory.value,
+        categories: selectedCategories.value,
         partOfSpeech: selectedPartOfSpeech.value,
         search: searchQuery.value,
         favoritesOnly: showFavoritesOnly.value
@@ -191,7 +201,7 @@ const loadMore = async () => {
     loading.value = true;
 
     const filters = {
-        category: selectedCategory.value,
+        categories: selectedCategories.value,
         partOfSpeech: selectedPartOfSpeech.value,
         search: searchQuery.value,
         favoritesOnly: showFavoritesOnly.value
@@ -208,8 +218,8 @@ const loadMore = async () => {
 
 const resetFilters = () => {
     selectedLevel.value = 'n5';
-    selectedCategory.value = null;
-    selectedPartOfSpeech.value = null;
+    selectedCategories.value = [];
+    selectedPartOfSpeech.value = '';
     showFavoritesOnly.value = false;
     searchQuery.value = '';
     loadVocabulary();
@@ -243,112 +253,75 @@ onMounted(() => {
 
 <style scoped>
 .vocabulary-view {
-    padding: var(--spacing-lg);
-    max-height: calc(100vh - 200px);
+    padding: var(--spacing-xs) var(--spacing-lg);
+    max-height: 100%;
     overflow-y: auto;
 }
 
-.view-header {
+.toolbar {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-xl);
-}
-
-.view-title {
-    font-size: var(--font-size-2xl);
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.header-stats {
-    display: flex;
-    gap: var(--spacing-lg);
-}
-
-.stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.stat-value {
-    font-size: var(--font-size-xl);
-    font-weight: 600;
-    color: var(--accent-primary);
-}
-
-.stat-value.favorites {
-    color: var(--warning);
-}
-
-.stat-label {
-    font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
-}
-
-.filters {
-    display: flex;
-    flex-direction: column;
     gap: var(--spacing-md);
-    margin-bottom: var(--spacing-xl);
-    padding-bottom: var(--spacing-lg);
-    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-md);
 }
 
-.filter-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.level-filters {
-    display: flex;
-    gap: var(--spacing-xs);
-}
-
-.level-btn {
-    padding: var(--spacing-xs) var(--spacing-md);
-    border: 1px solid var(--border-color);
-    background: transparent;
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    cursor: pointer;
-    border-radius: var(--radius-md);
-    transition: all var(--transition-fast);
-}
-
-.level-btn:hover {
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
-}
-
-.level-btn.active {
-    background: var(--accent-primary);
-    border-color: var(--accent-primary);
-    color: white;
-}
-
-.favorites-toggle {
+.toolbar-left {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
-    cursor: pointer;
+    flex: 1;
+    max-width: 400px;
+}
+
+.toolbar-left :deep(.search-input) {
+    width: auto;
+    flex: 1;
+}
+
+.stats-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: var(--text-tertiary);
+    white-space: nowrap;
 }
 
-.favorites-toggle input {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
+.stats-inline .stat-value {
+    font-weight: 600;
+    color: var(--accent-primary);
 }
 
-.category-filters {
+.stats-inline .stat-value.favorites {
+    color: var(--warning);
+}
+
+.stats-inline .stat-label {
+    color: var(--text-tertiary);
+}
+
+.toolbar-right {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.toolbar-right :deep(.ui-select-wrap) {
+    width: auto;
+    min-width: 90px;
+}
+
+.toolbar-right :deep(.ui-checkbox-wrap) {
+    white-space: nowrap;
+}
+
+.category-bar {
+    display: flex;
+    align-items: center;
     gap: var(--spacing-xs);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-2xl);
 }
 
 .category-btn {
@@ -372,46 +345,15 @@ onMounted(() => {
     color: white;
 }
 
-.part-of-speech-filters {
+.vocabulary-list {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--spacing-xs);
-}
-
-.pos-btn {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border: 1px solid var(--border-color);
-    background: transparent;
-    color: var(--text-tertiary);
-    font-size: var(--font-size-xs);
-    cursor: pointer;
-    border-radius: var(--radius-sm);
-    transition: all var(--transition-fast);
-}
-
-.pos-btn:hover {
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
-}
-
-.pos-btn.active {
-    background: var(--accent-primary);
-    border-color: var(--accent-primary);
-    color: white;
-}
-
-.search-box {
-    max-width: 400px;
-}
-
-.vocabulary-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: var(--spacing-md);
 }
 
 .load-more-trigger {
-    grid-column: 1 / -1;
+    flex: 1;
+    min-width: 100%;
     display: flex;
     justify-content: center;
     padding: var(--spacing-xl);
@@ -446,7 +388,8 @@ onMounted(() => {
 }
 
 .end-message {
-    grid-column: 1 / -1;
+    flex: 1;
+    min-width: 100%;
     text-align: center;
     padding: var(--spacing-xl);
     color: var(--text-tertiary);
@@ -455,7 +398,8 @@ onMounted(() => {
 
 .empty-state,
 .loading-state {
-    grid-column: 1 / -1;
+    flex: 1;
+    min-width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -479,4 +423,5 @@ onMounted(() => {
     color: var(--text-tertiary);
     font-size: var(--font-size-md);
 }
+
 </style>

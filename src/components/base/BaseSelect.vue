@@ -9,7 +9,7 @@
 
         <transition name="ui-select-fade">
             <div v-if="isOpen" class="ui-select-dropdown" ref="dropdownRef" :style="dropdownStyle">
-                <button v-for="item in options" :key="item.value" type="button" class="ui-select-option"
+                <button v-for="item in (options || [])" :key="item.value" type="button" class="ui-select-option"
                     :class="{ active: item.value === modelValue }" @click="selectOption(item.value)"
                     :title="item.description">
                     {{ item.label }}
@@ -44,6 +44,7 @@ export default {
     },
     computed: {
         selectedLabel() {
+            if (!this.options) return '';
             const found = this.options.find((item) => item.value === this.modelValue);
             return found ? found.label : '';
         }

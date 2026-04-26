@@ -4,6 +4,7 @@
             <h2 class="view-title">五十音图</h2>
             <div class="header-actions">
                 <div class="kana-toggle">
+                    <div class="toggle-indicator" :class="activeKana"></div>
                     <button class="toggle-btn" :class="{ active: activeKana === 'hiragana' }" @click="activeKana = 'hiragana'">
                         平假名
                     </button>
@@ -111,7 +112,15 @@
             <div class="section">
                 <h3 class="section-title">特殊音</h3>
                 <div class="special-chars">
-                    <GojuonCard v-for="(char, idx) in specialChars" :key="idx" :char="char" :active-kana="activeKana" @dblclick="handleDblClick" />
+                    <div v-for="(group, gIdx) in specialCharGroups" :key="gIdx" class="special-group">
+                        <span class="group-label">{{ group.name }}</span>
+                        <div class="group-chars">
+                            <div v-for="(char, cIdx) in group.chars" :key="cIdx" class="special-card" @dblclick="handleDblClick(char)">
+                                <span class="special-kana">{{ char.katakana }}</span>
+                                <span class="special-romaji">{{ char.romaji }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -120,6 +129,7 @@
             :visible="detailVisible"
             :char="selectedChar"
             :examples="selectedChar ? findExamples(selectedChar) : []"
+            :active-kana="activeKana"
             @update:visible="detailVisible = $event"
             @close="detailVisible = false"
         />
@@ -178,14 +188,59 @@ const voicedConsonants = computed(() => {
 
 const yoonConsonants = computed(() => YOON_CONSONANTS);
 
-const specialChars = computed(() => {
-    return KATAKANA_EXTRA.map(k => ({
-        hiragana: k.hiragana || '',
-        katakana: k.katakana,
-        romaji: k.romaji,
-        kanji: k.kanji || '',
-        history: k.history || ''
-    }));
+const specialCharGroups = computed(() => {
+    const groups = [
+        { name: 'ウ行复合音', chars: [] },
+        { name: 'イ行复合音', chars: [] },
+        { name: 'ティ/ディ', chars: [] },
+        { name: 'ト/ド复合音', chars: [] },
+        { name: 'ファ行', chars: [] },
+        { name: 'ウェ/ウォ', chars: [] },
+        { name: 'ツ行复合音', chars: [] },
+        { name: 'チャ行', chars: [] },
+        { name: 'ニャ行', chars: [] },
+        { name: 'ヒャ行', chars: [] },
+        { name: 'ミャ行', chars: [] },
+        { name: 'リャ行', chars: [] }
+    ];
+
+    KATAKANA_EXTRA.forEach(k => {
+        const char = {
+            hiragana: k.hiragana || '',
+            katakana: k.katakana,
+            romaji: k.romaji,
+            kanji: k.kanji || '',
+            history: k.history || ''
+        };
+
+        if (['va', 'vi', 've', 'vo'].includes(k.romaji)) {
+            groups[0].chars.push(char);
+        } else if (['she', 'je', 'che'].includes(k.romaji)) {
+            groups[1].chars.push(char);
+        } else if (['ti', 'di'].includes(k.romaji)) {
+            groups[2].chars.push(char);
+        } else if (['tu', 'du'].includes(k.romaji)) {
+            groups[3].chars.push(char);
+        } else if (['fa', 'fi', 'fe', 'fo', 'fyu'].includes(k.romaji)) {
+            groups[4].chars.push(char);
+        } else if (['we', 'wo'].includes(k.romaji)) {
+            groups[5].chars.push(char);
+        } else if (['tsa', 'tsi', 'tse', 'tso'].includes(k.romaji)) {
+            groups[6].chars.push(char);
+        } else if (['cha', 'chu', 'cho'].includes(k.romaji)) {
+            groups[7].chars.push(char);
+        } else if (['nya', 'nyu', 'nyo'].includes(k.romaji)) {
+            groups[8].chars.push(char);
+        } else if (['hya', 'hyu', 'hyo'].includes(k.romaji)) {
+            groups[9].chars.push(char);
+        } else if (['mya', 'myu', 'myo'].includes(k.romaji)) {
+            groups[10].chars.push(char);
+        } else if (['rya', 'ryu', 'ryo'].includes(k.romaji)) {
+            groups[11].chars.push(char);
+        }
+    });
+
+    return groups.filter(g => g.chars.length > 0);
 });
 
 const getVowelChar = (vowel, type) => {
@@ -218,8 +273,11 @@ const handleDblClick = (char) => {
 <style scoped>
 .gojuon-view {
     padding: var(--spacing-lg);
-    max-height: calc(100vh - 200px);
+    padding-bottom: var(--spacing-xl);
+    height: 100%;
+    max-height: 100%;
     overflow-y: auto;
+    box-sizing: border-box;
 }
 
 .view-header {
@@ -241,17 +299,38 @@ const handleDblClick = (char) => {
     background: var(--bg-soft);
     border-radius: var(--radius-md);
     padding: 2px;
+    position: relative;
+}
+
+.toggle-indicator {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: calc(50% - 2px);
+    height: calc(100% - 4px);
+    background: var(--accent-primary);
+    border-radius: var(--radius-sm);
+    transition: transform 0.25s cubic-bezier(0.1, 0, 0.4, 1);
+    z-index: 0;
+}
+
+.toggle-indicator.katakana {
+    transform: translateX(100%);
 }
 
 .toggle-btn {
+    flex: 1;
     padding: var(--spacing-xs) var(--spacing-md);
     border: none;
     background: transparent;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: var(--font-size-sm);
     cursor: pointer;
     border-radius: var(--radius-sm);
-    transition: all var(--transition-fast);
+    transition: color var(--transition-fast);
+    position: relative;
+    z-index: 1;
+    text-align: center;
 }
 
 .toggle-btn:hover {
@@ -259,7 +338,6 @@ const handleDblClick = (char) => {
 }
 
 .toggle-btn.active {
-    background: var(--accent-primary);
     color: white;
 }
 
@@ -367,31 +445,63 @@ tbody tr {
     color: var(--text-muted);
 }
 
-/* 滚动条样式 */
-.gojuon-view::-webkit-scrollbar {
-    width: 6px;
-}
-
-.gojuon-view::-webkit-scrollbar-track {
-    background: var(--bg-soft);
-    border-radius: var(--radius-md);
-}
-
-.gojuon-view::-webkit-scrollbar-thumb {
-    background: var(--bg-muted);
-    border-radius: var(--radius-md);
-}
-
 .special-chars {
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: var(--spacing-md);
-    justify-content: flex-start;
-    align-items: center;
 }
 
-.special-chars .kana-card {
-    flex: 0 0 auto;
+.special-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.group-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    min-width: 80px;
+    flex-shrink: 0;
+}
+
+.group-chars {
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.special-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+    min-height: 50px;
+    min-width: 80px;
+    padding: var(--spacing-xs);
+    background: var(--bg-elevated);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.special-card:hover {
+    transform: translateY(-2px);
+    background: var(--bg-soft);
+}
+
+.special-kana {
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.special-romaji {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: 2px;
 }
 </style>
