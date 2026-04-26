@@ -1,6 +1,6 @@
 <template>
     <div class="ui-spinbox" @wheel.prevent="onWheel">
-        <input ref="inputRef" class="ui-spinbox-input" type="number" :min="min" :max="max" :step="step"
+        <input ref="inputRef" class="ui-spinbox-input" type="number" :min="decimal ? null : min" :max="decimal ? null : max" :step="currentStep"
             :value="modelValue" @input="onInput" @blur="onBlur" v-bind="$attrs" />
         <div class="ui-spinbox-arrows">
             <div class="ui-spinbox-btn-up" @mousedown="startIncrement" @mouseup="stopIncrement"
@@ -41,6 +41,10 @@ export default {
         step: {
             type: Number,
             default: 1
+        },
+        decimal: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['update:modelValue'],
@@ -48,12 +52,24 @@ export default {
         return {
             incrementTimer: null,
             decrementTimer: null,
-            repeatInterval: 100
+            repeatInterval: 180,
+            accelerationFactor: 1
         };
+    },
+    computed: {
+        currentStep() {
+            if (this.decimal) {
+                return 0.1 * this.accelerationFactor;
+            }
+            return this.step;
+        }
     },
     methods: {
         clampValue(value) {
-            return Math.max(this.min, Math.min(this.max, value));
+            if (this.decimal) {
+                return Math.round(value * 10) / 10;
+            }
+            return Math.max(this.min, Math.min(this.max, Math.round(value)));
         },
         onWheel(event) {
             if (event.deltaY < 0) {
@@ -83,18 +99,24 @@ export default {
             event.target.value = clamped;
         },
         increment() {
-            const newValue = this.clampValue(this.modelValue + this.step);
+            const newValue = this.clampValue(this.modelValue + this.currentStep);
             this.$emit('update:modelValue', newValue);
         },
         decrement() {
-            const newValue = this.clampValue(this.modelValue - this.step);
+            const newValue = this.clampValue(this.modelValue - this.currentStep);
             this.$emit('update:modelValue', newValue);
         },
         startIncrement(event) {
             event.preventDefault();
+            this.accelerationFactor = 1;
+            let tickCount = 0;
             this.increment();
             this.incrementTimer = setInterval(() => {
                 this.increment();
+                tickCount++;
+                if (tickCount > 10) this.accelerationFactor = 2;
+                if (tickCount > 20) this.accelerationFactor = 5;
+                if (tickCount > 30) this.accelerationFactor = 10;
             }, this.repeatInterval);
         },
         stopIncrement() {
@@ -102,12 +124,19 @@ export default {
                 clearInterval(this.incrementTimer);
                 this.incrementTimer = null;
             }
+            this.accelerationFactor = 1;
         },
         startDecrement(event) {
             event.preventDefault();
+            this.accelerationFactor = 1;
+            let tickCount = 0;
             this.decrement();
             this.decrementTimer = setInterval(() => {
                 this.decrement();
+                tickCount++;
+                if (tickCount > 10) this.accelerationFactor = 2;
+                if (tickCount > 20) this.accelerationFactor = 5;
+                if (tickCount > 30) this.accelerationFactor = 10;
             }, this.repeatInterval);
         },
         stopDecrement() {
@@ -115,6 +144,7 @@ export default {
                 clearInterval(this.decrementTimer);
                 this.decrementTimer = null;
             }
+            this.accelerationFactor = 1;
         }
     }
 };
