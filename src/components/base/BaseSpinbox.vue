@@ -155,7 +155,7 @@ export default {
     position: relative;
     display: inline-flex;
     align-items: stretch;
-    height: 30px;
+    height: 34px;
     width: 80px;
     border-radius: 6px;
     background: var(--surface-2);
@@ -178,7 +178,7 @@ export default {
     background: transparent;
     color: var(--text-primary);
     font-size: 13px;
-    text-align: center;
+    text-align: left;
     outline: none;
     box-shadow: none;
 }
@@ -210,7 +210,7 @@ export default {
     justify-content: center;
     width: 20px;
     height: 12px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     cursor: pointer;
     transition: color 0.15s ease, transform 0.1s ease;
     line-height: 1;

@@ -76,7 +76,7 @@ const activeMainTab = ref('gojuon');
 
 .main-tab.active {
     background: var(--bg-elevated);
-    color: var(--accent-primary);
+    color: var(--accent-color);
     font-weight: 500;
     box-shadow: var(--shadow-card);
 }

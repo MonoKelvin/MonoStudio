@@ -48,7 +48,7 @@ defineEmits(['dblclick']);
 
 .gojuon-card:hover {
     transform: translateY(-2px);
-    border-color: var(--accent-primary);
+    border-color: var(--accent-color);
     background: var(--bg-soft);
 }
 

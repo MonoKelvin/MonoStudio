@@ -367,7 +367,7 @@ watch([() => props.visible, kanaChars], ([visible]) => {
 .example-word {
     font-size: 18px;
     font-weight: 600;
-    color: var(--accent-primary);
+    color: var(--accent-color);
     min-width: 80px;
     margin-left: var(--spacing-md);
 }

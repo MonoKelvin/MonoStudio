@@ -17,67 +17,67 @@
 
         <div class="converter-content">
             <div class="conversion-card">
-                <div class="conversion-panel from-panel">
-                    <span class="panel-label">从</span>
-                    <div class="panel-controls">
-                        <BaseSpinbox
-                            v-model="inputValue"
-                            :decimal="true"
-                            class="value-spinbox"
-                        />
-                        <BaseSelect
-                            v-model="fromUnit"
-                            :options="currentUnits"
-                            class="unit-select"
-                            @change="convert"
-                        />
+                <div class="conversion-panels">
+                    <div class="conversion-panel from-panel">
+                        <span class="panel-label">从</span>
+                        <div class="panel-controls">
+                            <BaseSpinbox
+                                v-model="inputValue"
+                                :decimal="true"
+                                class="value-spinbox"
+                            />
+                            <BaseSelect
+                                v-model="fromUnit"
+                                :options="currentUnits"
+                                class="unit-select"
+                                @change="convert"
+                            />
+                        </div>
                     </div>
-                </div>
 
-                <button class="swap-btn" @click="swapUnits" title="交换单位">
-                    <svg class="swap-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M8 7L4 12L8 17"/>
-                        <path d="M16 7L20 12L16 17"/>
-                        <path d="M4 12H20"/>
-                    </svg>
-                </button>
-
-                <div class="conversion-panel to-panel">
-                    <span class="panel-label">到</span>
-                    <div class="panel-controls">
-                        <BaseInput
-                            :model-value="resultValue"
-                            type="text"
-                            class="result-input"
-                            readonly
+                    <button class="swap-btn" @click="swapUnits" title="交换单位">
+                        <BaseSvgIcon 
+                            :icon="exchangeIcon" 
+                            size="20px" 
+                            color="white" 
                         />
-                        <BaseSelect
-                            v-model="toUnit"
-                            :options="currentUnits"
-                            class="unit-select"
-                            @change="convert"
-                        />
-                    </div>
-                </div>
-            </div>
-
-            <div class="presets-card" v-if="currentPresets.length > 0">
-                <div class="presets-header">
-                    <span class="presets-title">常用转换</span>
-                </div>
-                <div class="presets-grid">
-                    <button
-                        v-for="preset in currentPresets"
-                        :key="preset.from + preset.to"
-                        class="preset-btn"
-                        @click="applyPreset(preset)"
-                    >
-                        <span class="preset-from">{{ preset.from }}</span>
-                        <svg class="preset-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
-                        <span class="preset-to">{{ preset.to }}</span>
                     </button>
+
+                    <div class="conversion-panel to-panel">
+                        <span class="panel-label">到</span>
+                        <div class="panel-controls">
+                            <BaseInput
+                                :model-value="resultValue"
+                                type="text"
+                                class="result-input"
+                                readonly
+                            />
+                            <BaseSelect
+                                v-model="toUnit"
+                                :options="currentUnits"
+                                class="unit-select"
+                                @change="convert"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="presets-section" v-if="currentPresets.length > 0">
+                    <div class="presets-header">
+                        <span class="presets-title">常用转换</span>
+                    </div>
+                    <div class="presets-grid">
+                        <button
+                            v-for="preset in currentPresets"
+                            :key="preset.from + preset.to"
+                            class="preset-btn"
+                            @click="applyPreset(preset)"
+                        >
+                            <span class="preset-from">{{ preset.from }}</span>
+                            <span>-></span>
+                            <span class="preset-to">{{ preset.to }}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -88,6 +88,8 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import BaseSpinbox from '../../../components/base/BaseSpinbox.vue';
 import BaseSelect from '../../../components/base/BaseSelect.vue';
+import BaseSvgIcon from '../../../components/base/BaseSvgIcon.vue';
+import exchangeIcon from '../../../assets/icons/exchange.svg?raw';
 
 const tabsRef = ref(null);
 const selectedCategory = ref('length');
@@ -541,14 +543,14 @@ watch([fromUnit, toUnit, inputValue], () => {
 
 <style scoped>
 .unit-converter {
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
     height: 100%;
     max-height: 100%;
     overflow-y: auto;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
 }
 
 .converter-header {
@@ -559,26 +561,27 @@ watch([fromUnit, toUnit, inputValue], () => {
     font-size: var(--font-size-lg);
     font-weight: 600;
     color: var(--text-primary);
-    margin: 0 0 var(--spacing-sm) 0;
+    margin: 0 0 var(--spacing-xs) 0;
 }
 
 .category-tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    padding: 4px;
+    gap: 4px;
+    padding: 3px;
     background: var(--bg-soft);
     border-radius: var(--radius-md);
     position: relative;
+    margin-bottom: var(--spacing-xs);
 }
 
 .tab-indicator {
     position: absolute;
-    top: 4px;
-    left: var(--indicator-left, 4px);
+    top: 3px;
+    left: var(--indicator-left, 3px);
     width: var(--indicator-width, auto);
-    height: calc(100% - 8px);
-    background: var(--accent-primary);
+    height: calc(100% - 6px);
+    background: var(--accent-color);
     border-radius: var(--radius-sm);
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
                 width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -587,16 +590,17 @@ watch([fromUnit, toUnit, inputValue], () => {
 }
 
 .category-tab {
-    padding: 8px 14px;
+    padding: 6px 12px;
     border: none;
     background: transparent;
     color: var(--text-muted);
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-md);
     cursor: pointer;
     border-radius: var(--radius-sm);
     transition: color 0.2s ease;
     position: relative;
     z-index: 1;
+    white-space: nowrap;
 }
 
 .category-tab:hover {
@@ -612,118 +616,114 @@ watch([fromUnit, toUnit, inputValue], () => {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
     min-height: 0;
 }
 
 .conversion-card {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
     gap: var(--spacing-md);
     background: var(--bg-elevated);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
     box-shadow: var(--shadow-card);
+}
+
+.conversion-panels {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
 }
 
 .conversion-panel {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     flex: 1;
     min-width: 0;
 }
 
 .panel-label {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-md);
     font-weight: 500;
     color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .panel-controls {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     flex: 1;
 }
 
 :deep(.ui-spinbox) {
     flex: 1;
-    min-width: 80px;
-    height: 32px;
+    min-width: 60px;
 }
 
 :deep(.ui-input) {
     flex: 1;
-    min-width: 80px;
-    height: 32px;
+    min-width: 60px;
     font-size: var(--font-size-md);
 }
 
 :deep(.ui-select-wrap) {
-    height: 32px;
-    min-width: 120px;
+    min-width: 100px;
     flex: 1;
+    max-width: 150px;
 }
 
 :deep(.ui-select-trigger) {
-    height: 32px;
-    font-size: var(--font-size-sm);
-    padding: 0 8px;
+    font-size: var(--font-size-md);
+    padding: 0 6px;
     width: 100%;
 }
 
 .result-input {
-    color: var(--accent-primary);
+    color: var(--accent-color);
     font-weight: 600;
 }
 
 .swap-btn {
-    width: auto;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
     border: none;
-    background: var(--accent-primary);
+    background: var(--accent-color);
     color: white;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all 0.2s ease;
     margin-top: 24px;
-    padding: 0 12px;
 }
 
 .swap-btn:hover {
-    background: var(--accent-active);
-    transform: scale(1.02);
+    background: var(--accent-hover);
+    transform: scale(1.05);
 }
 
 .swap-btn:active {
-    transform: scale(0.98);
+    transform: scale(0.95);
 }
 
-.swap-icon {
-    width: 16px;
-    height: 16px;
-}
-
-.presets-card {
-    background: var(--bg-elevated);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-md);
-    box-shadow: var(--shadow-card);
+.presets-section {
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--spacing-md);
 }
 
 .presets-header {
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
 }
 
 .presets-title {
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-md);
     font-weight: 500;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -731,72 +731,78 @@ watch([fromUnit, toUnit, inputValue], () => {
 }
 
 .presets-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
 }
 
 .preset-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
+    gap: 4px;
+    padding: 6px 14px;
     border: 1px solid var(--border-color);
-    background: var(--bg-primary);
+    background: var(--bg-soft);
     color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-    border-radius: var(--radius-sm);
+    font-size: var(--font-size-md);
+    border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .preset-btn:hover {
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
-    background: rgba(59, 130, 246, 0.05);
+    background: var(--hover-bg);
+    color: var(--accent-color);
 }
 
 .preset-from,
 .preset-to {
     font-weight: 500;
-    color: var(--text-primary);
-}
-
-.preset-btn:hover .preset-from,
-.preset-btn:hover .preset-to {
-    color: var(--accent-primary);
+    font-size: var(--font-size-md);
 }
 
 .preset-arrow {
     width: 12px;
     height: 12px;
-    color: var(--text-muted);
+    color: var(--accent-color);
     flex-shrink: 0;
+}
+
+.preset-btn:hover .preset-arrow {
+    color: var(--accent-color);
 }
 
 @media (max-width: 768px) {
     .conversion-card {
+        padding: var(--spacing-sm);
+    }
+
+    .conversion-panels {
         flex-direction: column;
-        padding: var(--spacing-md);
-        gap: var(--spacing-sm);
+        gap: var(--spacing-xs);
     }
 
     .swap-btn {
-        margin-top: 0;
         transform: rotate(90deg);
+        margin: var(--spacing-xs) 0;
     }
 
     .swap-btn:hover {
         transform: rotate(90deg) scale(1.05);
+        background: var(--accent-hover);
     }
 
     .panel-controls {
-        flex-direction: column;
+        flex-direction: row;
         width: 100%;
     }
 
-    .presets-grid {
-        grid-template-columns: 1fr;
+    :deep(.ui-select-wrap) {
+        max-width: 120px;
+    }
+
+    .presets-section {
+        padding-top: var(--spacing-sm);
     }
 }
 </style>

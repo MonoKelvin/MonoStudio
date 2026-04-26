@@ -272,7 +272,6 @@ const handleDblClick = (char) => {
 
 <style scoped>
 .gojuon-view {
-    padding: var(--spacing-lg);
     padding-bottom: var(--spacing-xl);
     height: 100%;
     max-height: 100%;
@@ -300,6 +299,7 @@ const handleDblClick = (char) => {
     border-radius: var(--radius-md);
     padding: 2px;
     position: relative;
+    margin-right: calc(var(--spacing-xl));
 }
 
 .toggle-indicator {
@@ -308,7 +308,7 @@ const handleDblClick = (char) => {
     left: 2px;
     width: calc(50% - 2px);
     height: calc(100% - 4px);
-    background: var(--accent-primary);
+    background: var(--accent-color);
     border-radius: var(--radius-sm);
     transition: transform 0.25s cubic-bezier(0.1, 0, 0.4, 1);
     z-index: 0;
