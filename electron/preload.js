@@ -44,6 +44,17 @@ const systemInfoBridge = {
   getBattery: () => ipcRenderer.invoke('system-info:get-battery')
 };
 
+const processesBridge = {
+  listBasic: () => ipcRenderer.invoke('processes:listBasic'),
+  listFull: () => ipcRenderer.invoke('processes:listFull'),
+  getDetail: (pid) => ipcRenderer.invoke('processes:getDetail', pid),
+  kill: (pid) => ipcRenderer.invoke('processes:kill', pid)
+};
+
+const systemStatsBridge = {
+  get: () => ipcRenderer.invoke('system-stats:get')
+};
+
 const userDataBridge = {
   getPath: () => ipcRenderer.invoke('userData:getPath'),
   getDefaultPath: () => ipcRenderer.invoke('userData:getDefaultPath'),
@@ -75,6 +86,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   settings: settingsBridge,
   devtools: devtoolsBridge,
   systemInfo: systemInfoBridge,
+  processes: processesBridge,
+  systemStats: systemStatsBridge,
   userData: userDataBridge,
   shell: {
     openExternal: (url) => shell.openExternal(url)

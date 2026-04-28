@@ -302,6 +302,138 @@ app.whenReady().then(async () => {
       }
     });
 
+    // 获取进程基本信息（快速）
+    ipcMain.handle('processes:listBasic', async () => {
+      try {
+        const { execSync } = require('child_process');
+
+        if (process.platform === 'win32') {
+          // 使用 tasklist 快速获取基本信息
+          const output = execSync('tasklist /fo csv /nh', { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
+          const lines = output.trim().split('\n');
+          return lines.map(line => {
+            const parts = line.split('","');
+            const name = parts[0]?.replace(/"/g, '') || 'Unknown';
+            const pid = parseInt(parts[1]?.replace(/"/g, '') || '0');
+            const memStr = parts[4]?.replace(/"/g, '').replace(/[^\d]/g, '') || '0';
+            return {
+              name,
+              pid,
+              memory: parseInt(memStr) * 1024, // KB to bytes
+              cpu: 0,
+              loading: true // 标记需要异步加载详细数据
+            };
+          }).filter(p => p.pid > 0);
+        }
+        return [];
+      } catch (error) {
+        console.error('获取基本进程列表失败:', error);
+        return [];
+      }
+    });
+
+    // 获取进程详细信息（慢速，包含CPU和内存）
+    ipcMain.handle('processes:listFull', async () => {
+      try {
+        const { execSync } = require('child_process');
+
+        if (process.platform === 'win32') {
+          // 使用 PowerShell 获取详细信息（较慢）
+          const output = execSync('powershell -Command "Get-Process | Select-Object Name, Id, @{Name=\'Memory\';Expression={$_.WorkingSet64}}, CPU | ConvertTo-Json"', {
+            encoding: 'utf8',
+            maxBuffer: 50 * 1024 * 1024,
+            timeout: 10000
+          });
+
+          const processes = JSON.parse(output);
+          const procList = Array.isArray(processes) ? processes : [processes];
+
+          return procList.map(p => ({
+            name: p.Name || 'Unknown',
+            pid: p.Id || 0,
+            memory: p.Memory || 0,
+            cpu: p.CPU ? parseFloat(p.CPU.toFixed(1)) : 0
+          })).filter(p => p.pid > 0);
+        }
+        return [];
+      } catch (error) {
+        console.error('获取详细进程列表失败:', error);
+        return [];
+      }
+    });
+
+    // 获取单个进程详细信息
+    ipcMain.handle('processes:getDetail', async (_, pid) => {
+      try {
+        const { execSync } = require('child_process');
+
+        if (process.platform === 'win32') {
+          const cmd = `powershell -Command "Get-Process -Id ${pid} | Select-Object Name, Id, @{Name='Memory';Expression={$_.WorkingSet64}}, CPU, @{Name='Threads';Expression={$_.Threads.Count}}, @{Name='Handles';Expression={$_.Handles}}, Path, Company, Description | ConvertTo-Json"`;
+          const output = execSync(cmd, { encoding: 'utf8', timeout: 5000 });
+          const p = JSON.parse(output);
+          return {
+            name: p.Name || 'Unknown',
+            pid: p.Id || 0,
+            memory: p.Memory || 0,
+            cpu: p.CPU ? parseFloat(p.CPU.toFixed(1)) : 0,
+            threads: p.Threads || 0,
+            handles: p.Handles || 0,
+            path: p.Path || '',
+            company: p.Company || '',
+            description: p.Description || ''
+          };
+        }
+        return null;
+      } catch (error) {
+        console.error('获取进程详情失败:', error);
+        return null;
+      }
+    });
+
+    // 获取系统统计信息（CPU、内存）
+    ipcMain.handle('system-stats:get', async () => {
+      try {
+        const os = require('os');
+        const cpus = os.cpus();
+        const totalMem = os.totalmem();
+        const freeMem = os.freemem();
+
+        // 计算 CPU 使用率
+        let totalIdle = 0;
+        let totalTick = 0;
+        cpus.forEach(cpu => {
+          for (let type in cpu.times) {
+            totalTick += cpu.times[type];
+          }
+          totalIdle += cpu.times.idle;
+        });
+        const cpuLoad = Math.round((1 - totalIdle / totalTick) * 100);
+
+        return {
+          cpuLoad,
+          memoryUsed: totalMem - freeMem,
+          memoryTotal: totalMem
+        };
+      } catch (error) {
+        console.error('获取系统统计失败:', error);
+        return { cpuLoad: 0, memoryUsed: 0, memoryTotal: 0 };
+      }
+    });
+
+    // 终止进程
+    ipcMain.handle('processes:kill', async (_, pid) => {
+      try {
+        const { execSync } = require('child_process');
+        if (process.platform === 'win32') {
+          execSync(`taskkill /PID ${pid} /F`, { encoding: 'utf8' });
+        }
+        return { success: true };
+      } catch (error) {
+        console.error('终止进程失败:', error);
+        return { success: false, error: error.message };
+      }
+    });
+
     // 获取本地IP地址
     function getLocalIP() {
       const interfaces = os.networkInterfaces();
