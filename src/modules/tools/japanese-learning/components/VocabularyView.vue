@@ -80,7 +80,6 @@ const {
 } = useVocabularyService();
 
 const levels = ['n5', 'n4', 'n3', 'n2', 'n1'];
-const containerRef = ref(null);
 const loadMoreRef = ref(null);
 
 const selectedLevel = ref('n5');
@@ -253,7 +252,8 @@ onMounted(() => {
 
 <style scoped>
 .vocabulary-view {
-    padding: var(--spacing-xs) var(--spacing-lg);
+    padding-right: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
     max-height: 100%;
     overflow-y: auto;
 }
@@ -341,7 +341,7 @@ onMounted(() => {
 }
 
 .category-btn.active {
-    background: var(--accent-secondary);
+    background: var(--accent-color);
     color: white;
 }
 
@@ -349,6 +349,7 @@ onMounted(() => {
     display: flex;
     flex-wrap: wrap;
     gap: var(--spacing-md);
+    justify-content: flex-start;
 }
 
 .load-more-trigger {

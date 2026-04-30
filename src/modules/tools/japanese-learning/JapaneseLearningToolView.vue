@@ -52,6 +52,7 @@ const activeMainTab = ref('gojuon');
     padding: var(--spacing-md) var(--spacing-lg);
     background: var(--bg-soft);
     border-bottom: 1px solid var(--border-color);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     flex-shrink: 0;
 }
 

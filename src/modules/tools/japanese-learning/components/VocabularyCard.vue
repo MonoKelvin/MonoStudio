@@ -1,23 +1,24 @@
 <template>
     <div class="vocabulary-card" :class="{ favorite: isFavorited }">
         <div class="card-header">
-            <span class="word">{{ item[1] }}</span>
-            <span class="pos">[{{ item[5] }}]</span>
-            <span class="romaji">{{ item[2] }}</span>
+            <div class="word-group">
+                <span class="word">{{ displayWord }}</span>
+                <span class="kana" v-if="hasKanji">({{ item[1] }})</span>
+            </div>
             <button class="favorite-btn" @click.stop="toggleFavorite" :class="{ active: isFavorited }">
                 <span class="star-icon" :style="{ '--star-icon-url': `url(${starSolidIcon})` }"></span>
             </button>
         </div>
         <div class="card-content">
-            <span class="category">{{ getCategoryName(item[6]) }}</span>
+            <span class="pos">[{{ item[5] }}]</span>
+            <span class="romaji">{{ item[2] }}</span>
             <span class="meaning">{{ item[3] }}</span>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { SCENE_CATEGORIES } from '../../../../assets/data/japanese/vocabulary/categories.js';
+import { computed } from 'vue';
 import starSolidIcon from '../../../../assets/icons/star-solid.svg?url';
 
 const props = defineProps({
@@ -35,12 +36,19 @@ const emit = defineEmits(['toggle-favorite']);
 
 const isFavorited = computed(() => props.isFavorite);
 
+const hasKanji = computed(() => {
+    return props.item[4] && props.item[4] !== '' && props.item[4] !== props.item[1];
+});
+
+const displayWord = computed(() => {
+    if (props.item[4] && props.item[4] !== '') {
+        return props.item[4];
+    }
+    return props.item[1];
+});
+
 const toggleFavorite = () => {
     emit('toggle-favorite', props.item[0]);
-};
-
-const getCategoryName = (category) => {
-    return SCENE_CATEGORIES[category]?.name || category;
 };
 </script>
 
@@ -48,16 +56,16 @@ const getCategoryName = (category) => {
 .vocabulary-card {
     background: var(--bg-elevated);
     border-radius: var(--radius-md);
-    padding: var(--spacing-sm);
+    padding: var(--spacing-md);
     cursor: pointer;
     transition: all 0.2s ease;
     border: 1px solid var(--border-color);
     flex: 1;
-    min-width: 180px;
-    max-width: 24%;
+    min-width: 200px;
+    max-width: 320px;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xs);
+    gap: 4px;
 }
 
 .vocabulary-card:hover {
@@ -76,13 +84,39 @@ const getCategoryName = (category) => {
     align-items: center;
     gap: var(--spacing-xs);
     margin-bottom: var(--spacing-xs);
+    padding-bottom: var(--spacing-xs);
+}
+
+.word-group {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+    flex-wrap: nowrap;
 }
 
 .word {
     font-size: var(--font-size-lg);
     font-weight: 700;
     color: var(--text-primary);
-    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.kana {
+    font-size: var(--font-size-lg);
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.card-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
 }
 
 .pos {
@@ -90,14 +124,25 @@ const getCategoryName = (category) => {
     color: var(--text-muted);
     font-weight: 500;
     flex-shrink: 0;
-    margin-left: 2px;
 }
 
 .romaji {
     font-size: var(--font-size-md);
-    color: var(--accent-primary);
+    color: var(--accent-color);
     font-weight: 500;
     flex-shrink: 0;
+}
+
+.meaning {
+    font-size: var(--font-size-md);
+    color: var(--text-secondary);
+    line-height: 1.4;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
 }
 
 .favorite-btn {
@@ -173,31 +218,23 @@ const getCategoryName = (category) => {
     background-color: var(--warning);
 }
 
-.card-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--spacing-xs);
-    flex: 1;
-    min-height: 0;
+@media (max-width: 1200px) {
+    .vocabulary-card {
+        flex: 1 1 calc(33.33% - 12px);
+    }
 }
 
-.meaning {
-    font-size: var(--font-size-md);
-    color: var(--text-secondary);
-    line-height: 1.4;
-    text-align: right;
-    flex: 1;
-    min-width: 0;
+@media (max-width: 900px) {
+    .vocabulary-card {
+        flex: 1 1 calc(50% - 12px);
+    }
 }
 
-.category {
-    font-size: 9px;
-    color: var(--text-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex-shrink: 0;
+@media (max-width: 600px) {
+    .vocabulary-card {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
 }
 
 @media (prefers-color-scheme: dark) {

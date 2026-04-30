@@ -257,8 +257,17 @@ const getVowelChar = (vowel, type) => {
 const findExamples = (char) => {
     for (const row of GOJUON_DATA.rows) {
         const found = row.characters.find(c => c && c.romaji === char.romaji);
-        if (found && row.examples) {
-            return row.examples;
+        if (found) {
+            if (found.examples && found.examples.length > 0) {
+                return found.examples;
+            }
+            if (row.examples) {
+                return row.examples.filter(ex => {
+                    const hiragana = found.hiragana;
+                    const katakana = found.katakana;
+                    return ex.word.includes(hiragana) || ex.word.includes(katakana);
+                });
+            }
         }
     }
     return [];
