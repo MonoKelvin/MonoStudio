@@ -38,8 +38,8 @@ export default {
 
 .ui-btn:active,
 .ui-btn.active {
-  background: color-mix(in srgb, var(--accent-primary) 85%, var(--bg-elevated) 15%);
-  border-color: color-mix(in srgb, var(--accent-primary) 60%, var(--text-secondary) 40%);
+  background: color-mix(in srgb, var(--accent-color) 85%, var(--bg-elevated) 15%);
+  border-color: color-mix(in srgb, var(--accent-color) 60%, var(--text-secondary) 40%);
   box-shadow: none;
 }
 
