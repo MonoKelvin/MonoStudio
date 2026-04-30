@@ -53,7 +53,11 @@ export default {
         },
         duration: {
             type: Number,
-            default: 5000
+            default: 3000
+        },
+        stackOffset: {
+            type: Number,
+            default: 0
         },
         closable: {
             type: Boolean,
@@ -86,7 +90,8 @@ export default {
             offsetX: 0,
             offsetY: 0,
             dragDirection: null,
-            initialRect: null
+            initialRect: null,
+            internalStackOffset: 0
         };
     },
     computed: {
@@ -133,10 +138,20 @@ export default {
                 styles.transition = 'none';
             }
 
+            // 应用堆叠偏移量
+            if (this.internalStackOffset > 0) {
+                if (this.position.includes('bottom')) {
+                    styles.marginBottom = `${this.internalStackOffset}px`;
+                } else if (this.position.includes('top')) {
+                    styles.marginTop = `${this.internalStackOffset}px`;
+                }
+            }
+
             return styles;
         }
     },
     mounted() {
+        this.internalStackOffset = this.stackOffset;
         this.startTimer();
     },
     methods: {
@@ -165,6 +180,9 @@ export default {
         },
         close() {
             this.isClosing = true;
+        },
+        updateStackOffset(newOffset) {
+            this.internalStackOffset = newOffset;
         },
         onMouseEnter() {
             this.clearTimer();
@@ -281,10 +299,10 @@ export default {
     align-items: center;
     gap: 12px;
     animation-duration: 0.5s;
-    animation-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
     user-select: none;
     cursor: default;
-    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .base-toast:hover {
@@ -457,7 +475,7 @@ export default {
 
 .toast-slide-in-right-enter-active,
 .toast-slide-in-right-leave-active {
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-right-enter-from {
@@ -468,12 +486,12 @@ export default {
 .toast-slide-in-right-leave-to {
     transform: translateX(100%);
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-left-enter-active,
 .toast-slide-in-left-leave-active {
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-left-enter-from {
@@ -484,12 +502,12 @@ export default {
 .toast-slide-in-left-leave-to {
     transform: translateX(-100%);
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-top-enter-active,
 .toast-slide-in-top-leave-active {
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-top-enter-from {
@@ -500,12 +518,12 @@ export default {
 .toast-slide-in-top-leave-to {
     transform: translateY(-100%);
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-bottom-enter-active,
 .toast-slide-in-bottom-leave-active {
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-bottom-enter-from {
@@ -516,12 +534,12 @@ export default {
 .toast-slide-in-bottom-leave-to {
     transform: translateY(100%);
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-top-left-enter-active,
 .toast-slide-in-top-left-leave-active {
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-top-left-enter-from {
@@ -532,12 +550,12 @@ export default {
 .toast-slide-in-top-left-leave-to {
     transform: translate(-100%, -100%);
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-top-right-enter-active,
 .toast-slide-in-top-right-leave-active {
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-top-right-enter-from {
@@ -548,12 +566,12 @@ export default {
 .toast-slide-in-top-right-leave-to {
     transform: translate(100%, -100%);
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-bottom-left-enter-active,
 .toast-slide-in-bottom-left-leave-active {
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-bottom-left-enter-from {
@@ -564,12 +582,12 @@ export default {
 .toast-slide-in-bottom-left-leave-to {
     transform: translate(-100%, 100%);
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-bottom-right-enter-active,
 .toast-slide-in-bottom-right-leave-active {
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .toast-slide-in-bottom-right-enter-from {
@@ -580,6 +598,6 @@ export default {
 .toast-slide-in-bottom-right-leave-to {
     transform: translate(100%, 100%);
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 </style>

@@ -6,15 +6,7 @@
             @dragover.prevent="handleDragOver"
             @dragleave.prevent="handleDragLeave"
             @drop.prevent="handleDrop">
-            <div class="file-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                    <polyline points="10 9 9 9 8 9" />
-                </svg>
-            </div>
+            <BaseSvgIcon :icon="fileHasherIcon" :size="32" color="var(--text-muted)" />
             <span class="select-title">点击选择文件或拖放到此处</span>
         </div>
 
@@ -40,24 +32,26 @@
 
         <div class="hash-options">
             <label>哈希算法</label>
-            <BaseSelect v-model="selectedAlgorithm" :options="hashAlgorithms" />
+            <div class="hash-select-wrapper">
+                <BaseSelect v-model="selectedAlgorithm" :options="hashAlgorithms" />
+            </div>
         </div>
 
         <div class="hash-result-section">
-            <div class="result-header">
-                <label>{{ selectedAlgorithm }} 哈希值</label>
-                <BaseButton size="sm" variant="secondary" @click="copyHash" :disabled="!hashResult">
-                    复制
-                </BaseButton>
-            </div>
+            <label class="result-label">{{ selectedAlgorithm }} 哈希值</label>
             <div class="result-display">
                 <code v-if="hashResult" class="hash-text">{{ hashResult }}</code>
                 <span v-else class="hash-placeholder">选择文件后自动计算</span>
+                <BaseButton
+                  v-if="hashResult"
+                  class="guid-copy-icon-btn"
+                  :class="{ 'is-success': copySuccess, 'is-recovering': copyRecovering }"
+                  size="sm"
+                  @click="copyToClipboard(hashResult)"
+                >
+                  <img :src="copySuccess ? successIcon : copyIcon" alt="" aria-hidden="true" />
+                </BaseButton>
             </div>
-        </div>
-
-        <div v-if="statusMessage" class="status-message" :class="statusType">
-            {{ statusMessage }}
         </div>
 
         <input type="file" ref="fileInput" style="display: none" @change="handleFileSelect" />
@@ -65,24 +59,31 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue';
+import { ref, watch, onBeforeUnmount } from 'vue';
 import BaseButton from '../../../components/base/BaseButton.vue';
 import BaseSelect from '../../../components/base/BaseSelect.vue';
+import BaseSvgIcon from '../../../components/base/BaseSvgIcon.vue';
+import fileHasherIcon from '../../../assets/icons/file-hasher.svg?raw';
+import copyIcon from '../../../assets/icons/copy.svg';
+import successIcon from '../../../assets/icons/check-success.svg';
+import { toastService } from '../../../common/services/toastService.js';
 
 export default {
     name: 'FileHasherToolView',
     components: {
         BaseButton,
-        BaseSelect
+        BaseSelect,
+        BaseSvgIcon
     },
     setup() {
         const selectedFile = ref(null);
         const selectedAlgorithm = ref('SHA-256');
         const hashResult = ref('');
-        const statusMessage = ref('');
-        const statusType = ref('info');
         const isDragOver = ref(false);
         const fileInput = ref(null);
+        const copySuccess = ref(false);
+        const copyRecovering = ref(false);
+        const copySuccessTimer = ref(null);
 
         const hashAlgorithms = [
             { label: 'SHA-1', value: 'SHA-1' },
@@ -129,14 +130,14 @@ export default {
         };
 
         const calculateHash = async (file) => {
-            setStatus('正在计算哈希值...', 'info');
-            
+            toastService.info('正在计算哈希值...');
+
             try {
                 const hash = await computeHash(file, selectedAlgorithm.value);
                 hashResult.value = hash;
-                setStatus('哈希值计算完成', 'success');
+                toastService.success('哈希值计算完成');
             } catch (error) {
-                setStatus('计算哈希值失败: ' + error.message, 'error');
+                toastService.error('计算哈希值失败: ' + error.message);
                 hashResult.value = '';
             }
         };
@@ -177,24 +178,31 @@ export default {
         const clearFile = () => {
             selectedFile.value = null;
             hashResult.value = '';
-            statusMessage.value = '';
             if (fileInput.value) {
                 fileInput.value.value = '';
             }
         };
 
-        const setStatus = (message, type = 'info') => {
-            statusMessage.value = message;
-            statusType.value = type;
-        };
-
-        const copyHash = async () => {
-            if (!hashResult.value) return;
+        const copyToClipboard = async (text) => {
+            if (!text) return;
             try {
-                await navigator.clipboard.writeText(hashResult.value);
-                setStatus('已复制到剪贴板', 'success');
-            } catch (err) {
-                setStatus('复制失败', 'error');
+                await navigator.clipboard.writeText(text);
+                copySuccess.value = false;
+                copyRecovering.value = false;
+                requestAnimationFrame(() => {
+                    copySuccess.value = true;
+                });
+                if (copySuccessTimer.value) clearTimeout(copySuccessTimer.value);
+                copySuccessTimer.value = setTimeout(() => {
+                    copySuccess.value = false;
+                    copyRecovering.value = true;
+                    copySuccessTimer.value = setTimeout(() => {
+                        copyRecovering.value = false;
+                        copySuccessTimer.value = null;
+                    }, 240);
+                }, 1500);
+            } catch {
+                // ignore clipboard errors
             }
         };
 
@@ -204,15 +212,25 @@ export default {
             }
         });
 
+        onBeforeUnmount(() => {
+            if (copySuccessTimer.value) {
+                clearTimeout(copySuccessTimer.value);
+                copySuccessTimer.value = null;
+            }
+        });
+
         return {
             selectedFile,
             selectedAlgorithm,
             hashResult,
-            statusMessage,
-            statusType,
             isDragOver,
             fileInput,
             hashAlgorithms,
+            fileHasherIcon,
+            copyIcon,
+            successIcon,
+            copySuccess,
+            copyRecovering,
             selectFile,
             handleFileSelect,
             handleDragOver,
@@ -222,7 +240,7 @@ export default {
             formatFileSize,
             truncateMiddle,
             clearFile,
-            copyHash
+            copyToClipboard
         };
     }
 };
@@ -239,7 +257,7 @@ export default {
 .file-select-area {
     border: 2px dashed var(--border-color);
     border-radius: var(--radius-md);
-    padding: var(--spacing-lg);
+    padding: var(--spacing-2xl);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -247,23 +265,18 @@ export default {
     transition: all 0.2s ease;
     cursor: pointer;
     background: var(--bg-secondary);
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .file-select-area:hover {
-    border-color: var(--accent-primary);
-    background: color-mix(in srgb, var(--accent-primary) 4%, var(--bg-secondary));
+    border-color: var(--accent-hover);
+    background: color-mix(in srgb, var(--accent-color) 5%, transparent);
 }
 
 .file-select-area.drag-over {
-    border-color: var(--accent-primary);
-    background: color-mix(in srgb, var(--accent-primary) 8%, var(--bg-secondary));
-}
-
-.file-icon {
-    width: 32px;
-    height: 32px;
-    color: var(--text-muted);
-    flex-shrink: 0;
+    border-color: var(--accent-hover);
+    background: color-mix(in srgb, var(--accent-color) 10%, transparent);
 }
 
 .file-icon svg {
@@ -272,9 +285,9 @@ export default {
 }
 
 .select-title {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-lg);
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--text-muted);
     text-align: center;
 }
 
@@ -333,14 +346,20 @@ export default {
 
 .hash-options {
     display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--spacing-md);
 }
 
 .hash-options label {
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--text-secondary);
     font-size: var(--font-size-md);
+}
+
+.hash-select-wrapper {
+    flex-shrink: 0;
+    min-width: 140px;
 }
 
 .hash-result-section {
@@ -350,23 +369,32 @@ export default {
     overflow: hidden;
 }
 
-.result-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.result-label {
+    display: block;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: var(--font-size-md);
     padding: var(--spacing-sm) var(--spacing-md);
     background: var(--bg-tertiary);
 }
 
-.result-header label {
-    font-weight: 500;
-    color: var(--text-primary);
-    font-size: var(--font-size-md);
-}
-
 .result-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
     padding: var(--spacing-md);
     background: var(--bg-primary);
+}
+
+.guid-copy-icon-btn {
+    flex-shrink: 0;
+}
+
+.guid-copy-icon-btn img {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
 }
 
 .hash-text {
@@ -376,33 +404,14 @@ export default {
     color: var(--text-primary);
     word-break: break-all;
     line-height: 1.6;
-    display: block;
+    flex: 1;
+    min-width: 0;
 }
 
 .hash-placeholder {
     font-size: var(--font-size-md);
     color: var(--text-muted);
-}
-
-.status-message {
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-md);
-    text-align: center;
-}
-
-.status-message.info {
-    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-    color: var(--accent-primary);
-}
-
-.status-message.success {
-    background: color-mix(in srgb, var(--success) 8%, transparent);
-    color: var(--success);
-}
-
-.status-message.error {
-    background: color-mix(in srgb, var(--danger) 8%, transparent);
-    color: var(--danger);
+    flex: 1;
+    min-width: 0;
 }
 </style>

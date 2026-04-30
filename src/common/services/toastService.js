@@ -6,6 +6,12 @@ class ToastService {
     this.toastContainer = null;
     this.toastInstances = [];
     this.nextToastId = 1;
+    this.toastHeight = 80;
+    this.edgeOffset = 20;
+  }
+
+  get toastGap() {
+    return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--spacing-md').trim()) || 12;
   }
 
   // 初始化 toast 容器
@@ -27,16 +33,32 @@ class ToastService {
     }
   }
 
+  // 计算堆叠偏移量
+  calculateStackOffset() {
+    const totalHeight = this.toastInstances.reduce((sum, toast) => sum + this.toastHeight + this.toastGap, 0);
+    return totalHeight;
+  }
+
   // 显示 toast
   show(options) {
     this.init();
 
     const toastId = this.nextToastId++;
+
+    // 解析选项，closeOthers 默认为 true
+    const { closeOthers = true, ...restOptions } = options;
+
+    // 如果 closeOthers 为 true，关闭所有已存在的 toast
+    if (closeOthers) {
+      this.closeAll();
+    }
+
     const toastOptions = {
       id: toastId,
       visible: true,
-      ...options,
-      duration: options.duration || 5000
+      ...restOptions,
+      duration: restOptions.duration !== undefined ? restOptions.duration : 3000,
+      stackOffset: this.calculateStackOffset()
     };
 
     // 创建 Vue 应用实例
@@ -83,6 +105,18 @@ class ToastService {
 
       // 从数组中移除
       this.toastInstances.splice(index, 1);
+
+      // 重新计算剩余 toast 的偏移量
+      this.recalculateStackOffsets();
+    }
+  }
+
+  // 重新计算所有 toast 的堆叠偏移量
+  recalculateStackOffsets() {
+    let offset = 0;
+    for (const toast of this.toastInstances) {
+      toast.instance.updateStackOffset(offset);
+      offset += this.toastHeight + this.toastGap;
     }
   }
 
