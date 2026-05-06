@@ -1,306 +1,275 @@
 <template>
-  <BasePanel class="panel network-tools-panel">
-    <div class="network-tools-container">
-      <div class="tools-header">
-        <h3>{{ toolName }}</h3>
-      </div>
-      
-      <div class="tool-tabs">
-        <BaseButton 
-          :class="{ active: activeTab === 'ping' }" 
-          @click="activeTab = 'ping'"
-        >
-          Ping 测试
-        </BaseButton>
-        <BaseButton 
-          :class="{ active: activeTab === 'ip' }" 
-          @click="activeTab = 'ip'"
-        >
-          IP 地址
-        </BaseButton>
-        <BaseButton 
-          :class="{ active: activeTab === 'dns' }" 
-          @click="activeTab = 'dns'"
-        >
-          DNS 查找
-        </BaseButton>
-      </div>
-      
-      <div class="tab-content">
-        <!-- Ping 测试 -->
-        <div v-if="activeTab === 'ping'" class="ping-tab">
-          <div class="input-group">
-            <label>目标地址</label>
-            <BaseInput v-model="pingTarget" placeholder="输入域名或IP地址..." />
-          </div>
-          <BaseButton @click="startPing">开始 Ping</BaseButton>
-          <div class="ping-results" v-if="pingResults.length > 0">
-            <div v-for="(result, index) in pingResults" :key="index" class="ping-result">
-              {{ result }}
+    <BasePanel class="panel network-tools-panel">
+        <div class="network-tools-container">
+            <div class="info-header">
+                <div class="header-title">
+                    <div class="header-icon">
+                        <BaseSvgIcon :icon="networkIcon" :size="20" color="var(--accent-color)" />
+                    </div>
+                    <h3>{{ toolName }}</h3>
+                </div>
+                <div class="header-actions">
+                    <BaseButton @click="handleRefresh" class="refresh-btn" :disabled="isLoading">
+                        <span class="refresh-icon" :class="{ spinning: isLoading }">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M23 4v6h-6"/>
+                                <path d="M1 20v-6h6"/>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
+                                <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
+                            </svg>
+                        </span>
+                        {{ isLoading ? '刷新中...' : '刷新' }}
+                    </BaseButton>
+                </div>
             </div>
-          </div>
+
+            <div class="tool-sections">
+                <section class="tool-section overview-section">
+                    <NetworkOverview
+                        :public-ip="publicIp"
+                        :ip-location="ipLocation"
+                        :local-ip="localIp"
+                        :network-interface="networkInterface"
+                        :online="online"
+                        :connection-type="connectionType"
+                        :effective-type="effectiveType"
+                        :rtt="rtt"
+                    />
+                </section>
+
+                <section class="tool-section">
+                    <SpeedTest :online="online" />
+                </section>
+
+                <div class="sections-grid three-cols">
+                    <section class="tool-section">
+                        <PingTest />
+                    </section>
+
+                    <section class="tool-section">
+                        <DnsLookup />
+                    </section>
+
+                    <section class="tool-section">
+                        <IpQuery />
+                    </section>
+                </div>
+
+                <section class="tool-section">
+                    <UserAgentParser />
+                </section>
+            </div>
         </div>
-        
-        <!-- IP 地址 -->
-        <div v-if="activeTab === 'ip'" class="ip-tab">
-          <div class="ip-info">
-            <div class="ip-item">
-              <span class="label">本地 IP 地址:</span>
-              <span class="value">{{ localIp }}</span>
-            </div>
-            <div class="ip-item">
-              <span class="label">公网 IP 地址:</span>
-              <span class="value">{{ publicIp }}</span>
-            </div>
-            <BaseButton @click="getPublicIp">获取公网 IP</BaseButton>
-          </div>
-        </div>
-        
-        <!-- DNS 查找 -->
-        <div v-if="activeTab === 'dns'" class="dns-tab">
-          <div class="input-group">
-            <label>域名</label>
-            <BaseInput v-model="dnsDomain" placeholder="输入域名..." />
-          </div>
-          <BaseButton @click="lookupDns">查找 DNS</BaseButton>
-          <div class="dns-results" v-if="dnsResults.length > 0">
-            <div v-for="(result, index) in dnsResults" :key="index" class="dns-result">
-              {{ result }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </BasePanel>
+    </BasePanel>
 </template>
 
 <script>
-import BaseInput from '../../../components/base/BaseInput.vue';
+import BasePanel from '../../../components/base/BasePanel.vue';
 import BaseButton from '../../../components/base/BaseButton.vue';
+import BaseSvgIcon from '../../../components/base/BaseSvgIcon.vue';
+import { NetworkOverview, SpeedTest, PingTest, DnsLookup, IpQuery, UserAgentParser } from './components/index.js';
+import { useNetworkInfo } from './composables/useNetworkInfo.js';
+import networkIcon from '../../../assets/icons/network-tools.svg?raw';
+import { toastService } from '../../../common/services/toastService.js';
 
 export default {
-  name: 'NetworkToolsToolView',
-  components: {
-    BaseInput,
-    BaseButton
-  },
-  props: {
-    toolName: {
-      type: String,
-      default: '网络工具'
+    name: 'NetworkToolsToolView',
+    components: {
+        BasePanel,
+        BaseButton,
+        BaseSvgIcon,
+        NetworkOverview,
+        SpeedTest,
+        PingTest,
+        DnsLookup,
+        IpQuery,
+        UserAgentParser
     },
-    toolDescription: {
-      type: String,
-      default: '网络连接测试和管理'
-    }
-  },
-  data() {
-    return {
-      activeTab: 'ping',
-      pingTarget: 'google.com',
-      pingResults: [],
-      localIp: '获取中...',
-      publicIp: '获取中...',
-      dnsDomain: 'google.com',
-      dnsResults: []
-    };
-  },
-  mounted() {
-    this.getLocalIp();
-    this.getPublicIp();
-  },
-  methods: {
-    async startPing() {
-      if (!this.pingTarget) {
-        alert('请输入目标地址');
-        return;
-      }
-      
-      this.pingResults = [];
-      
-      // 简单的 ping 实现（基于浏览器的 fetch API）
-      try {
-        const start = Date.now();
-        const response = await fetch(`https://${this.pingTarget}`, {
-          method: 'HEAD',
-          mode: 'no-cors',
-          timeout: 5000
-        });
-        const end = Date.now();
-        this.pingResults.push(`Ping ${this.pingTarget} 成功，响应时间: ${end - start}ms`);
-      } catch (error) {
-        this.pingResults.push(`Ping ${this.pingTarget} 失败: ${error.message}`);
-      }
+    props: {
+        toolName: {
+            type: String,
+            default: '网络工具'
+        },
+        toolDescription: {
+            type: String,
+            default: '网络连接测试和诊断'
+        }
     },
-    getLocalIp() {
-      // 在浏览器中获取本地 IP 地址的方法
-      // 注意：这只能获取到本地网络的 IP 地址
-      window.RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
-      
-      if (window.RTCPeerConnection) {
-        const pc = new RTCPeerConnection({ iceServers: [] });
-        pc.createDataChannel('');
-        pc.createOffer().then(offer => pc.setLocalDescription(offer));
-        
-        pc.onicecandidate = (event) => {
-          if (event.candidate) {
-            const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
-            const ipMatch = event.candidate.candidate.match(ipRegex);
-            if (ipMatch) {
-              this.localIp = ipMatch[1];
-              pc.close();
-            }
-          }
+    setup() {
+        const {
+            publicIp,
+            ipLocation,
+            localIp,
+            networkInterface,
+            online,
+            connectionType,
+            effectiveType,
+            rtt,
+            isLoading,
+            refresh
+        } = useNetworkInfo();
+
+        const handleRefresh = async () => {
+            await refresh();
+            toastService.success('刷新成功');
         };
-      } else {
-        this.localIp = '无法获取';
-      }
-    },
-    async getPublicIp() {
-      try {
-        const response = await fetch('https://api.ipify.org?format=json');
-        const data = await response.json();
-        this.publicIp = data.ip;
-      } catch (error) {
-        this.publicIp = '无法获取';
-      }
-    },
-    async lookupDns() {
-      if (!this.dnsDomain) {
-        alert('请输入域名');
-        return;
-      }
-      
-      this.dnsResults = [];
-      
-      try {
-        // 使用浏览器的 DNS 解析
-        const startTime = Date.now();
-        const response = await fetch(`https://${this.dnsDomain}`, {
-          method: 'HEAD',
-          mode: 'no-cors',
-          timeout: 5000
-        });
-        const endTime = Date.now();
-        
-        // 由于浏览器安全限制，我们无法直接获取 DNS 解析结果
-        // 这里只是模拟一个 DNS 查找
-        this.dnsResults.push(`正在查找 ${this.dnsDomain}...`);
-        this.dnsResults.push(`DNS 查找完成，响应时间: ${endTime - startTime}ms`);
-        this.dnsResults.push(`解析到的 IP 地址: ${this.getHostnameFromUrl(response.url)}`);
-      } catch (error) {
-        this.dnsResults.push(`DNS 查找失败: ${error.message}`);
-      }
-    },
-    getHostnameFromUrl(url) {
-      try {
-        const urlObj = new URL(url);
-        return urlObj.hostname;
-      } catch {
-        return '无法解析';
-      }
+
+        return {
+            networkIcon,
+            publicIp,
+            ipLocation,
+            localIp,
+            networkInterface,
+            online,
+            connectionType,
+            effectiveType,
+            rtt,
+            isLoading,
+            handleRefresh
+        };
     }
-  }
 };
 </script>
 
 <style scoped>
 .network-tools-panel {
-  height: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
 .network-tools-container {
-  padding: 20px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+    padding: var(--spacing-md);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    overflow-y: auto;
 }
 
-.tools-header h3 {
-  margin: 0 0 20px 0;
-  font-size: 18px;
-  font-weight: 600;
+.info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
 }
 
-.tool-tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 10px;
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
 }
 
-.tool-tabs .BaseButton {
-  padding: 8px 16px;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-  background: transparent;
-  border: 1px solid transparent;
-  border-bottom: none;
+.header-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: var(--radius-sm);
 }
 
-.tool-tabs .BaseButton.active {
-  background: var(--bg-primary);
-  border-color: var(--border-color);
-  border-bottom-color: var(--bg-primary);
-  font-weight: 500;
+.header-title h3 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
-.tab-content {
-  flex: 1;
-  padding: 20px;
-  background-color: var(--bg-secondary);
-  border-radius: var(--radius-md);
+.header-actions {
+    display: flex;
+    gap: var(--spacing-sm);
 }
 
-.input-group {
-  margin-bottom: 20px;
+.refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
 }
 
-.input-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: var(--text-primary);
+.refresh-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.ping-results,
-.dns-results {
-  margin-top: 20px;
-  padding: 12px;
-  background-color: var(--bg-primary);
-  border-radius: var(--radius-md);
-  max-height: 200px;
-  overflow-y: auto;
+.refresh-icon svg {
+    width: 100%;
+    height: 100%;
 }
 
-.ping-result,
-.dns-result {
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: var(--text-primary);
+.refresh-icon.spinning svg {
+    animation: spin 1s linear infinite;
 }
 
-.ip-info {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
-.ip-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px;
-  background-color: var(--bg-primary);
-  border-radius: var(--radius-md);
+.tool-sections {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
 }
 
-.ip-item .label {
-  font-weight: 500;
-  color: var(--text-secondary);
+.tool-section {
+    animation: fadeIn 0.3s ease;
 }
 
-.ip-item .value {
-  font-family: monospace;
-  color: var(--text-primary);
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.overview-section {
+    animation-delay: 0s;
+}
+
+.sections-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+}
+
+.sections-grid.three-cols {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 900px) {
+    .sections-grid,
+    .sections-grid.three-cols {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .info-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+
+    .header-actions {
+        width: 100%;
+    }
+
+    .refresh-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .sections-grid,
+    .sections-grid.three-cols {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
