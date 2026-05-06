@@ -94,3 +94,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   }
 });
 contextBridge.exposeInMainWorld('monoFileSearch', fileSearchBridge);
+
+const workspaceBridge = {
+  getOpenWindows: () => ipcRenderer.invoke('workspace:getOpenWindows'),
+  getRunningApps: () => ipcRenderer.invoke('workspace:getRunningApps'),
+  save: (name, windows) => ipcRenderer.invoke('workspace:save', name, windows),
+  list: () => ipcRenderer.invoke('workspace:list'),
+  load: (filepath) => ipcRenderer.invoke('workspace:load', filepath),
+  delete: (filepath) => ipcRenderer.invoke('workspace:delete', filepath),
+  restore: (workspace) => ipcRenderer.invoke('workspace:restore', workspace)
+};
+
+contextBridge.exposeInMainWorld('monoWorkspace', workspaceBridge);

@@ -31,6 +31,12 @@ export const TOOL_CONFIG = {
       category: '实用工具'
     },
     {
+      id: 'workspace',
+      name: '工作空间',
+      description: '保存和还原工作区布局',
+      category: '实用工具'
+    },
+    {
       id: 'unit-converter',
       name: '单位转换',
       description: '各种单位之间的转换',

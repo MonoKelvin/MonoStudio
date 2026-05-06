@@ -20,6 +20,7 @@ import InspirationToolView from '../tools/inspiration/InspirationToolView.vue';
 import WorkNotesToolView from '../tools/work-notes/WorkNotesToolView.vue';
 import MusingsToolView from '../tools/musings/MusingsToolView.vue';
 import JapaneseLearningToolView from '../tools/japanese-learning/JapaneseLearningToolView.vue';
+import WorkspaceToolView from '../tools/workspace/WorkspaceToolView.vue';
 import SettingsToolView from '../tools/settings/SettingsToolView.vue';
 import PasswordGate from '../../components/PasswordGate.vue';
 import { TOOL_CONFIG } from '../../config/toolConfig';
@@ -83,7 +84,8 @@ export function useTools() {
       'inspiration': InspirationToolView,
       'work-notes': WorkNotesToolView,
       'musings': MusingsToolView,
-      'japanese-learning': JapaneseLearningToolView
+      'japanese-learning': JapaneseLearningToolView,
+      'workspace': WorkspaceToolView
     }[tool.id])
   }));
 

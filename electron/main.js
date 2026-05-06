@@ -9,6 +9,7 @@ const { createWindow } = require('./windowManager');
 const fileSearch = require('./fileSearch');
 const pathManager = require('./userDataPathManager');
 const userDataStorage = require('./userDataStorage');
+const workspaceManager = require('./workspaceManager');
 
 // 存储搜索状态
 let activeSearchIds = new Set();
@@ -159,6 +160,35 @@ app.whenReady().then(async () => {
 
     ipcMain.handle('file-search:get-info', async (_, filePath) => {
       return fileSearch.getFileInfo(filePath);
+    });
+
+    // 工作空间管理
+    ipcMain.handle('workspace:getOpenWindows', async () => {
+      return workspaceManager.getOpenWindows();
+    });
+
+    ipcMain.handle('workspace:getRunningApps', async () => {
+      return workspaceManager.getRunningApps();
+    });
+
+    ipcMain.handle('workspace:save', async (_, name, windows) => {
+      return workspaceManager.saveWorkspace(name, windows);
+    });
+
+    ipcMain.handle('workspace:list', async () => {
+      return workspaceManager.loadWorkspaces();
+    });
+
+    ipcMain.handle('workspace:load', async (_, filepath) => {
+      return workspaceManager.loadWorkspaceData(filepath);
+    });
+
+    ipcMain.handle('workspace:delete', async (_, filepath) => {
+      return workspaceManager.deleteWorkspace(filepath);
+    });
+
+    ipcMain.handle('workspace:restore', async (_, workspace) => {
+      return workspaceManager.restoreWorkspace(workspace);
     });
 
     ipcMain.handle('settings:get', async () => getSettings());
