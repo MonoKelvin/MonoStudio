@@ -5,7 +5,6 @@ import { N2_VOCABULARY } from '../../../../assets/data/japanese/vocabulary/n2.js
 import { N1_VOCABULARY } from '../../../../assets/data/japanese/vocabulary/n1.js';
 
 const FAVORITES_KEY = 'japanese-vocab-favorites';
-const BATCH_SIZE = 100;
 
 let vocabularyCache = {
   n5: null,
@@ -124,16 +123,12 @@ export function useVocabularyService() {
     });
   };
 
-  const getPaginatedVocabulary = async (level, filters, page = 0) => {
+  const getAllVocabulary = async (level, filters) => {
     const vocabulary = await loadVocabulary(level);
     const filtered = filterVocabulary(vocabulary, filters);
-    const start = page * BATCH_SIZE;
-    const end = start + BATCH_SIZE;
     return {
-      items: filtered.slice(start, end),
-      total: filtered.length,
-      hasMore: end < filtered.length,
-      page
+      items: filtered,
+      total: filtered.length
     };
   };
 
@@ -143,9 +138,6 @@ export function useVocabularyService() {
     isFavorite,
     loadVocabulary,
     filterVocabulary,
-    getPaginatedVocabulary,
-    BATCH_SIZE
+    getAllVocabulary
   };
 }
-
-export { BATCH_SIZE };
