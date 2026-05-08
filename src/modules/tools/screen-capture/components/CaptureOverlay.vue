@@ -1,43 +1,36 @@
 <template>
-    <div class="capture-overlay" v-if="isVisible" @mousemove="handleMouseMove" @mousedown="handleMouseDown"
-        @mouseup="handleMouseUp" @keyup="handleKeyUp" tabindex="0">
-        <!-- 暗色背景画布 -->
-        <canvas ref="canvasRef" class="capture-canvas"></canvas>
+    <Teleport to="body">
+        <div v-if="isVisible" class="capture-overlay" @click="handleOverlayClick" @contextmenu.prevent>
+            <!-- 暗色背景层 -->
+            <div class="overlay-background"></div>
 
-        <!-- 十字线 -->
-        <div class="crosshair" :style="crosshairStyle">
-            <div class="crosshair-h"></div>
-            <div class="crosshair-v"></div>
-        </div>
+            <!-- 画布层 -->
+            <canvas ref="canvasRef" class="overlay-canvas"></canvas>
 
-        <!-- 工具栏 -->
-        <div class="overlay-toolbar">
-            <div class="toolbar-hint">
-                <span v-if="captureType === 'region'">拖动绘制区域，按 ESC 取消</span>
-                <span v-else-if="captureType === 'window'">点击窗口进行选择，按 ESC 取消</span>
-                <span v-else>拖动选择区域，按 ESC 取消</span>
+            <!-- 十字线 -->
+            <div v-if="showCrosshair" class="crosshair" :style="crosshairStyle">
+                <div class="crosshair-line crosshair-horizontal"></div>
+                <div class="crosshair-line crosshair-vertical"></div>
+                <div class="crosshair-center"></div>
             </div>
-            <BaseButton size="sm" variant="default" @click="handleCancel">
-                取消
-            </BaseButton>
-        </div>
 
-        <!-- 尺寸提示 -->
-        <div v-if="selectionRect" class="size-tooltip" :style="tooltipStyle">
-            {{ selectionRect.width }} × {{ selectionRect.height }}
+            <!-- 操作提示 -->
+            <div class="capture-hints">
+                <span class="hint-text">拖拽选择区域</span>
+                <span class="hint-divider">|</span>
+                <span class="hint-text">ESC 取消</span>
+                <span class="hint-divider">|</span>
+                <span class="hint-text">双击确认</span>
+            </div>
         </div>
-    </div>
+    </Teleport>
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
-import BaseButton from '../../../../components/base/BaseButton.vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 
 export default {
     name: 'CaptureOverlay',
-    components: {
-        BaseButton
-    },
     props: {
         isVisible: {
             type: Boolean,
@@ -45,33 +38,29 @@ export default {
         },
         captureType: {
             type: String,
-            default: 'fullscreen'
+            default: 'region'
         }
     },
-    emits: ['select', 'cancel', 'window-select'],
+    emits: ['select', 'cancel'],
     setup(props, { emit }) {
         const canvasRef = ref(null)
-        const mouseX = ref(0)
-        const mouseY = ref(0)
-        const isDrawing = ref(false)
-        const startPoint = ref({ x: 0, y: 0 })
+        const isDragging = ref(false)
+        const showCrosshair = ref(true)
+        const mousePosition = ref({ x: 0, y: 0 })
+        const startPosition = ref({ x: 0, y: 0 })
         const selectionRect = ref(null)
         const drawnPoints = ref([])
 
         // 十字线样式
         const crosshairStyle = computed(() => ({
-            left: `${mouseX.value}px`,
-            top: `${mouseY.value}px`
+            left: `${mousePosition.value.x}px`,
+            top: `${mousePosition.value.y}px`
         }))
 
-        // 尺寸提示样式
-        const tooltipStyle = computed(() => {
-            if (!selectionRect.value) return {}
-            return {
-                left: `${selectionRect.value.x + selectionRect.value.width / 2}px`,
-                top: `${selectionRect.value.y - 30}px`
-            }
-        })
+        // 获取主题色
+        const getAccentColor = () => {
+            return getComputedStyle(document.documentElement).getPropertyValue('--accent-color') || '#4f46e5'
+        }
 
         // 初始化画布
         const initCanvas = () => {
@@ -80,17 +69,13 @@ export default {
 
             canvas.width = window.innerWidth
             canvas.height = window.innerHeight
-
-            const ctx = canvas.getContext('2d')
-            // 绘制半透明黑色背景
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
-            ctx.fillRect(0, 0, canvas.width, canvas.height)
         }
 
-        // 清除画布
+        // 清空画布
         const clearCanvas = () => {
             const canvas = canvasRef.value
             if (!canvas) return
+
             const ctx = canvas.getContext('2d')
             ctx.clearRect(0, 0, canvas.width, canvas.height)
         }
@@ -98,117 +83,83 @@ export default {
         // 重绘画布
         const redrawCanvas = () => {
             clearCanvas()
+
             const canvas = canvasRef.value
+            if (!canvas) return
+
             const ctx = canvas.getContext('2d')
+            const accentColor = getAccentColor()
 
-            // 绘制半透明背景
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
-            ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-            // 如果有选中区域，清除该区域的遮罩（使其变亮）
+            // 绘制暗色背景（通过div实现，这里只绘制选区）
             if (selectionRect.value) {
-                ctx.clearRect(
-                    selectionRect.value.x,
-                    selectionRect.value.y,
-                    selectionRect.value.width,
-                    selectionRect.value.height
-                )
+                const { x, y, width, height } = selectionRect.value
 
-                // 绘制选中区域的边框
-                ctx.strokeStyle = 'var(--accent-color)'
+                // 清除选区区域显示原始内容
+                ctx.clearRect(x, y, width, height)
+
+                // 绘制选区边框
+                ctx.strokeStyle = accentColor
                 ctx.lineWidth = 2
-                ctx.strokeRect(
-                    selectionRect.value.x,
-                    selectionRect.value.y,
-                    selectionRect.value.width,
-                    selectionRect.value.height
-                )
+                ctx.strokeRect(x, y, width, height)
+
+                // 绘制角落标记
+                const cornerSize = 10
+                ctx.fillStyle = accentColor
+
+                // 左上角
+                ctx.fillRect(x - 2, y - 2, cornerSize, 2)
+                ctx.fillRect(x - 2, y - 2, 2, cornerSize)
+                // 右上角
+                ctx.fillRect(x + width - cornerSize, y - 2, cornerSize, 2)
+                ctx.fillRect(x + width - 2, y - 2, 2, cornerSize)
+                // 左下角
+                ctx.fillRect(x - 2, y + height - cornerSize, cornerSize, 2)
+                ctx.fillRect(x - 2, y + height - 2, 2, cornerSize)
+                // 右下角
+                ctx.fillRect(x + width - cornerSize, y + height - cornerSize, cornerSize, 2)
+                ctx.fillRect(x + width - 2, y + height - 2, 2, cornerSize)
             }
 
-            // 如果有绘制的点（区域截图模式）
-            if (drawnPoints.value.length > 0) {
+            // 如果是自由绘制模式，绘制路径
+            if (drawnPoints.value.length > 1) {
                 ctx.beginPath()
                 ctx.moveTo(drawnPoints.value[0].x, drawnPoints.value[0].y)
+
                 for (let i = 1; i < drawnPoints.value.length; i++) {
                     ctx.lineTo(drawnPoints.value[i].x, drawnPoints.value[i].y)
                 }
-                ctx.strokeStyle = 'var(--accent-color)'
+
+                ctx.strokeStyle = accentColor
                 ctx.lineWidth = 2
                 ctx.stroke()
-            }
-        }
 
-        // 鼠标移动处理
-        const handleMouseMove = (e) => {
-            mouseX.value = e.clientX
-            mouseY.value = e.clientY
-
-            if (isDrawing.value) {
-                const width = e.clientX - startPoint.value.x
-                const height = e.clientY - startPoint.value.y
-
-                selectionRect.value = {
-                    x: width > 0 ? startPoint.value.x : e.clientX,
-                    y: height > 0 ? startPoint.value.y : e.clientY,
-                    width: Math.abs(width),
-                    height: Math.abs(height)
+                // 计算并显示包围盒
+                const bounds = calculateBoundingBox(drawnPoints.value)
+                if (bounds) {
+                    ctx.strokeStyle = accentColor
+                    ctx.lineWidth = 1
+                    ctx.setLineDash([5, 5])
+                    ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height)
+                    ctx.setLineDash([])
                 }
-
-                redrawCanvas()
             }
-
-            // 窗口模式下高亮检测到的窗口
-            if (props.captureType === 'window') {
-                detectWindowAt(e.clientX, e.clientY)
-            }
-        }
-
-        // 鼠标按下处理
-        const handleMouseDown = (e) => {
-            if (e.button !== 0) return // 只处理左键
-
-            isDrawing.value = true
-            startPoint.value = { x: e.clientX, y: e.clientY }
-
-            if (props.captureType === 'region') {
-                drawnPoints.value = [{ x: e.clientX, y: e.clientY }]
-            }
-        }
-
-        // 鼠标松开处理
-        const handleMouseUp = (e) => {
-            if (!isDrawing.value) return
-
-            isDrawing.value = false
-
-            if (props.captureType === 'region') {
-                // 区域截图：计算包围盒
-                const boundingBox = calculateBoundingBox(drawnPoints.value)
-                if (boundingBox && boundingBox.width > 10 && boundingBox.height > 10) {
-                    emit('select', boundingBox)
-                }
-            } else if (selectionRect.value &&
-                selectionRect.value.width > 10 &&
-                selectionRect.value.height > 10) {
-                // 矩形截图
-                emit('select', selectionRect.value)
-            }
-
-            selectionRect.value = null
-            drawnPoints.value = []
         }
 
         // 计算包围盒
         const calculateBoundingBox = (points) => {
             if (!points || points.length < 2) return null
 
-            const xs = points.map(p => p.x)
-            const ys = points.map(p => p.y)
+            let minX = points[0].x
+            let minY = points[0].y
+            let maxX = points[0].x
+            let maxY = points[0].y
 
-            const minX = Math.min(...xs)
-            const maxX = Math.max(...xs)
-            const minY = Math.min(...ys)
-            const maxY = Math.max(...ys)
+            for (const point of points) {
+                minX = Math.min(minX, point.x)
+                minY = Math.min(minY, point.y)
+                maxX = Math.max(maxX, point.x)
+                maxY = Math.max(maxY, point.y)
+            }
 
             return {
                 x: minX,
@@ -218,39 +169,75 @@ export default {
             }
         }
 
-        // 检测窗口
-        const detectWindowAt = (x, y) => {
-            // 这里需要调用 Electron API 获取窗口信息
-            // 暂时模拟窗口检测
-            const mockWindow = {
-                x: Math.floor(x / 100) * 100,
-                y: Math.floor(y / 100) * 100,
-                width: 400,
-                height: 300,
-                title: '窗口'
+        // 鼠标移动处理
+        const handleMouseMove = (e) => {
+            mousePosition.value = { x: e.clientX, y: e.clientY }
+
+            if (isDragging.value) {
+                const width = Math.abs(e.clientX - startPosition.value.x)
+                const height = Math.abs(e.clientY - startPosition.value.y)
+                const x = Math.min(e.clientX, startPosition.value.x)
+                const y = Math.min(e.clientY, startPosition.value.y)
+
+                selectionRect.value = { x, y, width, height }
+                redrawCanvas()
             }
-
-            // 高亮检测到的窗口
-            const canvas = canvasRef.value
-            const ctx = canvas.getContext('2d')
-
-            redrawCanvas()
-
-            // 绘制窗口高亮边框
-            ctx.strokeStyle = 'var(--accent-color)'
-            ctx.lineWidth = 3
-            ctx.strokeRect(mockWindow.x, mockWindow.y, mockWindow.width, mockWindow.height)
-
-            // 清除窗口内部的遮罩
-            ctx.clearRect(mockWindow.x, mockWindow.y, mockWindow.width, mockWindow.height)
         }
 
-        // 取消截图
-        const handleCancel = () => {
-            isDrawing.value = false
+        // 鼠标按下处理
+        const handleMouseDown = (e) => {
+            if (e.button !== 0) return // 只响应左键
+
+            isDragging.value = true
+            startPosition.value = { x: e.clientX, y: e.clientY }
             selectionRect.value = null
             drawnPoints.value = []
-            emit('cancel')
+
+            if (props.captureType === 'region') {
+                // 自由绘制模式
+                drawnPoints.value.push({ x: e.clientX, y: e.clientY })
+            }
+        }
+
+        // 鼠标松开处理
+        const handleMouseUp = (e) => {
+            if (!isDragging.value) return
+
+            isDragging.value = false
+
+            if (props.captureType === 'region' && drawnPoints.value.length > 1) {
+                // 自由绘制模式：计算包围盒
+                const bounds = calculateBoundingBox(drawnPoints.value)
+                if (bounds && bounds.width > 10 && bounds.height > 10) {
+                    emit('select', bounds)
+                }
+            } else if (selectionRect.value && selectionRect.value.width > 10 && selectionRect.value.height > 10) {
+                // 矩形选择模式
+                emit('select', selectionRect.value)
+            }
+
+            selectionRect.value = null
+            drawnPoints.value = []
+        }
+
+        // 双击处理
+        const handleDoubleClick = () => {
+            if (selectionRect.value && selectionRect.value.width > 10 && selectionRect.value.height > 10) {
+                emit('select', selectionRect.value)
+            } else if (drawnPoints.value.length > 1) {
+                const bounds = calculateBoundingBox(drawnPoints.value)
+                if (bounds && bounds.width > 10 && bounds.height > 10) {
+                    emit('select', bounds)
+                }
+            }
+        }
+
+        // 遮罩层点击处理
+        const handleOverlayClick = (e) => {
+            // 如果点击的是遮罩层本身（不是canvas或crosshair），取消截图
+            if (e.target === e.currentTarget) {
+                handleCancel()
+            }
         }
 
         // 键盘事件处理
@@ -260,27 +247,62 @@ export default {
             }
         }
 
-        onMounted(() => {
-            nextTick(() => {
+        // 取消截图
+        const handleCancel = () => {
+            clearCanvas()
+            selectionRect.value = null
+            drawnPoints.value = []
+            emit('cancel')
+        }
+
+        // 监听可见性变化
+        watch(() => props.isVisible, (visible) => {
+            if (visible) {
+                showCrosshair.value = true
                 initCanvas()
+                window.addEventListener('mousemove', handleMouseMove)
+                window.addEventListener('mousedown', handleMouseDown)
+                window.addEventListener('mouseup', handleMouseUp)
+                window.addEventListener('dblclick', handleDoubleClick)
                 window.addEventListener('keyup', handleKeyUp)
-            })
+                window.addEventListener('resize', initCanvas)
+            } else {
+                showCrosshair.value = false
+                clearCanvas()
+                window.removeEventListener('mousemove', handleMouseMove)
+                window.removeEventListener('mousedown', handleMouseDown)
+                window.removeEventListener('mouseup', handleMouseUp)
+                window.removeEventListener('dblclick', handleDoubleClick)
+                window.removeEventListener('keyup', handleKeyUp)
+                window.removeEventListener('resize', initCanvas)
+            }
+        })
+
+        onMounted(() => {
+            if (props.isVisible) {
+                initCanvas()
+            }
         })
 
         onUnmounted(() => {
+            window.removeEventListener('mousemove', handleMouseMove)
+            window.removeEventListener('mousedown', handleMouseDown)
+            window.removeEventListener('mouseup', handleMouseUp)
+            window.removeEventListener('dblclick', handleDoubleClick)
             window.removeEventListener('keyup', handleKeyUp)
+            window.removeEventListener('resize', initCanvas)
         })
 
         return {
             canvasRef,
-            mouseX,
-            mouseY,
-            selectionRect,
+            showCrosshair,
+            mousePosition,
             crosshairStyle,
-            tooltipStyle,
             handleMouseMove,
             handleMouseDown,
             handleMouseUp,
+            handleDoubleClick,
+            handleOverlayClick,
             handleKeyUp,
             handleCancel
         }
@@ -297,72 +319,86 @@ export default {
     height: 100vh;
     z-index: 99999;
     cursor: crosshair;
-    outline: none;
+    overflow: hidden;
 }
 
-.capture-canvas {
+.overlay-background {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    background: rgba(0, 0, 0, 0.5);
 }
 
+.overlay-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* 十字线样式 */
 .crosshair {
     position: absolute;
     pointer-events: none;
     transform: translate(-50%, -50%);
+    z-index: 10;
 }
 
-.crosshair-h {
+.crosshair-line {
     position: absolute;
+    background: var(--accent-color);
+}
+
+.crosshair-horizontal {
     width: 100vw;
     height: 1px;
-    background: var(--accent-color);
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: -50vw;
 }
 
-.crosshair-v {
-    position: absolute;
+.crosshair-vertical {
     width: 1px;
     height: 100vh;
-    background: var(--accent-color);
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    top: -50vh;
+    left: 0;
 }
 
-.overlay-toolbar {
-    position: fixed;
-    bottom: 40px;
+.crosshair-center {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    top: -6px;
+    left: -6px;
+    border: 2px solid var(--accent-color);
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* 操作提示 */
+.capture-hints {
+    position: absolute;
+    bottom: 32px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 12px 24px;
-    background: var(--bg-elevated);
-    border-radius: var(--radius-md);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    z-index: 100000;
+    gap: 12px;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
 }
 
-.toolbar-hint {
+.hint-text {
     font-size: 13px;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.8);
 }
 
-.size-tooltip {
-    position: absolute;
-    padding: 4px 8px;
-    background: var(--accent-color);
-    color: white;
-    font-size: 12px;
-    border-radius: var(--radius-sm);
-    pointer-events: none;
-    transform: translate(-50%, 0);
-    z-index: 100001;
+.hint-divider {
+    color: rgba(255, 255, 255, 0.4);
 }
 </style>
