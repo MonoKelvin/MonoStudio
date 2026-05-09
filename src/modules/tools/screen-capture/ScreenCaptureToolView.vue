@@ -104,7 +104,7 @@ export default {
                     // 全屏截图直接执行
                     const result = await screenCaptureService.captureFullscreen()
                     capturedImage.value = result.imageData
-                    toastService.success('截图成功', '成功')
+                    toastService.success('截图成功', { title: '成功' })
                 } else {
                     // 窗口和区域截图显示遮罩层
                     showOverlay.value = true
@@ -112,7 +112,7 @@ export default {
             } catch (error) {
                 console.error('截图失败:', error)
                 if (error.name !== 'NotAllowedError') {
-                    toastService.error('截图失败: ' + error.message, '错误')
+                    toastService.error('截图失败: ' + error.message, { title: '错误' })
                 }
             } finally {
                 if (captureType.value === 'fullscreen') {
@@ -128,10 +128,10 @@ export default {
             try {
                 const result = await screenCaptureService.captureRegion(region)
                 capturedImage.value = result.imageData
-                toastService.success('截图成功', '成功')
+                toastService.success('截图成功', { title: '成功' })
             } catch (error) {
                 console.error('截图失败:', error)
-                toastService.error('截图失败: ' + error.message, '错误')
+                toastService.error('截图失败: ' + error.message, { title: '错误' })
             } finally {
                 isCapturing.value = false
             }
