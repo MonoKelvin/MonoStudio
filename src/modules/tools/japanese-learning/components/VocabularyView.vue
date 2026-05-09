@@ -32,14 +32,7 @@
             <VocabularyCard v-for="(word, idx) in words" :key="word[0]" :item="word"
                 :is-favorite="isFavorite(word[0])" @toggle-favorite="handleToggleFavorite" />
 
-            <div v-if="hasMore" class="load-more-trigger" ref="loadMoreRef">
-                <div class="loading-spinner" v-if="loading">
-                    <div class="spinner"></div>
-                    <span>加载更多...</span>
-                </div>
-            </div>
-
-            <div class="end-message" v-if="!hasMore && words.length > 0">
+            <div class="end-message" v-if="words.length > 0">
                 已显示全部 {{ words.length }} 个单词
             </div>
         </div>
@@ -63,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useVocabularyService } from '../services/vocabularyService.js';
 import { VOCABULARY_CATEGORIES, SCENE_CATEGORIES, PARTS_OF_SPEECH } from '../../../../assets/data/japanese/vocabulary/categories.js';
 import SearchInput from '../../../../components/base/SearchInput.vue';
@@ -76,12 +69,10 @@ const {
     getFavorites,
     toggleFavorite,
     isFavorite: checkIsFavorite,
-    getPaginatedVocabulary
+    getAllVocabulary
 } = useVocabularyService();
 
 const levels = ['n5', 'n4', 'n3', 'n2', 'n1'];
-const containerRef = ref(null);
-const loadMoreRef = ref(null);
 
 const selectedLevel = ref('n5');
 const selectedCategories = ref([]);
@@ -89,9 +80,7 @@ const selectedPartOfSpeech = ref('');
 const showFavoritesOnly = ref(false);
 const searchQuery = ref('');
 const words = ref([]);
-const page = ref(0);
 const totalWords = ref(0);
-const hasMore = ref(true);
 const loading = ref(false);
 const favoritesCount = ref(0);
 
@@ -186,33 +175,10 @@ const loadVocabulary = async () => {
         favoritesOnly: showFavoritesOnly.value
     };
 
-    const result = await getPaginatedVocabulary(selectedLevel.value, filters, 0);
+    const result = await getAllVocabulary(selectedLevel.value, filters);
 
     words.value = result.items;
     totalWords.value = result.total;
-    hasMore.value = result.hasMore;
-    page.value = 0;
-    loading.value = false;
-};
-
-const loadMore = async () => {
-    if (loading.value || !hasMore.value) return;
-
-    loading.value = true;
-
-    const filters = {
-        categories: selectedCategories.value,
-        partOfSpeech: selectedPartOfSpeech.value,
-        search: searchQuery.value,
-        favoritesOnly: showFavoritesOnly.value
-    };
-
-    const nextPage = page.value + 1;
-    const result = await getPaginatedVocabulary(selectedLevel.value, filters, nextPage);
-
-    words.value = [...words.value, ...result.items];
-    hasMore.value = result.hasMore;
-    page.value = nextPage;
     loading.value = false;
 };
 
@@ -225,35 +191,16 @@ const resetFilters = () => {
     loadVocabulary();
 };
 
-const setupInfiniteScroll = () => {
-    if (!loadMoreRef.value) return;
-
-    const observer = new IntersectionObserver(
-        (entries) => {
-            if (entries[0].isIntersecting && hasMore.value && !loading.value) {
-                loadMore();
-            }
-        },
-        { threshold: 0.1 }
-    );
-
-    observer.observe(loadMoreRef.value);
-
-    return observer;
-};
-
 onMounted(() => {
     loadVocabulary();
     favoritesCount.value = getFavorites().length;
-    nextTick(() => {
-        setupInfiniteScroll();
-    });
 });
 </script>
 
 <style scoped>
 .vocabulary-view {
-    padding: var(--spacing-xs) var(--spacing-lg);
+    padding-right: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
     max-height: 100%;
     overflow-y: auto;
 }
@@ -341,7 +288,7 @@ onMounted(() => {
 }
 
 .category-btn.active {
-    background: var(--accent-secondary);
+    background: var(--accent-color);
     color: white;
 }
 
@@ -349,6 +296,7 @@ onMounted(() => {
     display: flex;
     flex-wrap: wrap;
     gap: var(--spacing-md);
+    justify-content: flex-start;
 }
 
 .load-more-trigger {

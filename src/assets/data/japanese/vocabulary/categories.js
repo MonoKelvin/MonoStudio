@@ -2,27 +2,27 @@ export const VOCABULARY_CATEGORIES = {
   n5: {
     name: 'N5',
     description: '初级日语',
-    categories: ['numbers', 'time', 'people', 'colors', 'food', 'daily-life', 'places', 'nature', 'body', 'question-words']
+    categories: ['numbers', 'time', 'people', 'colors', 'food', 'daily-life', 'places', 'nature', 'body', 'question-words', 'verbs', 'adjectives', 'furniture', 'animals', 'transportation', 'daily-conversation', 'pronouns', 'travel', 'sports', 'art', 'entertainment', 'business', 'education', 'adverbs']
   },
   n4: {
     name: 'N4',
     description: '基础日语',
-    categories: ['daily-conversation', 'activities', 'emotions', 'society', 'shopping', 'travel', 'weather', 'adjectives', 'verbs']
+    categories: ['daily-conversation', 'activities', 'emotions', 'society', 'shopping', 'travel', 'weather', 'adjectives', 'verbs', 'time', 'food', 'pronouns', 'daily-life', 'nature', 'places', 'adverbs', 'people', 'colors', 'animals', 'art', 'transportation', 'sports', 'education', 'business', 'numbers', 'body', 'furniture', 'entertainment']
   },
   n3: {
     name: 'N3',
     description: '中级日语',
-    categories: ['work', 'media', 'relationships', 'lifestyle', 'culture', 'health', 'education', 'environment']
+    categories: ['work', 'media', 'relationships', 'lifestyle', 'culture', 'health', 'education', 'environment', 'people', 'verbs', 'adjectives', 'daily-life', 'adverbs', 'furniture', 'nature', 'time', 'business', 'transportation', 'food', 'places', 'daily-conversation', 'art', 'animals', 'entertainment', 'sports', 'pronouns', 'numbers', 'body']
   },
   n2: {
     name: 'N2',
     description: '中高级日语',
-    categories: ['business', 'politics', 'economics', 'technology', 'social-issues', 'abstract-concepts', 'formal-expressions']
+    categories: ['business', 'politics', 'economics', 'technology', 'social-issues', 'abstract-concepts', 'formal-expressions', 'daily-life', 'verbs', 'body', 'adverbs', 'adjectives', 'time', 'food', 'transportation', 'education', 'people', 'nature', 'places']
   },
   n1: {
     name: 'N1',
     description: '高级日语',
-    categories: ['academic', 'literature', 'philosophy', 'complex-expressions', 'idioms', 'advanced-vocabulary']
+    categories: ['academic', 'literature', 'philosophy', 'complex-expressions', 'idioms', 'advanced-vocabulary', 'daily-life', 'verbs', 'adverbs', 'adjectives', 'daily-conversation', 'time', 'people', 'pronouns', 'education', 'nature', 'body', 'business', 'transportation', 'food', 'entertainment', 'places', 'art', 'numbers', 'travel', 'colors', 'animals', 'sports', 'furniture']
   }
 };
 
