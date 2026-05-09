@@ -68,12 +68,13 @@ npm run desktop:pack
 - Tools are loaded lazily when selected
 
 **Tool Categories**
-- 个人生活 (Personal Life) - Inspiration, Work Notes, Musings
-- 实用工具 (Utilities) - Password Generator, Unit Converter, Time Tools
-- 系统工具 (System) - Desktop Icons, File Search, System Info
-- 开发工具 (Developer) - GUID Generator, JSON Formatter, Base64
-- 媒体工具 (Media) - Image/Video/Audio Converters, Screen Capture
-- 学习 (Learning) - Japanese Learning tools
+- 个人生活 (Personal Life) - 灵感碎片(Inspiration), 工作手记(Work Notes), 随想录(Musings)
+- 实用工具 (Utilities) - 密码生成器(Password Generator), 单位转换(Unit Converter), 时间工具(Time Tools), 文件哈希(File Hasher)
+- 系统工具 (System) - 桌面图标管理(Desktop Icons), 文件搜索(File Search), 系统信息(System Info), 网络工具(Network Tools), 进程管理(Process Manager)
+- 开发工具 (Developer) - GUID生成器(GUID Generator), JSON格式化(JSON Formatter), Base64工具(Base64 Encoder), 正则表达式测试(Regex Tester)
+- 媒体工具 (Media) - 图片转换(Image Converter), 视频转换(Video Converter), 音频工具(Audio Tools), 屏幕截图(Screen Capture)
+- 学习 (Learning) - 日语学习(Japanese Learning)
+- 设置 (Settings) - 应用设置、个性化、关于信息
 
 **Personal Life Protection**
 - Tools in "个人生活" category are locked behind password
@@ -86,6 +87,14 @@ npm run desktop:pack
 - Tools use `ToolView.vue` as main component
 - Props: `tool-name`, `tool-description`, `theme-mode`, `theme-options`
 - Events: `change-theme`, `change-accent-color`, etc.
+
+**Screen Capture Tool Architecture**
+- **Service Layer**: `src/modules/tools/screen-capture/services/ScreenCaptureService.js` - Core business logic for capture operations
+- **UI Components**:
+  - `CaptureOverlay.vue` - Fullscreen overlay with dark background and crosshair
+  - `ScreenCaptureToolView.vue` - Main tool interface
+- **Shared Components**: `BaseImageView.vue` - Reusable image viewer with zoom, save, and copy functionality
+- **Capture Modes**: Fullscreen, Window, and Region capture with bounding box calculation
 
 **IPC Communication**
 - Main and renderer communicate via Electron's IPC API
