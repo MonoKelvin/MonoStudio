@@ -50,6 +50,8 @@ async function createWindow() {
     console.error('Failed to get window state:', e);
   }
   
+  const iconPath = path.join(__dirname, '../src/assets/app/logo-256x256.png');
+
   const mainWindow = new BrowserWindow({
     x: windowState?.x,
     y: windowState?.y,
@@ -65,6 +67,7 @@ async function createWindow() {
     backgroundColor: '#0b0d10',
     autoHideMenuBar: true,
     titleBarStyle: 'hidden',
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,

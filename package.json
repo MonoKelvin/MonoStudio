@@ -59,11 +59,13 @@
         },
         "files": [
             "dist/**/*",
-            "electron/**/*"
+            "electron/**/*",
+            "src/assets/app/**/*"
         ],
         "win": {
             "target": "portable",
-            "signAndEditExecutable": false
+            "signAndEditExecutable": false,
+            "icon": "src/assets/app/logo-256x256.png"
         },
         "portable": {
             "artifactName": "MonoStudio-${version}.exe"
