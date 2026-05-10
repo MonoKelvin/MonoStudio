@@ -1,9 +1,13 @@
 # MonoStudio
 
+<p align="center">
+  <img src="./src/assets/app/logo-256x256.png" width="128" height="128" alt="MonoStudio Logo">
+</p>
+
 MonoStudio是一个连开发者都不知道全部功能的神奇工具箱，基于Electron和Vue构建，为用户提供多种实用工具，帮助提高工作效率和生活质量。本项目全部代码由AI赛博打工人生成，开发者负责取餐和整合。鼠鼠我呀，真的一行代码都不想写了～ (￣ω￣)
 
 ### 使用的AI工具
-- [Trae](https://trae.io) - 智能开发助手
+- [Trae](https://www.trae.cn/) - 智能开发助手
 - [Cursor](https://cursor.sh) - AI代码编辑器
 - [DeepSeek](https://deepseek.com) - 深度求索AI
 
